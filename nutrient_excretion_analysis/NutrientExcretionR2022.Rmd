@@ -1,0 +1,714 @@
+---
+title: "NutrientExcretionR2022"
+author: "Emilie Diesbourg"
+date: "16/05/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Loading packages and data {.tabset}
+
+```{r}
+#rm(list=ls()) #clears R environment
+
+#setwd("Nutrient_excretion_ED")
+library(dplyr)
+library(FSA)
+library(ggplot2)
+library(tidyverse)
+library(car)
+library(lme4)
+library(lmerTest)
+library(multcomp)
+library(AICcmodavg)
+library(ggbreak)
+library(emmeans)
+library(ggsignif)
+library(ggpubr)
+
+Nut_data<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Nutrient_excretion_ED\\NutrientExcretionR2022.csv")
+
+Nut_data$Site <- factor(Nut_data$Site, levels = c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "BBR2", "PCR1", "PCR3"), labels=c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "REF", "EXP5", "EXP15"))
+Nut_data$Type<-factor(Nut_data$Type, levels = c("Bow River", "ACWA Stream"))
+Nut_data$Length<-as.numeric(Nut_data$Length)
+Nut_data$Mass<-as.numeric(Nut_data$Mass)
+Nut_data$P_Mass<-as.numeric(Nut_data$P_Mass)
+Nut_data$NH3_Mass<-as.numeric(Nut_data$NH3_Mass)
+Nut_data$Excr_rate_P<-as.numeric(Nut_data$Excr_rate_P)
+Nut_data$Excr_rate_NH3<-as.numeric(Nut_data$Excr_rate_NH3)
+Nut_data$Water_Temp<-as.factor(Nut_data$Water_Temp)
+Nut_data$Dissolved_oxygen<-as.numeric(Nut_data$Dissolved_oxygen)
+Nut_data$TP<-as.numeric(Nut_data$TP)
+Nut_data$TDS<-as.numeric(Nut_data$TDS)
+Nut_data$TSS<-as.numeric(Nut_data$TSS)
+Nut_data$Ammonia.1<-as.numeric(Nut_data$Ammonia.1)
+Nut_data$Site<-as.factor(Nut_data$Site)
+Nut_data$Month<-as.factor(Nut_data$Month)
+str(Nut_data)
+
+Nut_samples<-filter(Nut_data, Sample_Type=="Sample")
+
+
+July<-filter(Nut_samples, Month=="July")
+September<-filter(Nut_samples, Month=="September")
+
+Cochrane<-filter(Nut_samples, Site=="Cochrane")
+Cochjuly<-filter(July, Site=="Cochrane")
+Cochsept<-filter(September, Site=="Cochrane")
+
+Sunalta<-filter(Nut_samples, Site=="Sunalta")
+Sunjuly<-filter(July, Site=="Sunalta")
+Sunsept<-filter(September, Site=="Sunalta")
+
+pmf<-filter(Nut_samples, Site=="Policeman Flats")
+pmfjuly<-filter(July, Site=="Policeman Flats")
+pmfsept<-filter(September, Site=="Policeman Flats")
+
+nut_Bow<-subset(Nut_samples, Type=="Bow River")
+nut_ACWA<-subset(Nut_samples, Type=="ACWA Stream")
+```
+
+# Phosphorus Data {.tabset}
+
+## Preliminary plots and Wilcoxon tests of PO4-P excretion across sites
+```{r}
+#Total phosphorus concentration (- blank phosphorus concentration) divided by the total mass 
+#of organisms in each tube at each site, divided by the time the organisms were in each tube. 
+#(Rate of excretion) 
+
+#Mass normalized excretion rate across sites (boxplot)
+
+ggplot(Nut_samples, aes(x=Site, y=Excr_rate_P, colour=Month))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab("Phosphorus (ug/L/mg/min)")+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  facet_grid(~Type, scales = "free")
+#Looks like not much difference across sampling months but a difference at Policeman Flats compared to other sites
+
+#Not mass normalized excretion rate across sites (boxplot)
+ggplot(Nut_samples, aes(x=Site, y=org_rate_P, colour=Month))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab("Phosphorus (ug/L/min)")+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  facet_grid(~Type, scales = "free")
+#Looks like less of a difference across sites when not mass normalized
+
+#Excretion rate across dry mass of Hydropsychdiae larvae (regression across dry mass)
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_P, colour=Site))+ 
+  geom_point()+
+  theme_classic()+
+  ylab("Phosphorus (ug/L/min)")+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  geom_smooth(method="glm", se=F)+
+  facet_grid(~Type, scales="free")
+
+#Testing whether the mean excretion rate differs at each site between sampling timepoints
+
+#COCHRANE
+#Testing whether excretion rate is different across sampling time points
+shapiro.test(Cochjuly$Excr_rate_P) #Normal
+shapiro.test(Cochsept$Excr_rate_P) #Not normal
+
+#Have to use non-parametric test to test differences between excretion rates
+wilcox.test(Excr_rate_P ~ Month, data=Cochrane) #p=0.7394. Not sig. different between July and September.
+
+#SUNALTA
+shapiro.test(Sunjuly$Excr_rate_P) #Normal
+shapiro.test(Sunsept$Excr_rate_P) #Not normal
+
+#Have to use non-parametric test
+wilcox.test(Excr_rate_P ~ Month, data=Sunalta) #p=0.8392. Not sig. different between July and Septemeber.
+
+#POLICEMAN FLATS
+shapiro.test(pmfjuly$Excr_rate_P) #Normal
+shapiro.test(pmfsept$Excr_rate_P) #Normal
+
+#Can use a t-test. 
+wilcox.test(Excr_rate_P ~ Month, data=pmf) #p=0.9654. Not sig. different.
+t.test(Excr_rate_P~Month, data=pmf) #p=0.7646 Not sig. different between July and September.
+
+#Testing normality of mass normalized excretion data
+hist(Nut_samples$Excr_rate_P) #Data are heavily right skewed
+shapiro.test(Nut_samples$Excr_rate_P) #Not normal
+hist(log(Nut_samples$Excr_rate_P)) #Looks much better when log transformed
+
+logPExcr<-log(Nut_samples$Excr_rate_P)
+Nut_samples_1<-cbind(logPExcr, Nut_samples)
+shapiro.test(Nut_samples_1$logPExcr) #Normal when log transformed
+
+#Looking for outliers
+
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_P))+
+  geom_point()+
+  geom_smooth(method="glm", se=T)+
+  geom_point(data=Nut_samples %>% filter(Phosphorus>600), pch=21,size=10, colour="purple")
+
+#2 potential outliers: COCH_NUT_H2O_4, SUN_NUT_H2O_8
+```
+
+## Mean excretion rate across sites
+```{r}
+
+#Mass normalized excretion rate
+
+coch_P<-subset(Nut_samples, Site=="Cochrane")
+mean(coch_P$Excr_rate_P) #0.099
+sd(coch_P$Excr_rate_P) #0.10
+
+sun_P<-subset(Nut_samples, Site=="Sunalta")
+mean(sun_P$Excr_rate_P) #0.223
+sd(sun_P$Excr_rate_P)#0.24
+
+grvbr_P<-subset(Nut_samples, Site=="Graves Bridge")
+mean(grvbr_P$Excr_rate_P) #0.154
+sd(grvbr_P$Excr_rate_P) #0.17
+
+pmf_P<-subset(Nut_samples, Site=="Policeman Flats")
+mean(pmf_P$Excr_rate_P) #0.0265
+sd(pmf_P$Excr_rate_P) #0.018
+
+BRR2_P<-subset(Nut_samples, Site=="BBR2")
+mean(BRR2_P$Excr_rate_P) #0.124
+sd(BRR2_P$Excr_rate_P) #0.108
+
+PCR1_P<-subset(Nut_samples, Site=="PCR1")
+mean(PCR1_P$Excr_rate_P) #0.291
+sd(PCR1_P$Excr_rate_P) #0.229
+
+PCR3_P<-subset(Nut_samples, Site=="PCR3")
+mean(PCR3_P$Excr_rate_P) #0.172
+sd(PCR3_P$Excr_rate_P) #0.095
+
+
+#Non mass normalized excretion rate
+
+coch_P<-subset(Nut_samples, Site=="Cochrane")
+mean(coch_P$org_rate_P) #1.34
+sd(coch_P$org_rate_P) #2.57
+
+sun_P<-subset(Nut_samples, Site=="Sunalta")
+mean(sun_P$org_rate_P) #2.77
+sd(sun_P$org_rate_P) #2.61
+
+grvbr_P<-subset(Nut_samples, Site=="Graves Bridge")
+mean(grvbr_P$org_rate_P) #1.76
+sd(grvbr_P$org_rate_P) #1.73
+
+pmf_P<-subset(Nut_samples, Site=="Policeman Flats")
+mean(pmf_P$org_rate_P) #0.432
+sd(pmf_P$org_rate_P) #0.265
+
+BRR2_P<-subset(Nut_samples, Site=="BBR2")
+mean(BRR2_P$org_rate_P) #0.992
+sd(BRR2_P$org_rate_P) #0.747
+
+PCR1_P<-subset(Nut_samples, Site=="PCR1")
+mean(PCR1_P$org_rate_P) #2.19
+sd(PCR1_P$org_rate_P) #2.00
+
+PCR3_P<-subset(Nut_samples, Site=="PCR3")
+mean(PCR3_P$org_rate_P) #1.15
+sd(PCR3_P$org_rate_P) #0.878
+```
+
+## Linear models
+```{r}
+
+#Phosphorus excretion rate by site and month
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_P, colour=Site))+
+  geom_point()+
+  geom_smooth(method="glm", se=F)+
+  theme_bw()+
+  scale_y_log10()+
+  facet_grid(.~Month)+
+  theme(legend.position="bottom")+
+  rremove("grid")+
+  ylab(expression(paste("Excretion Rate" ~PO[4]~"-P ("~mu~"g/L/minute)")))
+  
+#ggsave(filename =  "Dry mass predicts PO4-P excretion rate july vs september.png", height=6, width=7)
+
+#PO4-P excretion rate by site and stream type
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_P, colour=Site))+
+  geom_point()+
+  geom_smooth(method="lm", se=F)+
+  theme_bw()+
+  rremove("grid")+
+  scale_y_log10()+
+  facet_grid(.~Type, scale="free_x")+
+  theme(legend.position="bottom")+
+  ylab(expression(paste("Excretion Rate" ~PO[4]~"-P ("~mu~"g/L/minute)")))+
+  xlab("Hydropsychidae Dry Mass (mg)")
+
+#ggsave(filename = "Nutrient_excretion_ED/Figures/PO4-P excretion rate across invertebrate dry mass Bow and ACWA.png", height=6, width=8)
+
+
+#All data (Bow and ACWA)
+hist(Nut_samples$org_rate_P) #Right skewed
+hist(log(Nut_samples$org_rate_P)) #Looks normal when log transformed
+
+logPrate<-log(Nut_samples$org_rate_P)
+Nut_samples_2<-cbind(logPrate, Nut_samples)
+shapiro.test(Nut_samples_2$logPrate) #Normal
+
+#Linear models
+summary(nut_P_1<-lm(data=Nut_samples_2, logPrate~Mass*Site*Month)) 
+summary(nut_P_2<-lm(data=Nut_samples_2, logPrate~Mass+Site*Month))
+summary(nut_P_3<-lm(data=Nut_samples_2, logPrate~Mass*Site+Month))
+summary(nut_P_4<-lm(data=Nut_samples_2, logPrate~Mass+Site+Month))
+summary(nut_P_5<-lm(data=Nut_samples_2, logPrate~Mass*Site)) 
+summary(nut_P_6<-lm(data=Nut_samples_2, logPrate~Mass+Site)) #Best Model
+summary(nut_P_7<-lm(data=Nut_samples_2, logPrate~Month+Site)) 
+summary(nut_P_8<-lm(data=Nut_samples_2, logPrate~Site)) 
+summary(nut_P_9<-lm(data=Nut_samples_2, logPrate~Month))
+summary(nut_P_10<-lm(data=Nut_samples_2, logPrate~Mass))
+
+mixedmodels=list(nut_P_1, nut_P_2, nut_P_3, nut_P_4, nut_P_5, nut_P_6, nut_P_7, nut_P_8, nut_P_9, nut_P_10) 
+aictab(cand.set = mixedmodels) 
+#Model 6 was the best with Mass and Site being significant predictors of PO4-P excretion
+
+plot(nut_P_2) #Meets the assumptions of linear model. One outliers but not terrible
+emmeans(nut_P_2, pairwise ~ Site)
+
+#Policeman Flats is significantly lower than all other sites
+
+#No differences across ACWA streams
+```
+
+# NH3 Data {.tabset}
+
+## Preliminary plots and Wilcoxon tests of NH3-N excretion across sites
+
+```{r}
+
+#Total nitrogen concentration (- blank nitrogen concentration) divided by the total mass 
+#of organisms in each tube at each site, divided by the time the organisms were in each tube. 
+#(Rate of excretion) 
+
+#Mass normalized excretion rate across sites (boxplot)
+
+ggplot(Nut_samples, aes(x=Site, y=Excr_rate_NH3, colour=Month))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab("Phosphorus (ug/L/mg/min)")+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  facet_grid(~Type, scales = "free")
+#Looks like some difference between sampling months but not much difference across sites
+
+#Not mass normalized excretion rate across sites (boxplot)
+ggplot(Nut_samples, aes(x=Site, y=org_rate_NH3, colour=Month))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab("Phosphorus (ug/L/min)")+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  facet_grid(~Type, scales = "free")
+
+#Excretion rate across dry mass of Hydropsychdiae larvae (regression across dry mass)
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_NH3, colour=Site))+ 
+  geom_point()+
+  theme_classic()+
+  ylab("Phosphorus (ug/L/min)")+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  geom_smooth(method="glm", se=F)+
+  facet_grid(~Type, scales="free")
+
+#Testing whether the mean excretion rate differs at each site between sampling timepoints
+
+#COCHRANE
+#Testing whether excretion rate is different across sampling time points
+shapiro.test(Cochjuly$org_rate_NH3) #Normal
+shapiro.test(Cochsept$org_rate_NH3) #Not normal
+
+#Have to use non-parametric test to test differences between excretion rates
+wilcox.test(org_rate_NH3 ~ Month, data=Cochrane) #p=0.015. Sig. different between July and September.
+
+#SUNALTA
+shapiro.test(Sunjuly$org_rate_NH3) #Normal
+shapiro.test(Sunsept$org_rate_NH3) #Normal
+
+#Have to use non-parametric test
+t.test(org_rate_NH3 ~ Month, data=Sunalta) #p=0.068. Not sig. different between July and Septemeber.
+
+#POLICEMAN FLATS
+shapiro.test(pmfjuly$org_rate_NH3) #Not normal
+shapiro.test(pmfsept$org_rate_NH3) #Not normal
+
+#Can use a t-test. 
+wilcox.test(org_rate_NH3 ~ Month, data=pmf) #p=0.9654. Not sig. different.
+t.test(org_rate_NH3~Month, data=pmf) #p=0.043 Sig. different between July and September.
+
+#Testing normality of mass normalized excretion data
+hist(Nut_samples$org_rate_NH3) #Data are right skewed with some missing data
+shapiro.test(Nut_samples$org_rate_NH3) #Not normal
+hist(log(Nut_samples$org_rate_NH3)) #Looks much better when log transformed
+
+logNH3Excr<-log(Nut_samples$org_rate_NH3)
+Nut_samples_1<-cbind(logNH3Excr, Nut_samples)
+shapiro.test(Nut_samples_1$logNH3Excr) #Still not normal when log transformed but looks good enough
+
+
+#Looking for outliers
+
+ggplot(Nut_samples_1, aes(x=Mass, y=logNH3Excr))+
+  geom_point()+
+  geom_smooth(method="glm", se=T)
+
+
+ggplot(Nut_samples, aes(x=Site, y=org_rate_NH3, colour=Month))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/minute)")))+
+  labs(colour="Sampling Month")+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))
+#Looks like there are differences in nitrogen excretion across sampling months 
+
+#Log transforming y axis, will remove all negative values (16 of them). 
+ggplot(Nut_samples, aes(x=Site, y=org_rate_NH3, colour=Month))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab("Nitrogen Excretion Rate (ug/L/mg caddis/min)")+
+  labs(colour="Sampling Month")+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  scale_y_log10()
+
+
+summary(lm1<-lm(data=Nut_samples, Excr_rate_P~Excr_rate_NH3)) 
+cor(Nut_samples$Excr_rate_P, Nut_samples$Excr_rate_NH3) #0.018. Not a high correlation between these variables
+#Phosphorus excretion does not predict ammonia excretion
+plot(lm1) #One very large outlier
+```
+
+## Mean excretion rate across sites
+
+```{r}
+
+#Mass normalized excretion rate
+
+coch_NH3<-subset(Nut_samples, Site=="Cochrane")
+mean(coch_NH3$Excr_rate_NH3) #0.185
+sd(coch_NH3$Excr_rate_NH3) #0.312
+
+sun_NH3<-subset(Nut_samples, Site=="Sunalta")
+mean(sun_NH3$Excr_rate_NH3) #0.0043
+sd(sun_NH3$Excr_rate_NH3)#0.022
+
+grvbr_NH3<-subset(Nut_samples, Site=="Graves Bridge")
+mean(grvbr_NH3$Excr_rate_NH3) #0.049
+sd(grvbr_NH3$Excr_rate_NH3) #0.015
+
+pmf_NH3<-subset(Nut_samples, Site=="Policeman Flats")
+mean(pmf_NH3$Excr_rate_NH3) #0.0093
+sd(pmf_NH3$Excr_rate_NH3) #0.065
+
+BRR2_NH3<-subset(Nut_samples, Site=="REF")
+mean(BRR2_NH3$Excr_rate_NH3) #0.062
+sd(BRR2_NH3$Excr_rate_NH3) #0.082
+
+PCR1_NH3<-subset(Nut_samples, Site=="EXP5")
+mean(PCR1_NH3$Excr_rate_NH3) #0.112
+sd(PCR1_NH3$Excr_rate_NH3) #0.096
+
+PCR3_NH3<-subset(Nut_samples, Site=="EXP15")
+mean(PCR3_NH3$Excr_rate_NH3) #0.0505
+sd(PCR3_NH3$Excr_rate_NH3) #0.0323
+
+
+#Non mass normalized excretion rate
+
+mean(coch_NH3$org_rate_NH3) #1.28
+sd(coch_NH3$org_rate_NH3) #1.92
+
+mean(sun_NH3$org_rate_NH3) #0.0517
+sd(sun_NH3$org_rate_NH3) #0.273
+
+mean(grvbr_NH3$org_rate_NH3) #0.575
+sd(grvbr_NH3$org_rate_NH3) #0.174
+
+mean(pmf_NH3$org_rate_NH3) #0.216
+sd(pmf_NH3$org_rate_NH3) #1.14
+
+REF_NH3<-subset(Nut_samples, Site=="REF")
+mean(REF_NH3$org_rate_NH3) #0.426
+sd(REF_NH3$org_rate_NH3) #0.413
+
+PCR1_NH3<-subset(Nut_samples, Site=="EXP5")
+mean(PCR1_NH3$org_rate_NH3) #0.715
+sd(PCR1_NH3$org_rate_NH3) #0.512
+
+PCR3_NH3<-subset(Nut_samples, Site=="EXP15")
+mean(PCR3_NH3$org_rate_NH3) #0.332
+sd(PCR3_NH3$org_rate_NH3) #0.212
+```
+
+## Linear models
+
+```{r}
+#Linear regression
+
+summary(NH3lm1<-lm(data=Nut_samples, logNH3Excr~Site * Mass * Month)) 
+summary(NH3lm2<-lm(data=Nut_samples, logNH3Excr~Site + Mass + Month))
+summary(NH3lm3<-lm(data=Nut_samples, logNH3Excr~Site + Month)) #Best model with AIC and p-value methods
+summary(NH3lm4<-lm(data=Nut_samples, logNH3Excr~Site + Mass))
+summary(NH3lm5<-lm(data=Nut_samples, logNH3Excr~Month + Mass))
+summary(NH3lm6<-lm(data=Nut_samples, logNH3Excr~Site))
+summary(NH3lm7<-lm(data=Nut_samples, logNH3Excr~Mass))
+summary(NH3lm8<-lm(data=Nut_samples, logNH3Excr~Month))
+
+linearmodels<-list(NH3lm1, NH3lm2, NH3lm3, NH3lm4, NH3lm5, NH3lm6, NH3lm7, NH3lm8)
+aictab(cand.set = linearmodels)
+#Model 2 with Site, Mass, and Month is the best model
+
+emmeans(NH3lm3, pairwise ~ Month)
+#September had significantly higher NH3 excretion rate compared to all sites in July (est. -0.758, p=0.018)
+
+summary(glht(NH3lm3, linfct=mcp(Site="Tukey")))
+#Sunalta - Cochrane and Policeman Flats - Sunalta are sig diff. Sunalta lower than the other two sites. 
+#EXP15 ACWA stream different from Cochrane and Policeman Flats
+#No difference between ACWA streams
+
+plot(NH3lm3) #Sort of fits linear model assumptions, not great but linear models are pretty robust to normality and slight heterogeneity of variance
+
+#Nitrogen excretion rate at each site, individual sampling month. 
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_NH3, colour=Site))+ 
+  geom_point()+
+  geom_smooth(method="glm", se=F)+
+  scale_y_log10()+
+  facet_grid(.~Month)+
+  theme_bw()+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))
+
+#Combined by sampling month, across Bow River and ACWA streams
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_NH3, colour=Site))+ 
+  geom_point()+
+  geom_smooth(method="glm", se=F)+
+  scale_y_log10()+
+  facet_grid(.~Type, scales="free_x")+
+  theme_bw()+
+  rremove("grid")+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))
+
+#Combined by sampling month, across Bow River and ACWA streams
+ggplot(Nut_samples, aes(x=Mass, y=org_rate_NH3, colour=Site))+ 
+  geom_point()+
+  geom_smooth(method="glm", se=F)+
+  scale_y_log10()+
+  facet_nested_wrap(~Type + Month, scales="free_x")+
+  theme_bw()+
+  rremove("grid")+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/min)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  guides(nrow=1)+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(angle = 40, vjust = 1, hjust=1))+
+  xlab("Hydropsychidae Dry Mass (mg)")
+
+#ggsave(file="Nutrient_excretion_ED/Figures/NH3-N excretion across Month and Dry mass Bow river and ACWA.png", height=6, width=8)
+
+
+#Looking for outliers
+
+ggplot(Nut_samples, aes(x=Mass, y=Ammonia))+
+  geom_point()+
+  geom_smooth(method="glm")+
+ geom_point(data=Nut_samples %>% filter(Ammonia==444), pch=21,size=10, colour="purple")+
+  geom_point(data=Nut_samples %>% filter(Ammonia>500), pch=21,size=10, colour="purple")
+
+#2 major outliers are COCH_NUT_H2O_4 and COCH_NUT_H2O_9
+
+#Bow River only
+
+hist(nut_Bow$org_rate_NH3)
+hist(log(nut_Bow$org_rate_NH3))
+logNH3Excr<-log(nut_Bow$org_rate_NH3)
+nut_Bow<-cbind(logNH3Excr, nut_Bow)
+shapiro.test(nut_Bow$logNH3Excr) #Normal
+
+summary(Bow_N1<-aov(data=nut_Bow, logNH3Excr~Site * Mass * Month)) 
+summary(Bow_N2<-aov(data=nut_Bow, logNH3Excr~Site + Mass + Month)) 
+summary(Bow_N3<-aov(data=nut_Bow, logNH3Excr~Site + Month)) #Best model based on AIC and p-value bc both factors were significant
+summary(Bow_N4<-aov(data=nut_Bow, logNH3Excr~Site)) 
+summary(Bow_N5<-aov(data=nut_Bow, logNH3Excr~Month))
+
+linearmodels<-list(Bow_N1, Bow_N2, Bow_N3, Bow_N4, Bow_N5)
+aictab(cand.set = linearmodels)
+#Model 2 with Site, Mass, and Month is the best model
+
+
+plot(Bow_N4) #Meets assumptions of linear model
+summary(glht(Bow_N4, linfct=mcp(Site="Tukey")))
+emmeans(Bow_N4, specs = pairwise ~ Site)
+
+#ACWA sites only
+
+hist(nut_ACWA$org_rate_NH3) #Decent
+shapiro.test(nut_ACWA$org_rate_NH3) #normal
+
+#Linear models
+summary(ACWA1N<-aov(data=nut_ACWA, org_rate_NH3~Mass*Site))
+summary(ACWA2N<-aov(data=nut_ACWA, org_rate_NH3~Mass+Site))
+summary(ACWA3N<-aov(data=nut_ACWA, org_rate_NH3~Mass))
+summary(ACWA4N<-aov(data=nut_ACWA, org_rate_NH3~Site)) #Best model
+
+mixedmodels=list(ACWA1N, ACWA2N, ACWA3N, ACWA4N) 
+aictab(cand.set = mixedmodels) 
+#Model 4 was the best with Site being a significant predictor of N excretion
+plot(ACWA4N) #Meets the assumptions of linear model.
+
+
+summary(glht(ACWA4N, linfct=mcp(Site="Tukey"))) #No differences
+
+```
+
+
+# Combining P and N plots
+```{r 2 panel plot with N and P}
+## All sites together (Bow and ACWA)
+#PO4-P excretion rate normalized by mass of organism 
+
+excr_P_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF", "BRR2", "PCR1", "PCR3")), y=Excr_rate_P))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~PO[4]~"-P ("~mu~"g/L/mg caddis/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(size =16, angle = 40, vjust = 1, hjust=1, color="black"),
+        axis.text.y = element_text(size =16, color="black"))
+#geom_signif(comparisons = list(c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")), 
+#map_signif_level=TRUE)
+
+excr_P_plot2_all<-excr_P_plot_all + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
+
+#NH3-N excretion rate normalized by mass of organism (just Bow River samples)
+excr_NH3_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF", "BRR2", "PCR1", "PCR3")), y=Excr_rate_NH3))+ 
+  geom_boxplot()+
+  scale_y_log10()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/mg caddis/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(size=16, angle = 40, vjust = 1, hjust=1, color="black"),
+        axis.text.y = element_text(size=16, color="black"))
+
+excr_NH3_plot_all
+
+excr_NH3_plot2_all<-excr_NH3_plot_all + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
+
+excr_rate_nutrient_all<-ggarrange(excr_P_plot2_all, excr_NH3_plot2_all, ncol=1, nrow=2, align = "v")
+
+annotate_figure(excr_rate_nutrient_all, bottom = text_grob("Site", size = 18))
+
+ggsave(filename="Nutrient_excretion_ED/Figures/Nutrient excretion rate per mg caddis P and N.png", height=10, width=12, bg="white")
+
+## Bow River sites only
+#2 panel plot with P and NH3 excretion rate, normalized by mass 
+
+#PO4-P excretion rate normalized by mass of organism (Just Bow River sites)
+
+excr_P_plot<-ggplot(nut_Bow, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF")), y=Excr_rate_P))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~PO[4]~"-P ("~mu~"g/L/mg caddis/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(size =16, angle = 40, vjust = 1, hjust=1),
+        axis.text.y = element_text(size =16))
+#geom_signif(comparisons = list(c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")), 
+#map_signif_level=TRUE)
+
+excr_P_plot2<-excr_P_plot + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
+
+#NH3-N excretion rate normalized by mass of organism (just Bow River samples)
+excr_NH3_plot<-ggplot(nut_Bow, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF")), y=Excr_rate_NH3))+ 
+  geom_boxplot()+
+  scale_y_log10()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/mg caddis/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(size=16, angle = 40, vjust = 1, hjust=1),
+        axis.text.y = element_text(size=16))
+
+excr_NH3_plot
+
+excr_NH3_plot2<-excr_NH3_plot + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
+
+excr_rate_nutrient<-ggarrange(excr_P_plot2, excr_NH3_plot2, ncol=2, nrow=1, align = "v")
+
+annotate_figure(excr_rate_nutrient, bottom = text_grob("Site", size = 18))
+
+
+##ACWA sites only
+#2 panel plot with P and NH3 excretion rate, normalized by mass 
+
+#PO4-P excretion rate normalized by mass of organism 
+
+excr_P_plot_ACWA<-ggplot(nut_ACWA, aes(x=factor(Site, labels=c("BRR2", "PCR1", "PCR3")), y=Excr_rate_P))+ 
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~PO[4]~"-P ("~mu~"g/L/mg caddis/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(size =16, angle = 40, vjust = 1, hjust=1),
+        axis.text.y = element_text(size =16))
+#geom_signif(comparisons = list(c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")), 
+#map_signif_level=TRUE)
+
+excr_P_plot_ACWA2<-excr_P_plot_ACWA + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
+
+#NH3-N excretion rate normalized by mass of organism 
+excr_NH3_plot_ACWA<-ggplot(nut_ACWA, aes(x=factor(Site, labels=c("BRR2", "PCR1", "PCR3")), y=Excr_rate_NH3))+ 
+  geom_boxplot()+
+  scale_y_log10()+
+  theme_classic()+
+  ylab(expression(paste("Excretion Rate" ~NH[3]~"-N ("~mu~"g/L/mg caddis/minute)")))+
+  labs(colour="Sampling Month")+
+  scale_y_log10()+
+  theme(legend.position="bottom")+
+  theme(axis.text.x = element_text(size=16, angle = 40, vjust = 1, hjust=1),
+        axis.text.y = element_text(size=16))
+
+excr_NH3_plot_ACWA
+
+excr_NH3_plot_ACWA2<-excr_NH3_plot_ACWA + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
+
+excr_rate_nutrient_ACWA<-ggarrange(excr_P_plot_ACWA2, excr_NH3_plot_ACWA2, ncol=2, nrow=1, align = "v")
+
+annotate_figure(excr_rate_nutrient_ACWA, bottom = text_grob("Site", size = 18))
+
+```

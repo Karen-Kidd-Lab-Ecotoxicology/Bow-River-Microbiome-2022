@@ -1,0 +1,350 @@
+---
+title: "PICRUSt2 Data Prep Bow River Microbiome"
+author: "Emilie Diesbourg"
+date: "09/08/2023"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# Introduction {.tabset}
+
+This data comes from a study done in 2022 across 5 sites on the Bow River, Calgary AB and 3 mesocosm streams from Pine Creek wastewater treatment plant with varying municipal wastewater effluent exposures (mesocosm streams: 0, 5, or 15% effluent flow). The objective of this study is to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian Spiders with increased exposure to wastewater as well as any differences across taxa or whether the microbiome composition is retained across metamorphosis. 
+
+## Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+#Change margin size to be smaller so graphs fit in the plot panel
+par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
+```
+
+## Loading Packages
+```{r Load packages}
+library(rlang)
+library(glue)
+library(ggh4x)
+library(phyloseq) #phyloseq will be the main package used for structuring microbiome data and diversity comparisons
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+#install.packages("viridis")
+library(viridis)
+
+#BiocManager::install("apeglm")
+library(apeglm)
+library(car)
+library(ggplot2) #For creating graphs
+#install.packages("ggtext")
+library(ggtext)
+library(dplyr) #Helps with data wrangling 
+library(cluster) #Used for cluster analyses
+library(grid)
+library(ape)
+library(pals)
+library(FSA)
+library(multcomp)
+library(MASS)
+library(glmmTMB)
+library(gridExtra)
+library(vegan)
+library(tidyverse) #data wrangling
+library(microbiome) #For microbiome analyses
+#if (!require("BiocManager", quietly = TRUE)) #Installing microbiome package
+  #install.packages("BiocManager")
+#BiocManager::install("microbiome")
+library(PERFect) #Permutation filtration for microbiome data. Used when comparing beta diversities across sites/locations. 
+#if(!requireNamespace("BiocManager", quietly = TRUE))
+  #install.packages("BiocManager")
+#BiocManager::install("PERFect")
+library(knitr) #For R Markdown knitting
+library(kableExtra)
+library(speedyseq)
+#if (!requireNamespace("remotes", quietly = TRUE))
+  #install.packages("remotes")
+#remotes::install_github("mikemc/speedyseq")
+library(colorspace)
+library(RColorBrewer)
+library(picante)
+library(ggpubr)
+library(data.table)
+library(AICcmodavg)
+#devtools::install_github("microsud/microbiomeutilities")
+library(microbiomeutilities)
+library(imsig)
+library(phangorn) #For phylogenetic tree
+library(metacoder) 
+library(tibble)
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+
+#BiocManager::install("DESeq2")
+library(DESeq2)
+library(emmeans)
+library(devtools)
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis", force=TRUE)
+library(pairwiseAdonis)
+#library(plyr) apparently if you load this after dpylr it messes up the summarize function?
+
+#if( !require(NbClust) ){install.packages("NbClust"); library(NbClust)}
+#if( !require(cobiclust) ){install.packages("cobiclust"); library(cobiclust)}
+library(NbClust)
+library(cobiclust)
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+
+#BiocManager::install("mia")
+library(mia)
+library(factoextra)
+#install.packages(
+  #"microViz",
+  #repos = c(davidbarnett = "https://david-barnett.r-universe.dev", getOption("repos")))
+library(microViz)
+library(dendextend) #Formatting dendrograms
+#remotes::install_github("vmikk/metagMisc")
+library(metagMisc)
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+
+#BiocManager::install("decontam")
+library(decontam)
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+#BiocManager::install("dada2", version = "3.14")
+library(dada2)
+library(forcats)
+#install.packages(c("dbplyr", "dplyr", "dtplyr", "haven", "httr", "jsonlite", "readr", 
+#"readxl", "rvest", "tibble", "tidyr", "xml2"))
+library(ggpubr)
+#install.packages("remotes")
+#remotes::install_github("kstagaman/phyloseqCompanion")
+library(phyloseqCompanion)
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+#BiocManager::install("ANCOMBC")
+library(ANCOMBC)
+#devtools::install_github("Russel88/DAtest")
+library(DAtest)
+#BiocManager::install(c("DESeq2","limma","edgeR","metagenomeSeq","baySeq","ALDEx2","impute","ANCOMBC"))
+
+#install.packages(c("samr","pscl","statmod","mvabund"))
+#install_github("helixcn/seqRFLP")
+library("seqRFLP") #Used to save files as .fasta
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+#BiocManager::install("biomformat")
+
+library(biomformat) #Need this package for converting to biom files
+```
+
+# Phyloseq object
+
+For a phyloseq object you need 3 pieces of data: 
+
+1. The ASV table with the genetic barcode identifier (the ASV) of each identified bacterial taxa within each insect sample ran (ex. KK100)
+
+2. The taxa table with the genetic barcode of each unique ASV and the respective bacterial classification "Kingdom", "Phylum", "Class", "Order", "Family", "Genus".
+
+3. A metadata file with the sample names (ex. KK100) and any other variables that were measured. Ex. the family of insect or fish organism collected, the site the organism was collected at, the water temperature, the distance to waste water treatment plant, the weight and length of organism, etc.
+
+The phyloseq object will merge all this data together in one object that can be called in by various functions in the phyloseq and microbiome packages. 
+
+```{r Load data and phyloseq object}
+#Importing ASV table
+ASVseq<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Raw data\\ASV_data_2022_ED_fulldataset_samplesordered.csv")
+
+#The row names have to be the ASV identifier (genetic barcode) in order for it to be read. The following lines of code are to re-organize the row names
+n1 <- ASVseq$X #Currently the ASVs are being called "X" in the first column. We want them to be unnamed in the row names column
+ASVseq <- ASVseq[,-1] #This removes the first column of the ASV dataframe
+rownames(ASVseq) <- n1 #This moves the ASVs to the rownames column of the dataframe
+
+ASVtable <- as.matrix(ASVseq) #must be a matrix so we convert to a matrix
+#View(ASVtable) #The ASVs are now the row names
+
+#Importing taxa table
+taxonomy <-read.csv ("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Raw data\\Taxonomy_ED_2022_fulldataset.csv")
+
+#Using the same steps as above with the ASV table to make the genetic barcode the rowname
+n2 <- taxonomy$X
+taxonomy <- taxonomy[,-1]
+rownames(taxonomy) <- n2
+
+taxa_table<-as.matrix(taxonomy) #Turn into a matrix
+#View(taxa_table) #ASVs are now the row names
+
+#Importing metadata file
+metadata<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Raw data\\metadata_ED_withblanks_noKK2078.csv")
+
+metadata$Site<-factor(metadata$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")) #Order sites
+metadata$Site_code<-factor(metadata$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF", "BRR2", "PCR1", "PCR3")) #Order sites
+metadata$Stage<-factor(metadata$Stage, levels=c("Larvae", "Adults", "Spiders"))
+
+#Need to make sample names as row names so we follow the same steps as above. 
+n3 <- metadata$Study_ID
+
+# move names to row headings
+metadata <- metadata[,-1]
+rownames(metadata) <- n3
+
+#View(metadata) #sample names are now row names
+
+#Combining phyloseq object
+ASVtable = otu_table(ASVtable, taxa_are_rows = TRUE) #Taxa are rows means that the ASVs of each identified microbe are the row names which we made sure was true
+taxa_table = tax_table(taxa_table)
+
+#Make sure the ASV table and taxa table are both matricies before trying to turn into phyloseq object
+ps <- phyloseq(ASVtable, sample_data(metadata), taxa_table)
+```
+
+# Filtering phyloseq
+```{r}
+#Need to remove PMF adult caddis because they were contaminated with contaminated laboratory reagents.
+samples_to_remove<-c("POLFLT_1_Ad_Caddis_MB_1", "POLFLT_1_Ad_Caddis_MB_2", "POLFLT_1_Ad_Caddis_MB_3", "POLFLT_1_Ad_Caddis_MB_4", "POLFLT_1_Ad_Caddis_MB_5", "POLFLT_1_Ad_Caddis_MB_6", "POLFLT_1_Ad_Caddis_MB_7", "POLFLT_1_Ad_Caddis_MB_8")
+
+ps_pruned<-subset_samples(ps, !(Sample_ID %in% samples_to_remove))
+ps_pruned<-prune_taxa(taxa_sums(decontam_pruned) > 0, decontam_pruned)
+ps_pruned #31,185 taxa, 372 samples
+
+#Removing low confidence data
+psexp<-subset_samples(ps_pruned, Sample_Type == "Sample") #Removing ASVs where the abundance is 0 (after removing the blank samples)
+psexp<-prune_taxa(taxa_sums(psexp) > 0, psexp)
+psexp #30,218 taxa and 349 samples
+
+#Removing Eukaryotes
+ps0 <- subset_taxa(psexp, Kingdom != "Eukaryota")
+ntaxa(psexp)-ntaxa(ps0) #Got rid of 39 ASVs
+
+#Removing low confidence data (where phylum could not be assigned)
+ps1<-subset_taxa(ps0, !is.na(Phylum) & !Phylum %in% c("","uncharacterized")) #Removes the phyla characterized as NA
+ntaxa(ps0) - ntaxa(ps1) #Got rid of 403 ASVs
+
+ps2<-phyloseq_filter_prevalence(ps1, prev.trh = 0.01, abund.trh = 6, threshold_condition = "AND")
+ps2 #4563 taxa, 349 samples. 
+any(taxa_sums(ps2) <6) #FALSE. Means it did a good job of getting rid of them. 
+
+sample_ps <- subset_samples(ps2, sample_sums(ps2) > 2000) 
+sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2384 reads.
+sample_ps #4563 taxa, 335 samples. 
+```
+
+# Picrust2 data prep
+
+```{r}
+#Need to create a fasta file which requires an ASV identifier in the first column (ex. 'ASV1', 'ASV2', etc.) and the amplicon DNA sequence in the second column.
+
+#Also need a .biom or .tsv file with the otu/asv table (ASVs are labelled with a unique identifier that matches the fasta file in the first column)
+
+#.biom file
+OTU2 = as(otu_table(sample_ps), "matrix")
+# Coerce to data.frame
+OTUdf2 = as.data.frame(OTU2)
+OTUbiom<-make_biom(OTUdf1) #Turns dataframe to biom format
+write_biom(OTUbiom, biom_file="Microbiome_ED/PICRUSt2 Data/ASV_table.biom") #Saves biom format as file. Uses package 'biomformat' to do this. Needs to be loaded for it to work. 
+write.table(OTUdf1, file="Microbiome_ED/PICRUSt2 Data/ASV_table.tsv", sep="\t") #Saves dataframe to text file (tab separated values)
+
+
+taxa_names(sample_ps) <- paste0("ASV", seq(ntaxa(sample_ps)))
+otu<-as(otu_table(sample_ps),"matrix")
+otu_df<-as.data.frame(otu)
+otu_df<- rownames_to_column(otu_df, "ASV")
+otu_biom<-make_biom(data=otu_df)
+write_biom(otu_biom,"Microbiome_ED/PICRUSt2 Data/otu_biom.biom")
+
+
+#.tsv file
+
+write.table(otu_df, "Microbiome_ED/PICRUSt2 Data/seqtab1.tsv", sep="\t", row.names=TRUE, col.names=NA, quote=FALSE)
+
+#After filtering steps, convert the phyloseq object back into an ASV table and save as data frame. 
+
+# Extract abundance matrix from the phyloseq object
+OTU1 = as(otu_table(sample_ps), "matrix")
+# Coerce to data.frame
+OTUdf = as.data.frame(OTU1)
+#Move row names into the first column and call it 'Sequences' so that it can be pulled into another data frame
+OTUdf<- rownames_to_column(OTUdf, "Sequences")
+
+#Take the first column of the filtered OTU table to retrieve bacterial DNA sequences for the fasta file. 
+seq<-OTUdf[,1] #Makes a column of sequences
+
+#Now we need to create a new column with an ASV identifer for those sequences that we pulled.
+taxa_names(sample_ps) <- paste0("ASV", seq(ntaxa(sample_ps))) #this will change the sequences to a numbered ASV ID
+
+
+# Extract abundance matrix from the phyloseq object
+OTU2 = as(otu_table(sample_ps), "matrix")
+# Coerce to data.frame
+OTUdf2 = as.data.frame(OTU2)
+#Change the rownames to a column called ASVs
+OTUdf2<- rownames_to_column(OTUdf2, "ASV")
+
+ASV<-OTUdf2[,1] #Makes a column of ASV identifiers
+
+#Now we add the columns together to create the fasta dataframe
+ASVfasta<-data.frame(ASV, seq) #Combines the ASV IDs and the sequences in a dataframe
+#Remove headers
+
+#Converts data frame to fasta file
+ASV.fasta = dataframe2fas(ASVfasta, file="Microbiome_ED/PICRUSt2 Data/ASVseq_1.fna")
+
+#asv_csv<-read.csv("C:\\Users\\Emilie\\OneDrive - McMaster University\\PICRUSt2 data\\ASV_Sequences.csv")
+#ASV_fasta = dataframe2fas(asv_csv, file="Microbiome_ED/PICRUSt2 Data/ASV_Sequences_2.fna")
+
+ASV_table<-read.table("C:\\Users\\Emilie\\OneDrive - McMaster University\\PICRUSt2 data\\ASV_table.tsv")
+ASV_table_df<-as.data.frame(ASV_table)
+
+#### BIOM file/ tab separated values file (tsv) ####
+
+#We also need a .biom file of the ASV table. The sequences have to turned into an ASV ID that matches the fasta file we just made. So I will use the same dataframe that we pulled the ASV IDs from.
+
+
+OTUbiom<-make_biom(OTUdf1) #Turns dataframe to biom format
+write_biom(OTUbiom, biom_file="Microbiome_ED/PICRUSt2 Data/ASV_table.biom") #Saves biom format as file
+write.table(OTUdf1, file="Microbiome_ED/PICRUSt2 Data/ASV_table.tsv", sep="\t") #Saves dataframe to text file (tab separated values)
+
+
+
+
+#### Preparing taxa table, otu table, and metadata ####
+# Export taxonomy table as "tax.txt"
+
+sample_ps_1<-phyloseq_rm_na_tax(sample_ps)
+tax<-as(tax_table(sample_ps),"matrix")
+tax_cols <- colnames(tax)
+tax<-as.data.frame(tax)
+tax$taxonomy<-do.call(paste, c(tax[tax_cols], sep=";"))
+for(co in tax_cols) tax[co]<-NULL
+
+write.table(tax, "Microbiome_ED/PICRUSt2 Data/tax.txt", quote=FALSE, col.names=FALSE, sep="\t")
+tax_fna<-dataframe2fas(tax, file="Microbiome_ED/PICRUSt2 Data/tax.fna")
+
+# Export feature/OTU table
+
+# As a biom file
+
+library(biomformat);packageVersion("biomformat")
+## [1] ‘1.6.0’
+
+#if taxa_are_rows=TRUE
+otu<-as(otu_table(sample_ps),"matrix")
+otu_biom<-make_biom(data=otu)
+write_biom(otu_biom,"Microbiome_ED/PICRUSt2 Data/otu_biom.biom")
+
+# As a text file
+
+write.table(otu_table(sample_ps), "Microbiome_ED/PICRUSt2 Data/seqtab.tsv", sep="\t", row.names=TRUE, col.names=NA, quote=FALSE)
+
+# Export metadata (if you have a properly formatted metadata file that you imported in your phyloseq pipeline, you can skip this step and just use that text file directly in QIIME 2)
+
+write.table(sample_data(sample_ps),"Microbiome_ED/PICRUSt2 Data/sample-metadata.txt", sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+otu_matrix<-as.matrix(sample_ps@otu_table)
+otu_df<-as.data.frame(otu_matrix)
+print(FWD.orients)
+
+uniquesToFasta(otu_matrix, ids=colnames(otu_matrix))
+
+sample_ps %>%
+      taxa_names(sample_ps) %>%
+      Biostrings::writeXStringSet("Microbiome_ED/PICRUSt2 Data/~/asv.fna", append=FALSE,
+                                  compress=FALSE, compression_level=NA, format="fasta")
+
+```

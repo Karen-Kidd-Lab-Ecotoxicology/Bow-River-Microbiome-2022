@@ -1,0 +1,365 @@
+---
+title: "Bow River Microbiome Analysis 2022"
+author: "Emilie Diesbourg"
+date: "08/05/2023"
+output: 
+  html_document:
+    toc: yes
+    toc_depth: 2
+    df_print: paged
+    toc_float: yes
+editor_options: 
+  chunk_output_type: console
+---
+## Introduction {.tabset}
+
+This data comes from a study done in 2022 across 5 sites on the Bow River, Calgary AB and 3 microcosm streams from Pine Creek wastewater treatment plant with varying municipal wastewater effluent exposures (mesocosm streams: 0, 5, or 15% effluent flow). The objective of this study is to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian Spiders with increased exposure to wastewater. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+```
+
+### Packages
+```{r Load packages}
+#setwd("Microbiome_ED")
+
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+
+#BiocManager::install("phyloseq")
+library(phyloseq) 
+library(ggplot2) 
+library(dplyr) 
+library(vegan)
+library(tidyverse) 
+library(knitr)
+#BiocManager::install("decontam")
+library(decontam)
+```
+
+## Phyloseq object {.tabset}
+
+For a phyloseq object you need 3 pieces of data: 
+
+1. The ASV table with the genetic barcode identifier (the ASV) of each identified bacterial taxa within each insect sample ran (ex. KK100)
+
+2. The taxa table with the genetic barcode of each unique ASV and the respective bacterial classification "Kingdom", "Phylum", "Class", "Order", "Family", "Genus".
+
+3. A metadata file with the sample names (ex. KK100) and any other variables that were measured. Ex. the family of insect or fish organism collected, the site the organism was collected at, the water temperature, the distance to waste water treatment plant, the weight and length of organism, etc.
+
+The phyloseq object will merge all this data together in one object that can be called in by various functions in the phyloseq and microbiome packages. 
+
+```{r Load data and phyloseq object}
+#Importing ASV table
+ASVseq<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\ASV_data_2022_ED_fulldataset_samplesordered.csv")
+
+#The row names have to be the ASV identifier (genetic barcode) in order for it to be read. The following lines of code are to re-organize the row names
+n1 <- ASVseq$X #Currently the ASVs are being called "X" in the first column. We want them to be unnamed in the row names column
+ASVseq <- ASVseq[,-1] #This removes the first column of the ASV dataframe
+rownames(ASVseq) <- n1 #This moves the ASVs to the rownames column of the dataframe
+
+ASVtable <- as.matrix(ASVseq) #must be a matrix so we convert to a matrix
+#View(ASVtable) #The ASVs are now the row names
+
+#Importing taxa table
+taxonomy <-read.csv ("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Taxonomy_ED_2022_fulldataset.csv")
+
+#Using the same steps as above with the ASV table to make the genetic barcode the rowname
+n2 <- taxonomy$X
+taxonomy <- taxonomy[,-1]
+rownames(taxonomy) <- n2
+
+taxa_table<-as.matrix(taxonomy) #Turn into a matrix
+#View(taxa_table) #ASVs are now the row names
+
+#Importing metadata file
+metadata<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\metadata_ED_withblanks.csv")
+
+metadata$Site<-factor(metadata$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")) #Order sites
+metadata$Stage<-factor(metadata$Stage, levels=c("Larvae", "Adult", "Spider"), labels=c("Larvae", "Adults", "Spiders"))
+
+#Need to make sample names as row names so we follow the same steps as above. 
+n3 <- metadata$Study_ID
+
+# move names to row headings
+metadata <- metadata[,-1]
+rownames(metadata) <- n3
+
+#View(metadata) #sample names are now row names
+
+#Combining phyloseq object
+ASVtable = otu_table(ASVtable, taxa_are_rows = TRUE) #Taxa are rows means that the ASVs of each identified microbe are the row names which we made sure was true
+taxa_table = tax_table(taxa_table)
+
+#Make sure the ASV table and taxa table are both matricies before trying to turn into phyloseq object
+ps <- phyloseq(ASVtable, sample_data(metadata), taxa_table)
+```
+
+## Decontamination steps {.tabset}
+Separate individuals by their blank collection method.
+
+### Larvae {.tabset}
+#### Larvae July
+```{r}
+
+#All larvae were collected with tweezers that were rinsed in the DNase/RNase water
+
+#Number of ASVs in the MBDI rinse water from July
+KK1952<-subset_samples(ps, Sample_ID=="CUSHBR_MBDI_RINSE_MB_1")
+KK1952<-prune_taxa(taxa_sums(KK1952) > 0, KK1952)
+ntaxa(KK1952) #85
+
+KK1953<-subset_samples(ps, Sample_ID=="CUSHBR_MBDI_RINSE_MB_2")	
+KK1953<-prune_taxa(taxa_sums(KK1953) > 0, KK1953)
+ntaxa(KK1953) #78
+
+KK1954<-subset_samples(ps, Sample_ID=="CUSHBR_MBDI_RINSE_MB_3")	
+KK1954<-prune_taxa(taxa_sums(KK1954) > 0, KK1954)
+ntaxa(KK1954) #25
+
+
+lar_water_bl<-subset_samples(ps, Blank_collection_method=="Water July")
+lar_water_bl_df <- as.data.frame(sample_data(lar_water_bl))
+lar_water_bl_df$LibrarySize <- sample_sums(lar_water_bl)
+lar_water_bl_df <- lar_water_bl_df[order(lar_water_bl_df$LibrarySize),]
+lar_water_bl_df$Index <- seq(nrow(lar_water_bl_df))
+ggplot(data=lar_water_bl_df, aes(x=Index, y=LibrarySize, color=Sample_Type)) + geom_point()
+#Blank library sizes are very spread out but most of them are lower than experimental sample libraries
+
+sample_data(lar_water_bl)$is.neg <- sample_data(lar_water_bl)$Sample_Type == "Blank"
+contamdf.prev.lar.July <- isContaminant(lar_water_bl, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.lar.July$p)
+table(contamdf.prev.lar.July$contaminant)
+#Threshold of 0.1: FALSE = 31,497, TRUE=59
+head(which(contamdf.prev.lar.July$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.lar.July <- prune_taxa(!contamdf.prev.lar.July$contaminant, lar_water_bl)
+ps.noncontam.lar.July #31,497 taxa and 122 samples
+
+ps.noncontam.lar.July<-subset_samples(ps.noncontam.lar.July, Sample_Type!="Blank")
+nsamples(ps.noncontam.lar.July) #119
+```
+
+#### Larvae September
+```{r}
+#Number of ASVs in the MBDI rinse water from July
+KK1955<-subset_samples(ps, Sample_ID=="ACWA_5%_MBDI_RINSE_MB_1")
+KK1955<-prune_taxa(taxa_sums(KK1955) > 0, KK1955)
+ntaxa(KK1955) #94
+
+KK1956<-subset_samples(ps, Sample_ID=="ACWA_5%_MBDI_RINSE_MB_2")	
+KK1956<-prune_taxa(taxa_sums(KK1956) > 0, KK1956)
+ntaxa(KK1956) #82
+
+KK1957<-subset_samples(ps, Sample_ID=="ACWA_5%_MBDI_RINSE_MB_3")	
+KK1957<-prune_taxa(taxa_sums(KK1957) > 0, KK1957)
+ntaxa(KK1957) #150
+
+lar_water_bl_sept<-subset_samples(ps, Blank_collection_method=="Water September")
+lar_water_bl_sept_df <- as.data.frame(sample_data(lar_water_bl_sept))
+lar_water_bl_sept_df$LibrarySize <- sample_sums(lar_water_bl_sept)
+lar_water_bl_sept_df <- lar_water_bl_sept_df[order(lar_water_bl_sept_df$LibrarySize),]
+lar_water_bl_sept_df$Index <- seq(nrow(lar_water_bl_sept_df))
+ggplot(data=lar_water_bl_sept_df, aes(x=Index, y=LibrarySize, color=Sample_Type)) + geom_point()
+
+sample_data(lar_water_bl_sept)$is.neg <- sample_data(lar_water_bl_sept)$Sample_Type == "Blank"
+contamdf.prev.lar.sept <- isContaminant(lar_water_bl_sept, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.lar.sept$p)
+table(contamdf.prev.lar.sept$contaminant)
+#Threshold of 0.1: FALSE = 31,517, TRUE=39
+head(which(contamdf.prev.lar.sept$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.lar.sept <- prune_taxa(!contamdf.prev.lar.sept$contaminant, lar_water_bl_sept)
+ps.noncontam.lar.sept #31,534 taxa and 27 samples
+
+ps.noncontam.lar.sept<-subset_samples(ps.noncontam.lar.sept, Sample_Type!="Blank")
+nsamples(ps.noncontam.lar.sept) #39
+```
+
+### Adults {.tabset}
+Adults collected in July came into contact with the bedsheet
+
+#### Adults July
+```{r}
+
+#Sheet blanks from Cochrane and Policeman Flats
+KK2072<-subset_samples(ps, Sample_ID=="COCH_MB_SHEET_BL_1")	
+KK2072<-prune_taxa(taxa_sums(KK2072) > 0, KK2072)
+ntaxa(KK2072) #233
+
+KK2073<-subset_samples(ps, Sample_ID=="COCH_MB_SHEET_BL_2")
+KK2073<-prune_taxa(taxa_sums(KK2073) > 0, KK2073)
+ntaxa(KK2073) #201
+
+KK2074<-subset_samples(ps, Sample_ID=="POLFLT_MB_SHEET_BL_1")	
+KK2074<-prune_taxa(taxa_sums(KK2074) > 0, KK2074)
+ntaxa(KK2074) #365
+
+KK2075<-subset_samples(ps, Sample_ID=="POLFLT_MB_SHEET_BL_2")	
+KK2075<-prune_taxa(taxa_sums(KK2075) > 0, KK2075)
+ntaxa(KK2075) #314
+
+#Subset adults collected from July with the bed sheet and UV light emergence trap
+ad_sheet_bl<-subset_samples(ps, Blank_collection_method=="Sheet")
+ad_sheet_bl_df <- as.data.frame(sample_data(ad_sheet_bl))
+ad_sheet_bl_df$LibrarySize <- sample_sums(ad_sheet_bl)
+ad_sheet_bl_df <- ad_sheet_bl_df[order(ad_sheet_bl_df$LibrarySize),]
+ad_sheet_bl_df$Index <- seq(nrow(ad_sheet_bl_df))
+ggplot(data=ad_sheet_bl_df, aes(x=Index, y=LibrarySize, color=Sample_Type)) + geom_point()
+
+sample_data(ad_sheet_bl)$is.neg <- sample_data(ad_sheet_bl)$Sample_Type == "Blank"
+contamdf.prev.ad.sheet <- isContaminant(ad_sheet_bl, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.ad.sheet$p)
+table(contamdf.prev.ad.sheet$contaminant)
+#Threshold of 0.1: FALSE = 31,231, TRUE=325
+head(which(contamdf.prev.ad.sheet$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.ad.sheet <- prune_taxa(!contamdf.prev.ad.sheet$contaminant, ad_sheet_bl)
+ps.noncontam.ad.sheet #31,231 taxa and 107 samples
+
+ps.noncontam.ad.sheet<-subset_samples(ps.noncontam.ad.sheet, Sample_Type!="Blank")
+nsamples(ps.noncontam.ad.sheet) #103? should be 104?
+
+#Subset POLFLT_1_Ad_Caddis_MB_2 : POLFLT_1_Ad_Caddis_MB_8 from this field decontaminated dataframe because these individuals also got contaminated from the extraction reagents during DNA extraction. No other insect samples were contaminated by this. 
+
+contam.caddis<-subset_samples(ps.noncontam.ad.sheet, Sample_ID %in% c("POLFLT_1_Ad_Caddis_MB_2", "POLFLT_1_Ad_Caddis_MB_3", "POLFLT_1_Ad_Caddis_MB_4", "POLFLT_1_Ad_Caddis_MB_5", "POLFLT_1_Ad_Caddis_MB_6", "POLFLT_1_Ad_Caddis_MB_7", "POLFLT_1_Ad_Caddis_MB_8"))
+
+#Separate extraction reagents so I can combine the POLFLT caddis dataframe together
+ext.reag<-subset_samples(ps, Blank_collection_method=="Extraction_neg")
+#Merge them together
+polflt.caddis<-merge_phyloseq(contam.caddis, ext.reag)
+
+caddis_bl_df <- as.data.frame(sample_data(polflt.caddis))
+caddis_bl_df$LibrarySize <- sample_sums(polflt.caddis)
+caddis_bl_df <- caddis_bl_df[order(caddis_bl_df$LibrarySize),]
+caddis_bl_df$Index <- seq(nrow(caddis_bl_df))
+ggplot(data=caddis_bl_df, aes(x=Index, y=LibrarySize, color=Sample_Type)) + geom_point()
+
+sample_data(polflt.caddis)$is.neg <- sample_data(polflt.caddis)$Sample_Type == "Blank"
+contamdf.prev.caddis <- isContaminant(polflt.caddis, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.caddis$p)
+table(contamdf.prev.caddis$contaminant)
+#Threshold of 0.1: FALSE = 31,523, TRUE=33
+head(which(contamdf.prev.caddis$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.caddis <- prune_taxa(!contamdf.prev.caddis$contaminant, polflt.caddis)
+ps.noncontam.caddis #31,523 taxa and 9 samples
+
+ps.noncontam.caddis<-subset_samples(ps.noncontam.caddis, Sample_Type!="Blank")
+nsamples(ps.noncontam.caddis) #7
+
+#Now we have to remove those caddis individuals from the other ps object (ps.noncontam.ad.sheet) so that there aren't duplicates when we merge them all back together. 
+
+ps.noncontam.ad.sheet <- subset_samples(ps.noncontam.ad.sheet, Sample_ID != "POLFLT_1_Ad_Caddis_MB_2" & Sample_ID != "POLFLT_1_Ad_Caddis_MB_3" & Sample_ID !="POLFLT_1_Ad_Caddis_MB_4" & Sample_ID != "POLFLT_1_Ad_Caddis_MB_5" & Sample_ID !="POLFLT_1_Ad_Caddis_MB_6" & Sample_ID !="POLFLT_1_Ad_Caddis_MB_7" & Sample_ID != "POLFLT_1_Ad_Caddis_MB_8")
+
+nsamples(ps.noncontam.ad.sheet) #96
+```
+
+#### Adults September
+```{r}
+#Adults collected in September came into contact with the mesh from floating emergence traps
+
+#Mesh blanks
+KK1958<-subset_samples(ps, Sample_ID=="ACWA_5%_MB_MESH_1")	
+KK1958<-prune_taxa(taxa_sums(KK1958) > 0, KK1958)
+ntaxa(KK1958) #72
+
+KK1959<-subset_samples(ps, Sample_ID=="ACWA_5%_MB_MESH_2")	
+KK1959<-prune_taxa(taxa_sums(KK1959) > 0, KK1959)
+ntaxa(KK1959) #78
+
+KK1960<-subset_samples(ps, Sample_ID=="ACWA_5%_MB_MESH_3")	
+KK1960<-prune_taxa(taxa_sums(KK1960) > 0, KK1960)
+ntaxa(KK1960) #133
+
+
+ad_mesh_bl<-subset_samples(ps, Blank_collection_method=="Mesh")
+ad_mesh_bl_df <- as.data.frame(sample_data(ad_mesh_bl))
+ad_mesh_bl_df$LibrarySize <- sample_sums(ad_mesh_bl)
+ad_mesh_bl_df <- ad_mesh_bl_df[order(ad_mesh_bl_df$LibrarySize),]
+ad_mesh_bl_df$Index <- seq(nrow(ad_mesh_bl_df))
+ggplot(data=ad_mesh_bl_df, aes(x=Index, y=LibrarySize, color=Sample_Type)) + geom_point()
+
+sample_data(ad_mesh_bl)$is.neg <- sample_data(ad_mesh_bl)$Sample_Type == "Blank"
+contamdf.prev.ad.mesh <- isContaminant(ad_mesh_bl, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.ad.mesh$p)
+table(contamdf.prev.ad.mesh$contaminant)
+#Threshold of 0.1: FALSE = 31,541, TRUE=15
+head(which(contamdf.prev.ad.mesh$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.ad.mesh <- prune_taxa(!contamdf.prev.ad.mesh$contaminant, ad_mesh_bl)
+ps.noncontam.ad.mesh #31,541 taxa and 19 samples
+
+ps.noncontam.ad.mesh<-subset_samples(ps.noncontam.ad.mesh, Sample_Type!="Blank")
+nsamples(ps.noncontam.ad.mesh) #16
+```
+### Buffer tubes
+```{r}
+buffer_bl<-subset_samples(ps, Blank_collection_method %in% c("Buffer", "Extraction_neg"))
+buffer_bl_df <- as.data.frame(sample_data(buffer_bl))
+buffer_bl_df$LibrarySize <- sample_sums(buffer_bl)
+buffer_bl_df <- buffer_bl_df[order(buffer_bl_df$LibrarySize),]
+buffer_bl_df$Index <- seq(nrow(buffer_bl_df))
+ggplot(data=buffer_bl_df, aes(x=Index, y=LibrarySize, color=Blank_collection_method)) + geom_point()
+
+sample_data(buffer_bl)$is.neg <- sample_data(buffer_bl)$Blank_collection_method == "Extraction_neg"
+contamdf.prev.buffer <- isContaminant(buffer_bl, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.buffer$p)
+table(contamdf.prev.buffer$contaminant)
+#Threshold of 0.1: FALSE = 31,543, TRUE=13
+head(which(contamdf.prev.buffer$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.buffer <- prune_taxa(!contamdf.prev.buffer$contaminant, buffer_bl)
+ps.noncontam.buffer #31,543 taxa and 4 samples
+
+#Only want to keep the buffer blanks not the extraction negs
+ps.noncontam.buffer<-subset_samples(ps.noncontam.buffer, Blank_collection_method!="Extraction_neg")
+nsamples(ps.noncontam.buffer) #2
+
+#Make a phyloseq for the spiders
+spi_ps<-subset_samples(ps, Taxa=="Spider")
+```
+
+### Merge all the decontaminated phyloseqs back together
+```{r}
+nsamples(ps.noncontam.lar.July) #119
+nsamples(ps.noncontam.lar.sept) #39
+nsamples(ps.noncontam.ad.sheet) #96
+nsamples(ps.noncontam.ad.mesh) #16
+nsamples(ps.noncontam.caddis) #7
+nsamples(ps.noncontam.buffer) #2
+nsamples(spi_ps) #80
+
+decontam_ps<-merge_phyloseq(ps.noncontam.lar.July, ps.noncontam.lar.sept, ps.noncontam.ad.sheet, ps.noncontam.ad.mesh, ps.noncontam.buffer, ps.noncontam.caddis, spi_ps)
+ntaxa(decontam_ps) #31,556
+nsamples(decontam_ps) #359. 357 samples and 2 buffer tubes
+
+#Remove contaminants in all samples due to buffer tubes
+sample_contam_df <- as.data.frame(sample_data(decontam_ps))
+sample_contam_df$LibrarySize <- sample_sums(decontam_ps)
+sample_contam_df <- sample_contam_df[order(sample_contam_df$LibrarySize),]
+sample_contam_df$Index <- seq(nrow(sample_contam_df))
+ggplot(data=sample_contam_df, aes(x=Index, y=LibrarySize, color=Sample_Type)) + geom_point()
+
+sample_data(decontam_ps)$is.neg <- sample_data(decontam_ps)$Sample_Type == "Blank"
+contamdf.prev.sample_contam <- isContaminant(decontam_ps, method="prevalence", neg="is.neg", threshold=0.1)
+hist(contamdf.prev.sample_contam$p)
+table(contamdf.prev.sample_contam$contaminant)
+#Threshold of 0.1: FALSE = 31,209, TRUE=347
+head(which(contamdf.prev.sample_contam$contaminant)) 
+
+#Prune samples to get rid of contaminants and continue with filtering steps
+ps.noncontam.sample.contam <- prune_taxa(!contamdf.prev.sample_contam$contaminant, decontam_ps)
+ps.noncontam.sample.contam #31,209 taxa and 359 samples
+
+#Only want to keep the buffer blanks not the extraction negs
+ps.noncontam.sample.contam<-subset_samples(ps.noncontam.sample.contam, Sample_Type!="Blank")
+nsamples(ps.noncontam.sample.contam) #357
+```

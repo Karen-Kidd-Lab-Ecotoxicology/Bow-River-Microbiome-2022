@@ -1,0 +1,1524 @@
+---
+title: "StableIsotope2022"
+author: "Emilie Diesbourg"
+date: "14/03/2023"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+Loading packages and data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+par(mar = c(1, 1, 1, 1))
+```
+
+```{r Packages/Data}
+#library(rjags)
+library(MixSIAR)
+library(plyr)
+library(dplyr)
+library(ggpubr)
+library(ggplot2)
+library(R2WinBUGS)
+library(FSA)
+library(splancs)
+library(devtools)
+library(emmeans)
+library(vegan)
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis", force=TRUE)
+library(pairwiseAdonis)
+
+
+isotope<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Stable_isotope_ED\\StableIsotope2022.csv")
+isotope$Site<-factor(isotope$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
+inverts<-subset(isotope, Tissue.Type=="Whole Invertebrate")
+```
+
+Sample numbers
+
+```{r}
+#Larvae across sites
+coch_lar<-subset(inverts, Site=="Cochrane" & Stage=="Larvae") #5
+sun_lar<-subset(inverts, Site=="Sunalta" & Stage=="Larvae") #14
+cushbr_lar<-subset(inverts, Site=="Cushing Bridge" & Stage=="Larvae") #6
+grvbr_lar<-subset(inverts, Site=="Graves Bridge" & Stage=="Larvae") #15
+pmf_lar<-subset(inverts, Site=="Policeman Flats" & Stage=="Larvae") #14
+
+#Adults across sites
+coch_ad<-subset(inverts, Site=="Cochrane" & Aqu_Terr=="Ad_aquatic") #9
+sun_ad<-subset(inverts, Site=="Sunalta" & Aqu_Terr=="Ad_aquatic") #11
+cushbr_ad<-subset(inverts, Site=="Cushing Bridge" & Aqu_Terr=="Ad_aquatic") #11
+grvbr_ad<-subset(inverts, Site=="Graves Bridge" & Aqu_Terr=="Ad_aquatic") #12
+pmf_ad<-subset(inverts, Site=="Policeman Flats" & Aqu_Terr=="Ad_aquatic")#12
+
+#Spiders n = 3/family/site
+
+```
+
+Preliminary data checks (carbonates/lipid effect)
+
+```{r}
+
+### Carbonate effect ###
+
+ggplot(isotope, aes(x=X.C, y=d13C))+ #Looks like there's a negative relationship between %C and d13C indicating no carbonates (inorganic carbon) in the samples since Brian mentioned the correlation should be positive if there was an effect
+  geom_point()+
+  geom_smooth(method="lm")+
+  facet_grid(.~Site)
+
+biofilm<-filter(isotope, Taxa=="Biofilm")
+
+ggplot(biofilm, aes(x=X.C, y=d13C))+ 
+  geom_point()+
+  geom_smooth(method="lm")+
+  facet_grid(.~Site)
+#No effect of carbonates. Seems like there is one datapoint driving the others. 
+
+
+### Lipid effect ###
+
+ggplot(isotope, aes(x=C.N, y=d13C))+ #Only looks slightly depleted at Policeman Flats so probably not an issue for this data
+  geom_point()+
+  geom_smooth(method="lm")+
+  facet_grid(.~Site)
+
+inverts<-subset(isotope, Tissue.Type=="Whole Invertebrate")
+
+ggplot(inverts, aes(x=Taxa, y=C.N))+
+  geom_boxplot()+
+  geom_hline(aes(yintercept=4), colour="red")
+
+#Could potentially indicate a lipid effect since C:N ratio shouldn't be above 3.5 but if we correct it, it won't make a difference since all the insects besides spiders are at approximately the same level.  
+```
+
+Biplots of individual data points
+
+```{r}
+
+#%C vs %N at all sites
+ggplot(isotope, aes(x=X.C, y=X.N, color=Taxa, shape=Tissue.Type))+
+  geom_point()+
+  facet_grid(.~Site)
+
+#d13C vs d15N at all sites
+ggplot(isotope, aes(x=d13C, y=d15N, color=Taxa, shape=Tissue.Type))+
+  geom_point()+
+  facet_grid(.~Site)
+
+#Sites separated out
+Cochrane<-filter(isotope, Site=="Cochrane")
+ggplot(Cochrane, aes(x=d13C, y=d15N, color=Taxa))+
+  geom_point()
+
+Sunalta<-filter(isotope, Site=="Sunalta")
+ggplot(Sunalta, aes(x=d13C, y=d15N, color=Taxa, shape=Tissue.Type))+
+  geom_point()
+
+
+Cushbr<-filter(isotope, Site=="Cushing Bridge")
+ggplot(Cushbr, aes(x=d13C, y=d15N, color=Taxa))+
+  geom_point()
+
+Grvbr<-filter(isotope, Site=="Graves Bridge")
+ggplot(Grvbr, aes(x=d13C, y=d15N, color=Taxa))+
+  geom_point()
+#Shrubs and biofilm are high in nitrogen as well as invertebrates. Biofilm is variable on the x axis.
+
+Polflt<-filter(isotope, Site=="Policeman Flats")
+ggplot(Polflt, aes(x=d13C, y=d15N, color=Taxa))+
+  geom_point()
+#Shrubs still high in nitrogen but biofilm is not. All taxa are very variable on both x and y axes. 
+```
+
+Biplots of averaged /median data
+
+```{r}
+
+#Summarizing a dataframe with mean and sd C and N values
+data.sum<-ddply(isotope, c("Site", "Taxa", "sample_group"), summarise,
+                d13Cmn=mean(d13C), #mean
+                d13Csd=sd(d13C), #standard deviation
+                d13Cse=sd(d13C)/sqrt(length(d13C)), #standard error
+                d15Nmn=mean(d15N), #mean
+                d15Nsd=sd(d15N), #standard deviation
+                d15Nse=sd(d15N)/sqrt(length(d15N))) #standard error
+
+data.sum1<-ddply(isotope, c("Taxa", "sample_group"), summarise,
+                d13Cmn=mean(d13C), #mean
+                d13Csd=sd(d13C), #standard deviation
+                #d13Cse=sd(d13C)/sqrt(length(d13C)), #standard error
+                d15Nmn=mean(d15N), #mean
+                d15Nsd=sd(d15N)) #standard deviation
+                #d15Nse=sd(d15N)/sqrt(length(d15N))) #standard error
+
+#Making errorbars
+Ylims<-aes(ymax=d15Nmn +d15Nsd, ymin=d15Nmn-d15Nsd)
+Xlims<-aes(xmax=d13Cmn+d13Csd, xmin=d13Cmn-d13Csd)
+
+#All sites together
+
+ggplot(data.sum1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=sample_group))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  theme_classic()
+
+#All sites (faceted)
+
+data.sum$Taxa<-factor(data.sum$Taxa, levels= c("Terrestrial Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"), labels=c("Riparian Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
+
+#data.sum$Aqu_Terr<-factor(data.sum$Aqu_Terr, levels=c("biofilm", "Leaves", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Biofilm", "Riparian Leaves", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"))
+
+data.sum$sample_group<-factor(data.sum$sample_group, levels=c("Basal Food Source", "Aquatic Larvae ", "Aquatic Adult ", "Terrestrial Prey", "Spider"))
+
+ggplot(data.sum, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=sample_group))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  facet_grid(.~Site, scales="free_x")+
+  theme_bw()+
+  theme(axis.text = element_text(size=12, color="black"), axis.title = element_text(size=16), strip.text = element_text(size=16, color="black"), legend.title = element_text(size=14), legend.text = element_text(size=12))+
+  labs(color="Taxa", shape="Sample Type")+
+  rremove("grid")
+
+
+#ggsave(filename="Stable_isotope_ED/Figures/Median biplot d13C d15N faceted by site, taxa, and taxa group.png", height=7, width=12)
+
+#Sites separated
+ggplot(subset(data.sum, Site=="Cochrane"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(delta^15~N))+
+  xlab(expression(delta^13~C))+
+  theme_classic()
+
+ggplot(subset(data.sum, Site=="Sunalta"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(delta^15~N))+
+  xlab(expression(delta^13~C))+
+  theme_classic()
+
+ggplot(subset(data.sum, Site=="Cushing Bridge"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(delta^15~N))+
+  xlab(expression(delta^13~C))+
+  theme_classic()
+
+ggplot(subset(data.sum, Site=="Graves Bridge"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(delta^15~N))+
+  xlab(expression(delta^13~C))+
+  theme_classic()
+
+ggplot(subset(data.sum, Site=="Policeman Flats"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(delta^15~N))+
+  xlab(expression(delta^13~C))+
+  theme_classic()
+
+
+### Median N and C values ###
+
+data.median<-ddply(isotope, c("Site", "Taxa", "FFG"), summarise,
+                d13Cmed=median(d13C), #mean
+                d13CIQR=IQR(d13C), #standard deviation
+                #d13Cse=IQR(d13C)/sqrt(length(d13C)), #standard error
+                d15Nmed=median(d15N), #mean
+                d15NIQR=IQR(d15N)) #standard deviation
+                #d15Nse=IQR(d15N)/sqrt(length(d15N))) #standard error
+
+data.median1<-ddply(isotope, c("Taxa", "FFG"), summarise,
+                d13Cmed=median(d13C), #mean
+                d13CIQR=IQR(d13C), #standard deviation
+                #d13Cse=IQR(d13C)/sqrt(length(d13C)), #standard error
+                d15Nmed=median(d15N), #mean
+                d15NIQR=IQR(d15N))
+                #d15Nse=IQR(d15N)/sqrt(length(d15N))) #standard error
+
+#Making errorbars
+Ylims<-aes(ymax=d15Nmed +d15NIQR, ymin=d15Nmed-d15NIQR)
+Xlims<-aes(xmax=d13Cmed+d13CIQR, xmin=d13Cmed-d13CIQR)
+
+#All sites together
+
+ggplot(data.median1, aes(x=d13Cmed, y=d15Nmed, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  theme_classic()
+
+#All sites (faceted)
+
+data.median$Taxa<-factor(data.median$Taxa, levels= c("Terrestrial Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"), labels=c("Riparian Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
+
+ggplot(data.median, aes(x=d13Cmed, y=d15Nmed, colour=Taxa, shape=FFG))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  theme(axis.text.x = element_text(size=16, color="black"), axis.text.y =  element_text(size=16, color="black"))+
+  facet_grid(~Site, scales="free_x")+
+  theme_bw()+
+  labs(fill="Sample Type", shape="Functional Feeding Group")+
+  rremove("grid")
+
+
+#ggsave(filename="Stable_isotope_ED/Figures/Median and IQR biplot d13C d15N faceted by site.png", height=6, width=12)
+
+```
+
+Checking for nitrogen enrichment across sites
+
+```{r}
+
+isotope_sub<-subset(isotope, Aqu_Terr!= "Terrestrial")
+
+isotope_sub$Aqu_Terr<-factor(isotope_sub$Aqu_Terr, levels=c("Riparian Leaves", "Biofilm", "Aquatic Larvae", "Aquatic Adults", "Spiders"))
+
+ggplot(isotope_sub, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.title.y.left = element_text(size=18), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black"))+
+  ylim(-1, 17)+
+  rremove("grid")+
+  xlab("Site")+
+  facet_grid(~Aqu_Terr, scales="free_x")
+
+#ggsave(filename="Stable_isotope_ED/Figures/Nitrogen enrichment of basal food source and organisms across sites no terrestrial prey.png", height=7, width=12)
+  
+
+#### Subset basal food source (includes both biofilm and shrubs) ####
+basal<-subset(isotope, Consumer=="Basal food source")
+
+
+shapiro.test(basal$d15N) #normal dist. 
+hist(basal$d15N) 
+
+#Does biofilm and terrestrial leaves combined differ in d15N across collection sites?
+summary(basal_lm1<-lm(d15N~Site, data=basal))
+emmeans(basal_lm1, specs = pairwise ~ Site)
+#Sig. difference between Graves Bridge and Cochrane
+
+#Does d15N differ between biofilm and leaves (all sites combined)
+t.test(data=basal, d15N~Stage) #p=0.437, no difference between basal food sources and d15N value.
+
+shapiro.test(basal$d13C) #not normal dist. 
+hist(basal$d13C) 
+
+#Does d13C differ across sites with both basal food sources combined?
+kruskal.test(data=basal, d13C~Site) #p=0.8854. Does not change across sites
+
+wilcox.test(data=basal, d13C~Stage)  #p<0.001. Difference in d13C value (with all sites combined)
+
+
+#### Shrub ####
+shrub<-subset(isotope, Stage=="Shrub")
+shrub_d15N_plot<-ggplot(shrub, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab("Site")+
+  theme(axis.title.y=element_text(size=16),
+        axis.text.y=element_text(size=10),
+        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
+                        axis.title=element_text(size=16))
+shrub_d15N_plot
+
+shapiro.test(shrub$d15N) #normal
+hist(shrub$d15N) #Normal dist.
+
+summary(shrublm1<-aov(d15N~Site, data=shrub))
+emmeans(shrublm1, specs = pairwise~Site)
+#GRVBR diff from COCH
+#PMF diff from COCH
+
+#### Biofilm ####
+biofilm<-subset(isotope, Taxa=="Biofilm")
+biofilm_d15N_plot<-ggplot(biofilm, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab("Site")+
+  theme(axis.title.y=element_text(size=16),
+        axis.text.y=element_text(size=10),
+        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
+                        axis.title=element_text(size=16))
+biofilm_d15N_plot
+
+hist(biofilm$d15N) #Normal -ish distribution
+shapiro.test(biofilm$d15N) #Normal dist. 
+
+summary(biofilm1<-aov(d15N~Site, data=biofilm)) #p=0.379
+emmeans(biofilm1, specs = pairwise~Site)
+#No diff. 
+
+kruskal.test(d15N~Site, data=biofilm) #p=0.2642
+dunnTest(d15N~Site, data=biofilm)
+#No diff
+
+
+#### Aquatic larvae ####
+aq_lar<-subset(isotope, Aqu_Terr=="lar_aquatic")
+shapiro.test(aq_lar$d15N) #normal dist. 
+hist(aq_lar$d15N) 
+
+summary(aq_lar_lm<-lm(d15N~Site, data=aq_lar))
+emmeans(aq_lar_lm, specs = pairwise ~ Site)
+#GRVBR different from all other sites
+
+#### Aquatic adults ####
+aq_ad<-subset(isotope, Aqu_Terr=="Ad_aquatic")
+shapiro.test(aq_ad$d15N) #normal dist. 
+hist(aq_ad$d15N) 
+
+summary(aq_ad_lm<-lm(d15N~Site, data=aq_ad))
+emmeans(aq_ad_lm, specs = pairwise ~ Site)
+#GRVBR different from all other sites
+
+#### Terrestrial Adults ####
+terr_ad<-subset(isotope, Aqu_Terr=="Terrestrial Prey")
+shapiro.test(terr_ad$d15N) #normal dist. 
+hist(terr_ad$d15N) 
+
+summary(terr_ad_lm<-lm(d15N~Site, data=terr_ad))
+emmeans(terr_ad_lm, specs = pairwise ~ Site)
+#GRVBR different from all other sites
+
+#### Spiders ####
+spiders<-subset(isotope, Aqu_Terr=="Spider")
+shapiro.test(spiders$d15N) #not normal dist. 
+hist(spiders$d15N) 
+
+summary(spiders_lm<-lm(d15N~Site, data=spiders))
+emmeans(spiders_lm, specs = pairwise ~ Site)
+#GRVBR different from all other sites
+
+kruskal.test(d15N~Site, data=spiders) #p=0.0054
+dunnTest(d15N~Site, data=spiders)
+#GRVBR different from all other sites
+
+#### Subset primary consumers ####
+pricon<-subset(isotope, Consumer=="Primary Consumer")
+
+shapiro.test(pricon$d15N) #normal dist. 
+hist(pricon$d15N) 
+
+summary(pricon_lm1<-lm(d15N~Site, data=pricon))
+emmeans(pricon_lm1, specs = pairwise ~ Site)
+#Sig. difference btw
+#COCH - GRVBR
+#SUN - GRVBR
+#CUSHBR - POLFLT
+#GRVBR - POLFLT
+
+#### Subset secondary consumers ####
+seccon<-subset(isotope, Consumer=="Secondary Consumer")
+#No transformation
+shapiro.test(seccon$d15N)  #Not normal but looks normal
+hist(seccon$d15N) #normal looking dist.
+
+summary(seccon_lm1<-lm(d15N~Site, data=seccon))
+emmeans(seccon_lm1, specs = pairwise ~ Site)
+#Sig. differences btw 
+#SUN - GRVBR
+#CUSHBR - GRVBR
+#GRVBR - POLFLT
+
+kruskal.test(d15N~Site, data=seccon) #p=0.006
+dunnTest(d15N~Site, data=seccon)
+#CUSHBR - GRVBR
+#GRVBR - PMF
+
+
+#### Spiders combined ####
+
+spiders<-subset(inverts, Taxa=="Araneidae" | Taxa=="Tetragnathidae")
+spider_d15N_plot<-ggplot(spiders, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab("Site")+
+  theme(axis.title.y=element_text(size=16),
+        axis.text.y=element_text(size=10),
+        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
+                        axis.title=element_text(size=16))
+spider_d15N_plot
+
+shapiro.test(spiders$d15N)  #Not normal
+hist(log(spiders$d15N)) #normal looking dist.
+
+kruskal.test(d15N~Site, data=spiders) #p=0.0054
+dunnTest(d15N~Site, data=spiders)
+#Graves Bridge sig different from all other sites
+
+
+#### Araneidae ####
+araneidae<-subset(inverts, Taxa=="Araneidae")
+ggplot(araneidae, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Much higher in d15N at Graves Bridge. 
+
+shapiro.test(araneidae$d15N)  #Not normal
+
+kruskal.test(d15N~Site, data=araneidae) #p=0.061
+dunnTest(d15N~Site, data=araneidae)
+#GRVBR - PMF p=0.034
+
+#### Tetragnathidae ####
+tetragnathidae<-subset(inverts, Taxa=="Tetragnathidae")
+ggplot(tetragnathidae, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Much higher in d15N at Graves Bridge.
+
+shapiro.test(tetragnathidae$d15N)  #Not normal
+hist(tetragnathidae$d15N)
+
+kruskal.test(d15N~Site, data=tetragnathidae) #p=0.136
+dunnTest(d15N~Site, data=tetragnathidae)
+#No diff
+
+
+#### Hydropsychidae ####
+
+#Larvae
+
+hydro_lar<-subset(isotope, Taxa_num=="2" & Stage=="Larvae")
+hydro_lar_d15N_plot<-ggplot(hydro_lar, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab("Site")+
+  theme(axis.title.y=element_text(size=16),
+        axis.text.y=element_text(size=10),
+        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
+                        axis.title=element_text(size=16))
+
+hydro_lar_d15N_plot
+
+shapiro.test(hydro_lar$d15N)  #Not normal
+hist(hydro_lar$d15N) #not normal looking dist
+
+kruskal.test(d15N~Site, data=hydro_lar) #p=0.052
+dunnTest(d15N~Site, data=hydro_lar)
+#only diff btw graves bridge and sunalta
+
+#Adults
+
+hydro_ad<-subset(inverts, Taxa_num=="2" & Stage=="Adult")
+hydro_ad_d15N_plot<-ggplot(hydro_ad, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  theme_classic()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab("Site")+
+  theme(axis.title.y=element_text(size=16),
+        axis.text.y=element_text(size=10),
+        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
+                        axis.title=element_text(size=16))
+hydro_ad_d15N_plot
+
+shapiro.test(hydro_ad$d15N)  #Not normal
+hist(log(hydro_ad$d15N)) #normal looking dist.
+
+kruskal.test(d15N~Site, data=hydro_ad) #p=0.044
+dunnTest(d15N~Site, data=hydro_ad)
+#Diff btw GRVBR - PMF
+
+
+#### Heptageniidae ####
+#Larvae
+larhep<-filter(inverts, Taxa=="Heptageniidae" & Stage=="Larvae")
+ggplot(larhep, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Graves Bridge is much higher in d15N
+
+shapiro.test(larhep$d15N)  #Normal
+hist(larhep$d15N) #normal looking dist.
+
+summary(hep_lm1<-lm(d15N~Site, data=larhep))
+emmeans(hep_lm1, specs = pairwise ~ Site)
+#Diff btw:
+#COCH - GRVBR
+#COCH - PMF
+#SUN - GRVBR
+#SUN - PMF
+#CUSHBR - GRVBR
+#CUSHBR - PMF
+#GRVBR - PMF
+
+
+#Adults
+adhep<-filter(inverts, Taxa=="Heptageniidae" &  Stage=="Adult")
+ggplot(adhep, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+
+#Not a large enough sample size to run stats
+
+#### Chironomidae ####
+#Larvae
+larchiro<-filter(inverts, Taxa=="Chironomidae" & Stage=="Larvae")
+ggplot(larchiro, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Not a large enough sample size to run stats
+
+#Adult
+adchiro<-filter(inverts, Taxa=="Chironomidae" & Stage=="Adult")
+ggplot(adchiro, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Not enough to really compare at Graves Bridge but might not be significantly higher than the other sites
+
+#### Chloroperlidae ####
+#larvae
+larchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Larvae")
+
+ggplot(larchloro, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+
+shapiro.test(larchloro$d15N)  #Normal
+hist(larchloro$d15N) #Not normal looking.
+
+summary(chloro_lm1<-lm(d15N~Site, data=larchloro))
+emmeans(chloro_lm1, specs = pairwise ~ Site)
+#SUN - GRVBR p=0.0006
+#CUSHBR - GRVBR p < 0.001
+
+#adults
+adchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Adult")
+ggplot(adchloro, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Not enough samples for statistical comparison
+
+#### Ephemerellidae ####
+#Larvae
+larephem<-subset(inverts, Taxa=="Ephemerellidae" & Stage=="Larvae")
+ggplot(larephem, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Higher at Graves Bridge
+
+shapiro.test(larephem$d15N)  #Normal
+hist(larephem$d15N) #Not normal looking.
+
+kruskal.test(d15N~Site, data=larephem) #p=0.066
+dunnTest(d15N~Site, data=larephem) #no diff
+
+#Adults
+adephem<-subset(inverts, Taxa=="Ephemerellidae" & Stage=="Adult")
+ggplot(adephem, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+#Higher at Graves Bridge
+
+#Not enough samples to run stats
+
+
+#### Gatherer-Collector ####
+
+gathcollec_lar<-subset(isotope, FFG=="Gatherer-Collector" & Stage=="Larvae")
+ggplot(gathcollec_lar, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+
+shapiro.test(gathcollec_lar$d15N)  #Normal
+hist(gathcollec_lar$d15N) #bimodel looking dist.
+
+kruskal.test(d15N~Site, data=gathcollec_lar) #p<0.001
+dunnTest(d15N~Site, data=gathcollec_lar)
+#GRVBR - PMF
+#GRVBR - SUN
+
+gathcollec_ad<-subset(isotope, FFG=="Gatherer-Collector" & Stage=="Adult")
+ggplot(gathcollec_ad, aes(x=Site, y=d15N))+
+  geom_boxplot()+
+  theme_classic()
+
+shapiro.test(gathcollec_ad$d15N)  #Normal
+hist(gathcollec_ad$d15N) #bimodel looking dist.
+
+kruskal.test(d15N~Site, data=gathcollec_ad) #p=0.011
+dunnTest(d15N~Site, data=gathcollec_ad)
+#CUSHBR - GRVBR
+#GRVBR - PMF
+#GRVBR - SUN
+
+#### Putting plots together ####
+
+shrub2<-shrub_d15N_plot + rremove("ylab") +rremove("xlab") 
+biofilm2<-biofilm_d15N_plot + rremove("ylab") +rremove("xlab")
+hydrolar2<-hydro_lar_d15N_plot+ rremove("ylab")+rremove("xlab")
+hydroad2<-hydro_ad_d15N_plot + rremove("ylab")+rremove("xlab")
+spider2<-spider_d15N_plot +rremove("ylab")+rremove("xlab")
+
+d15N<-ggarrange(shrub2, biofilm2, hydrolar2, hydroad2, spider2, font.label=list(size=12), ncol=5, align="v")
+
+annotate_figure(d15N, bottom = text_grob("Site", size = 16), left = text_grob(expression(paste(delta^15, "N (\u2030)", sep="")), rot = 90, size=16))
+
+#ggsave(filename="Stable_isotope_ED/Figures/N enrichment basal food source separate.png", height=8, width=16)
+
+```
+
+ANOVA/Kruskal-Wallis tests of C and N across sites and taxa
+
+```{r}
+hist(isotope$d15N) #looks like normal dist
+shapiro.test(isotope$d15N) #Not normal p=0.002116. Use Kruskal test
+
+kruskal.test(data=isotope, d15N ~ Aqu_Terr) #p<0.001
+dunnTest(data=isotope, d15N ~ Aqu_Terr)
+
+#Significant differences include:
+#Aquatic adults - Aquatic larvae
+#Aquatic adults - Biofilm
+#Aquatic larvae - Biofilm
+#Aquatic adults - riparian leaves
+#Aquatic larvae - riparian leaves
+#Aquatic larvae - spiders
+#Biofilm - spiders
+#Riparian leaves - spiders
+#Aquatic adults - terrestrial invertebrates
+#Spiders - Terrestrial invertebrates 
+
+kruskal.test(data=isotope, d15N ~ Site) #p<0.001
+dunnTest(data=isotope, d15N ~ Site)
+#GRVBR is different from all other sites. 
+#COCH - GRVBR
+#CUSHBR - GRVBR
+#GRVBR - PMF
+#GRVBR - SUN
+
+#Non-parametric two way ANOVA:
+scheirerRayHare(d15N ~ Site * Aqu_Terr, data=isotope)
+#dunnTest(d15N ~ Site + Aqu_Terr, data=isotope)
+#Not sure how to test for multiple comparisons because Dunn test can only do one variable
+
+ggplot(isotope, aes(x=Aqu_Terr, y=d15N))+
+  geom_boxplot()
+
+aqu_terr_N_plot<-ggplot(isotope, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
+  geom_boxplot()+
+  facet_grid(~factor(Aqu_Terr, levels=c("biofilm", "Leaves", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Biofilm", "Riparian Leaves", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders")), scales="free_x")+
+  theme_bw()+
+  rremove("grid")+
+  theme(axis.text.x = element_text(size=12, color="black", angle=45, hjust=1, vjust=1), axis.title = element_text(size=14, color="black"))+
+  xlab("Site")+
+ ylab(expression(paste(delta^15, "N (\u2030)", sep="")))
+
+aqu_terr_N_plot
+
+#Biofilm
+biofilm<-subset(isotope, Stage=="Biofilm")
+shapiro.test(biofilm$d15N) #Normal dist
+
+summary(aov(data=biofilm, d15N~Site)) #p=0.379
+
+#Riparian leaves
+leaves<-subset(isotope, Stage=="Shrub")
+
+shapiro.test(leaves$d15N) #Normal dist
+summary(leavesaov<-aov(data=leaves, d15N~Site)) #p=0.00217
+TukeyHSD(leavesaov)
+#GRVBR - COCH
+#PMF - COCH
+
+#Aquatic larvae
+aqu_lar<-subset(isotope, Aqu_Terr=="lar_aquatic")
+shapiro.test(aqu_lar$d15N) #Normal dist. 
+
+summary(laraov<-aov(data=aqu_lar, d15N~Site)) #p<0.001
+TukeyHSD(laraov)
+#GRVBR - COCH
+#GRVBR - SUN
+#GRVBR - CUSHBR
+#GRVBR - PMF
+
+#Aquatic adults
+aqu_ad<-subset(isotope, Aqu_Terr=="Ad_aquatic")
+shapiro.test(aqu_ad$d15N) #Normal dist. 
+
+summary(adaov<-aov(data=aqu_ad, d15N~Site)) #p<0.001
+TukeyHSD(adaov)
+#GRVBR - COCH
+#GRVBR - SUN
+#GRVBR - CUSHBR
+#GRVBR - PMF
+
+#Terrestrial invertebrates
+terr_inverts<-subset(isotope, Aqu_Terr=="Terrestrial")
+shapiro.test(terr_inverts$d15N) #Normal dist. 
+
+summary(terraov<-aov(data=terr_inverts, d15N~Site)) #p=0.099
+TukeyHSD(terraov)
+#No sig differences
+
+#Spiders
+spiders<-subset(isotope, Aqu_Terr=="Spider")
+shapiro.test(spiders$d15N) #Not normal dist. 
+
+kruskal.test(data=spiders, d15N~Site) #p=0.00537
+dunnTest(data=spiders, d15N~Site)
+#COCH-GRVBR
+#CUSHBR-GRVBR
+#GRVBR-PMF
+#GRVBR-SUN
+
+#-----------------------------------------------------------
+
+#d13C 
+
+hist(isotope$d13C) #looks like non normal dist
+shapiro.test(isotope$d13C) #Not normal p<0.001. Use Kruskal test
+
+kruskal.test(data=isotope, d13C ~ Aqu_Terr) #p<0.001
+dunnTest(data=isotope, d13C ~ Aqu_Terr)
+
+#Significant differences include:
+#Aquatic adults - Aquatic larvae
+#Aquatic adults - Biofilm
+#Aquatic larvae - Biofilm
+#Biofilm - riparian leaves
+#Aquatic larvae - spiders
+#Biofilm - spiders
+#Biofilm - terrestrial invertebrates
+
+
+kruskal.test(data=isotope, d13C ~ Site) #p<0.001
+dunnTest(data=isotope, d13C ~ Site)
+
+#COCH - GRVBR
+#COCH - PMF
+#CUSHBR - PMF
+#CUSHBR - GRVBR
+#GRVBR - SUN
+#PMF - SUN
+
+#Non wastewater exposed sites are different from wastewater exposed sites
+
+scheirerRayHare(d13C ~ Site * Aqu_Terr, data=isotope)
+#Significant difference across sites and taxa groupings but no interaction
+
+#Biofilm
+
+hist(biofilm$d13C)
+shapiro.test(biofilm$d13C) #Normal dist
+
+summary(biofilm_c<-aov(data=biofilm, d13C~Site)) #P=0.00445
+TukeyHSD(biofilm_c) 
+#Sig differences btw:
+#PMF - COCH
+#PMF - SUN
+#PMF - CUSHBR
+
+#Leaves
+hist(leaves$d13C)
+shapiro.test(leaves$d13C) #Normal dist
+
+summary(leaves_c<-aov(data=leaves, d13C~Site)) #P=0.323
+TukeyHSD(leaves_c) #No differences
+
+#Aquatic larvae
+hist(aq_lar$d13C)
+shapiro.test(aq_lar$d13C) #normal dist
+
+summary(lar_c<-aov(data=aq_lar, d13C~Site)) #P<0.001
+TukeyHSD(lar_c)
+#SUN - COCH
+#GRVBR - COCH
+#PMF - COCH
+#PMF - SUN
+#PMF - CUSHBR
+#PMF-GRVBR
+
+
+#Aquatic adults
+hist(aq_ad$d13C)
+shapiro.test(aq_ad$d13C) #normal dist
+
+summary(ad_c<-aov(data=aq_ad, d13C~Site)) #P<0.001
+TukeyHSD(ad_c)
+#GRVBR - COCH
+#PMF - COCH
+#GRVBR - SUN
+#PMF - SUN
+#PMF - CUSHBR
+
+#Terrestrial inverts
+hist(terr_ad$d13C)
+shapiro.test(terr_ad$d13C) #normal dist
+
+summary(terr_c<-aov(data=terr_ad, d13C~Site)) #P=0.0247
+TukeyHSD(terr_c)
+#GRVBR - SUN
+#PMF - SUN
+
+#Spiders
+hist(spiders$d13C)
+shapiro.test(spiders$d13C) #normal dist
+
+summary(spiders_c<-aov(data=spiders, d13C~Site)) #P<0.001
+TukeyHSD(spiders_c)
+#SUN - COCH
+#CUSHBR-COCH
+#GRVBR-COCH
+#PMF-COCH
+#GRVBR - SUN
+#PMF - SUN
+#GRVBR - CUSHBR
+#PMF - CUSHBR
+
+
+ggplot(isotope, aes(x=Aqu_Terr, y=d13C))+
+  geom_boxplot()
+
+aqu_terr_C_plot<-ggplot(isotope, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d13C))+
+  geom_boxplot()+
+  facet_grid(~Aqu_Terr, scales="free_x")+
+  theme_bw()+
+  rremove("grid")+
+  theme(axis.text.x = element_text(size=12, color="black", angle=45, hjust=1, vjust=1), axis.title = element_text(size=14, color="black"))+
+  xlab("Site")+
+ ylab(expression(paste(delta^13, "C (\u2030)", sep="")))
+
+
+ggplot(isotope, aes(x=Aqu_Terr, y=d13C))+
+  geom_boxplot()+
+  facet_grid(~factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), scales="free_x")+
+  theme_bw()+
+  rremove("grid")+
+  theme(axis.text.x = element_text(size=12, color="black", angle=45, hjust=1, vjust=1), axis.title = element_text(size=14, color="black"))+
+  xlab("Site")+
+ ylab(expression(paste(delta^13, "C (\u2030)", sep="")))
+
+
+ggarrange(aqu_terr_C_plot, nrow=2, ncol=1)
+```
+
+PERMANOVA of C and N across sites and taxa
+
+```{r}
+#--------------------------------------------------------------
+
+### d15N ###
+
+#All samples, including basal food sources
+
+dist_N<-dist(isotope$d15N, method="euclidean")
+
+#Testing difference in delta 15 N across sites and tissue type (whole invertebrates/biofilm/shrubs 
+
+SI.adonis.N <- adonis(dist_N ~ Taxa*Site, data = isotope)
+SI.adonis.N <- as.data.frame(SI.adonis.N$aov.tab)
+SI.adonis.N
+#significant differences across taxa types, sites, and the interaction between the two
+
+pairwise.adonis2(dist_N ~ Site, data = isotope)
+
+#With all taxa types combined there were sig differences btw:
+#COCH - GRVBR
+#SUNAL - GRVBR
+#GRVBR - CUSHBR
+#GRVBR - PMF
+
+disp_N_sites<-betadisper(dist_N, isotope$Site)
+anova(disp_N_sites) #No significant beta dispersion. 
+
+pairwise.adonis2(dist_N ~ Taxa, data = isotope)
+
+#With all sites combined there were sig differences btw:
+#Hydropscyhdiae - Coleoptera
+#Hydropsychidae - Heptageniidae
+#Hydropsychidae - Lepidoptera
+#Hydropsychidae - Terrestrial leaves
+#Hydropsychidae - Biofilm
+#Chironomidae - Chloroperlidae
+#Chironomidae - Coleoptera
+#Chironomidae - Ephemerellidae
+#Chironomidae - Heptageniidae
+#Chironomidae - Lepidoptera
+#Chironomidae - Terrestrial leaves
+#Chironomidae - Biofilm
+#Chloroperlidae - Tetragnathidae
+#Chloroperlidae - Lepidoptera
+#Chloroperlidae - Terrestrial Leaves
+#Chloroperlidae - Biofilm
+#Araneidae - Coleoptera
+#Araneidae - Heptageniidae
+#Araneidae - Lepidoptera
+#Araneidae - Terrestrial leaves
+#Araneidae - Biofilm
+#Coleoptera - Tetragnathidae
+#Coleoptera - Perlidae
+#Coleoptera - Leptoceridae
+#Ephemerellidae - Tetragnathidae
+#Ephemerellidae - Lepidoptera
+#Ephemerellidae - Terrestrial leaves
+#Ephemerellidae - Biofilm
+#Heptageniidae - Tetragnathidae
+#Heptageniidae - Terrestrial leaves
+#Heptageniidae - Biofilm
+#Rhyacophilidae - Lepidoptera
+#Rhyacophilidae - Terrestrial leaves
+#Rhyacophilidae - Biofilm
+#Tetragnathidae - Lepidoptera
+#Tetragnathidae - Terrestrial leaves
+#Tetragnathidae - Biofilm
+#Lepidoptera - Perlidae
+#Lepidoptera - Leptoceridae
+#Perlidae - Terrestrial leaves
+#Perlidae - Biofilm
+#Leptoceridae - Terrestrial leaves
+#Leptoceridae - biofilm
+
+disp_N_taxa<-betadisper(dist_N, isotope$Taxa)
+anova(disp_N_taxa) #p = 0.048, possible beta dispersion
+
+ggplot(isotope, aes(x=Taxa, y=d15N))+
+  geom_boxplot()+
+  theme_bw()
+
+#Samples excluding basal food sources
+dist_N_invert<-dist(inverts$d15N, method="euclidean")
+
+SI.adonis.N.invert <- adonis(dist_N_invert ~ Aqu_Terr, data = inverts)
+SI.adonis.N.invert <- as.data.frame(SI.adonis.N.invert$aov.tab)
+SI.adonis.N.invert #p=0.001
+
+pairwise.adonis2(dist_N_invert ~ Site, data = inverts)
+#CUSHBR - PMF
+#CUSHBR - GRVBR
+#PMF - GRVBR
+#GRVBR - COCH
+#GRVBR - SUN
+
+disp_N_invert_sites<-betadisper(dist_N_invert, inverts$Site)
+anova(disp_N_invert_sites) #No significant beta dispersion. p=0.076
+
+pairwise.adonis2(dist_N_invert ~ Aqu_Terr, data = inverts)
+
+#Spiders vs aquatic larvae are significantly different in d15N. F (1,82) = 17.29, p=0.002, R^2=0.174
+
+#Spiders vs aquatic adults are NOT sig. different in d15N. F(1,83)=0.2298, p=0.631, R^2=0.00276
+
+#Spiders vs terrestrial insects are sig. diff in d15N. F(1,44)=40.18, p<0.001, R^2=0.477
+
+#Aquatic larvae vs aquatic adults are sig. diff in d15N. F(1,107)=17.27, p<0.001, R^2=0.139
+
+#Aquatic larvae vs terrestrial insects are sig. diff in d15N. F(1,68)=12.02, p<0.001, R^2=0.150
+
+#Aquatic adults vs terrestrial insects are sig. diff in d15N. F(1,69)=36.99, p<0.001, R^2=0.349
+
+disp_N_invert_taxa<-betadisper(dist_N_invert, inverts$Taxa)
+anova(disp_N_invert_taxa) #No significant beta dispersion. p=0.486
+
+
+# Biofilm across sites
+
+hist(biofilm$d15N)
+
+dist_N_biofilm<-dist(biofilm$d15N, method="euclidean")
+SI.adonis.N.biofilm <- adonis(dist_N_biofilm ~ Site, data = biofilm)
+SI.adonis.N.biofilm <- as.data.frame(SI.adonis.N.biofilm$aov.tab)
+SI.adonis.N.biofilm #p=0.363
+
+pairwise.adonis2(dist_N_biofilm ~ Site, data = biofilm)
+
+disp_N_biofilm<-betadisper(dist_N_biofilm, biofilm$Site)
+anova(disp_N_biofilm) #No beta dispersion. p=0.563
+
+
+#Terrestrial Leaves across sites
+
+hist(shrub$d15N)
+
+dist_N_leaves<-dist(shrub$d15N, method="euclidean")
+SI.adonis.N.leaves <- adonis(dist_N_leaves ~ Site, data = shrub)
+SI.adonis.N.leaves <- as.data.frame(SI.adonis.N.leaves$aov.tab)
+SI.adonis.N.leaves #p=0.003
+
+pairwise.adonis2(dist_N_leaves ~ Site, data = shrub)
+
+disp_N_leaves<-betadisper(dist_N_leaves, shrub$Site)
+anova(disp_N_leaves) #No beta dispersion. p=0.752
+
+#Pairwise adonis test says there are no differences in d15N in biofilm or terrestrial leaves across sites, however, kruskal-wallis test or ANOVA indicates there are. 
+
+#-------------------------------------------------------------------
+
+### d13C ###
+
+
+dist_C<-dist(isotope$d13C, method="euclidean")
+
+SI.adonis.C <- adonis(dist_C ~ Taxa*Site, data = isotope)
+SI.adonis.C <- as.data.frame(SI.adonis.C$aov.tab)
+SI.adonis.C
+#significant differences across taxa types, sites, and the interaction between the two
+
+pairwise.adonis2(dist_C ~ Site, data = isotope)
+
+#With all taxa types combined there are sig differences btw:
+#COCH - PMF
+#SUN - PMF
+
+pairwise.adonis2(dist_C ~ Taxa, data = isotope)
+#Several differences across taxa
+
+pairwise.adonis2(dist_C ~ Stage, data = isotope)
+#Sig differences between:
+#Spiders vs shrub
+#Spider vs larvae
+#Spider vs biofilm
+#Shrub vs biofilm
+#Larvae vs biofilm
+#Larvae vs adult
+#Biofilm vs adult
+
+disp_C_stage<-betadisper(dist_C, isotope$Stage)
+anova(disp_C_stage) #Significant beta dispersion p < 0.001
+
+ggplot(isotope, aes(x=Taxa, y=d13C))+
+  geom_boxplot()+
+  theme_bw()+
+  scale_y_reverse()
+
+pairwise.adonis2(dist_C ~ Aqu_Terr, data = isotope)
+#Sig differences between:
+#Spiders vs shrub
+#Spider vs aquatic larvae
+#Spider vs biofilm
+#Shrub vs biofilm
+#Shrub vs terrestrial prey
+#Larvae aquatic vs biofilm
+#Larvae aquatic vs adult aquatic
+#Larvae aquatic vs terrestrial prey
+#Biofilm vs adult aquatic
+#Biofilm vs terrestrial prey
+
+disp_C_aquatic_terr<-betadisper(dist_C, isotope$Aqu_Terr)
+anova(disp_C_aquatic_terr) #Significant beta dispersion p < 0.001
+
+
+ggplot(isotope, aes(x=Aqu_Terr, y=d13C))+
+  geom_boxplot()+
+  theme_bw()+
+  scale_y_reverse()
+
+
+dist_C_invert<-dist(inverts$d13C, method="euclidean")
+
+SI.adonis.C.invert <- adonis(dist_C_invert ~ Aqu_Terr, data = inverts)
+SI.adonis.C.invert <- as.data.frame(SI.adonis.C.invert$aov.tab)
+SI.adonis.C.invert #p=0.001
+
+pairwise.adonis2(dist_C_invert ~ Site, data = inverts)
+#Only site comparisons that are not different are:
+#CUSHBR - GRVBR
+#COCH - SUN
+
+
+pairwise.adonis2(dist_C_invert ~ Aqu_Terr, data = inverts)
+
+#Spiders vs aquatic larvae are significantly different in d13C. F (1,82) = 22.14, p=0.001, R^2=0.213
+
+#Spiders vs aquatic adults are NOT sig. different in d13C. F(1,83)=3.50, p=0.051, R^2=0.0404
+
+#Spiders vs terrestrial insects are NOT sig. diff in d13C. F(1,44)= 1.17, p=0.306, R^2=0.026
+
+#Aquatic larvae vs aquatic adults are sig. diff in d13C. F(1,107)=7.33, p=0.008, R^2=0.064
+
+#Aquatic larvae vs terrestrial insects are sig. diff in d13C. F(1,68)=7.43, p=0.007, R^2=0.099
+
+#Aquatic adults vs terrestrial insects are NOT sig. diff in d13C. F(1,69)=0.3511, p=0.587, R^2=0.00506
+
+disp_C_aquatic_terr_invert<-betadisper(dist_C_invert, inverts$Aqu_Terr)
+anova(disp_C_aquatic_terr_invert) #no significant beta dispersion.
+
+```
+
+Calculating average d13C and d15N values across sites and sample type (Table 10)
+
+```{r}
+#------------------------
+#Biofilm
+#Biofilm total
+biofilm<-subset(isotope, Stage=="Biofilm")
+median(biofilm$d13C) #-14.7
+IQR(biofilm$d13C) #12.4
+
+median(biofilm$d15N) #4.9
+IQR(biofilm$d15N) #3.0
+
+#Biofilm cochrane
+bio_coch<-subset(biofilm, Site=="Cochrane")
+median(bio_coch$d13C) #-14.7
+IQR(bio_coch$d13C) #0.20
+
+median(bio_coch$d15N) #2.50
+IQR(bio_coch$d15N)  #0.35
+
+#Biofilm sunalta
+bio_sun<-subset(biofilm, Site=="Sunalta")
+median(bio_sun$d13C) #-12.2
+IQR(bio_sun$d13C) #3.05
+
+median(bio_sun$d15N) #5.00
+IQR(bio_sun$d15N) #0.20
+
+#Biofilm Cushing Bridge
+bio_cushbr<-subset(biofilm, Site=="Cushing Bridge")
+median(bio_cushbr$d13C) #-7.50
+IQR(bio_cushbr$d13C) #1.55
+
+median(bio_cushbr$d15N) #5.60
+IQR(bio_cushbr$d15N) #0.95
+
+#Biofilm Graves Bridge
+bio_grvbr<-subset(biofilm, Site=="Graves Bridge")
+median(bio_grvbr$d13C) #-21.7
+IQR(bio_grvbr$d13C) #7.75
+
+median(bio_grvbr$d15N) #8.30
+IQR(bio_grvbr$d15N) #2.95
+
+#Biofilm Policeman Flats
+bio_pmf<-subset(biofilm, Site=="Policeman Flats")
+median(bio_pmf$d13C) #-25.60
+IQR(bio_pmf$d13C) #0.20
+
+median(bio_pmf$d15N) #-0.80
+IQR(bio_pmf$d15N) #5.58
+
+#---------------------
+#Shrubs
+shrub<-subset(isotope, Stage=="Riparian Leaves")
+median(shrub$d13C) #-28.8
+IQR(shrub$d13C) #0.95
+
+median(shrub$d15N) #2.90
+IQR(shrub$d15N) #3.70
+
+#Shrub cochrane
+shrub_coch<-subset(shrub, Site=="Cochrane")
+median(shrub_coch$d13C) #-28.9
+IQR(shrub_coch$d13C) #0.65
+
+median(shrub_coch$d15N) #-0.2
+IQR(shrub_coch$d15N) #1.55
+
+#Shrub sunalta
+shrub_sun<-subset(shrub, Site=="Sunalta")
+median(shrub_sun$d13C) #-28.8
+IQR(shrub_sun$d13C) #0.70
+
+median(shrub_sun$d15N) #1.90
+IQR(shrub_sun$d15N) #2.05
+
+#Shrub cushbr
+shrub_cushbr<-subset(shrub, Site=="Cushing Bridge")
+median(shrub_cushbr$d13C) #-28.8
+IQR(shrub_cushbr$d13C) #0.50
+
+median(shrub_cushbr$d15N) #2.6
+IQR(shrub_cushbr$d15N) #0.15
+
+#Shrub Graves Bridge
+shrub_grvbr<-subset(shrub, Site=="Graves Bridge")
+median(shrub_grvbr$d13C) #-29.0
+IQR(shrub_grvbr$d13C) #0.65
+
+median(shrub_grvbr$d15N) #6.40
+IQR(shrub_grvbr$d15N) #1.50
+
+#Shrub Policeman Flats
+shrub_pmf<-subset(shrub, Site=="Policeman Flats")
+median(shrub_pmf$d13C) #-26.8
+IQR(shrub_pmf$d13C) #1.38
+
+median(shrub_pmf$d15N) #5.50
+IQR(shrub_pmf$d15N) #1.00
+
+#------------------------
+#Aquatic larvae
+aq_lar<-subset(isotope, Aqu_Terr=="Aquatic Larvae")
+
+median(aq_lar$d13C) #-29.1
+IQR(aq_lar$d13C) #2.63
+
+median(aq_lar$d15N) #6.95
+IQR(aq_lar$d15N) #3.13
+
+#Aquatic larvae cochrane
+aq_lar_coch<-subset(aq_lar, Site=="Cochrane")
+median(aq_lar_coch$d13C) #-32.3
+IQR(aq_lar_coch$d13C) #1.55
+
+median(aq_lar_coch$d15N) #6.40
+IQR(aq_lar_coch$d15N) #0.60
+
+#Aquatic larvae Sunalta
+aq_lar_sun<-subset(aq_lar, Site=="Sunalta")
+median(aq_lar_sun$d13C) #-28.9
+IQR(aq_lar_sun$d13C) #0.71
+
+median(aq_lar_sun$d15N) #6.40
+IQR(aq_lar_sun$d15N) #1.03
+
+#Aquatic larvae CUSHBR
+aq_lar_cushbr<-subset(aq_lar, Site=="Cushing Bridge")
+median(aq_lar_cushbr$d13C) #-29.75
+IQR(aq_lar_cushbr$d13C) #1.65
+
+median(aq_lar_cushbr$d15N) #6.50
+IQR(aq_lar_cushbr$d15N) #0.60
+
+
+#Aquatic larvae GRVBR
+aq_lar_grvbr<-subset(aq_lar, Site=="Graves Bridge")
+median(aq_lar_grvbr$d13C) #-29.1
+IQR(aq_lar_grvbr$d13C) #1.75
+
+median(aq_lar_grvbr$d15N) #9.80
+IQR(aq_lar_grvbr$d15N) #1.2
+
+#Aquatic larvae policeman flats
+aq_lar_pmf<-subset(aq_lar, Site=="Policeman Flats")
+median(aq_lar_pmf$d13C) #-25.6
+IQR(aq_lar_pmf$d13C) #3.61
+
+median(aq_lar_pmf$d15N) #6.80
+IQR(aq_lar_pmf$d15N) #2.31
+
+#-----------------------
+#Aquatic adults
+aq_ad<-subset(isotope, Aqu_Terr=="Aquatic Adults")
+
+median(aq_ad$d13C) #-27.5
+IQR(aq_ad$d13C) #3.48
+
+median(aq_ad$d15N) #9.0
+IQR(aq_ad$d15N) #2.40
+
+
+#Aquatic adults Cochrane
+aq_ad_coch<-subset(aq_ad, Site=="Cochrane")
+median(aq_ad_coch$d13C) #-30.1
+IQR(aq_ad_coch$d13C) #3.15
+
+median(aq_ad_coch$d15N) #9.00
+IQR(aq_ad_coch$d15N) #1.20
+
+#Aquatic adults Sunalta
+aq_ad_sun<-subset(aq_ad, Site=="Sunalta")
+median(aq_ad_sun$d13C) #-30.3
+IQR(aq_ad_sun$d13C) #2.08
+
+median(aq_ad_sun$d15N) #8.60
+IQR(aq_ad_sun$d15N) #1.20
+
+#Aquatic adults Cushing bridge
+aq_ad_cush<-subset(aq_ad, Site=="Cushing Bridge")
+median(aq_ad_cush$d13C) #-27.9
+IQR(aq_ad_cush$d13C) #1.60
+
+median(aq_ad_cush$d15N) #9.45
+IQR(aq_ad_cush$d15N) #1.78
+
+#Aquatic adults Graves bridge
+aq_ad_grvbr<-subset(aq_ad, Site=="Graves Bridge")
+median(aq_ad_grvbr$d13C) #-26.5
+IQR(aq_ad_grvbr$d13C) #0.99
+
+median(aq_ad_grvbr$d15N) #11.0
+IQR(aq_ad_grvbr$d15N) #2.08
+
+#Aquatic adults PMF
+aq_ad_pmf<-subset(aq_ad, Site=="Policeman Flats")
+median(aq_ad_pmf$d13C) #-25.0
+IQR(aq_ad_pmf$d13C) #1.20
+
+median(aq_ad_pmf$d15N) #7.90
+IQR(aq_ad_pmf$d15N) #2.89
+
+#-------------------------
+#Terrestrial adults
+terr_ad<-subset(isotope, Aqu_Terr=="Terrestrial Prey")
+
+median(terr_ad$d13C) #-26.9
+IQR(terr_ad$d13C) #2.30
+
+median(terr_ad$d15N) #5.90
+IQR(terr_ad$d15N) #2.13
+
+#Terrestrial adults cochrane
+terr_ad_coch<-subset(terr_ad, Site=="Cochrane")
+
+median(terr_ad_coch$d13C) #-26.8
+IQR(terr_ad_coch$d13C) #1.75
+
+median(terr_ad_coch$d15N) #5.90
+IQR(terr_ad_coch$d15N) #1.40
+
+#Terrestrial adults sunalta
+terr_ad_sun<-subset(terr_ad, Site=="Sunalta")
+
+median(terr_ad_sun$d13C) #-30.2
+IQR(terr_ad_sun$d13C) #0.95
+
+median(terr_ad_sun$d15N) #6.90
+IQR(terr_ad_sun$d15N) #1.00
+
+#Terrestrial adults graves bridge
+terr_ad_grvbr<-subset(terr_ad, Site=="Graves Bridge")
+
+median(terr_ad_grvbr$d13C) #-26.7
+IQR(terr_ad_grvbr$d13C) #1.68
+
+median(terr_ad_grvbr$d15N) #6.00
+IQR(terr_ad_grvbr$d15N) #1.10
+
+#Terrestrial adults policeman flats
+terr_ad_pmf<-subset(terr_ad, Site=="Policeman Flats")
+
+median(terr_ad_pmf$d13C) #-26.4
+IQR(terr_ad_pmf$d13C) #1.25
+
+median(terr_ad_pmf$d15N) #2.25
+IQR(terr_ad_pmf$d15N) #3.23
+
+#-------------------------
+#Spiders
+spiders<-subset(isotope, Aqu_Terr=="Spiders")
+
+median(spiders$d13C) #-26.5
+IQR(spiders$d13C) #2.69
+
+median(spiders$d15N) #8.80
+IQR(spiders$d15N) #1.50
+
+#Spiders cochrane
+spiders_coch<-subset(spiders, Site=="Cochrane")
+
+median(spiders_coch$d13C) #-29.1
+IQR(spiders_coch$d13C) #0.43
+
+median(spiders_coch$d15N) #8.65
+IQR(spiders_coch$d15N) #1.05
+
+#Spiders Sunalta
+spiders_sun<-subset(spiders, Site=="Sunalta")
+
+median(spiders_sun$d13C) #-27.3
+IQR(spiders_sun$d13C) #1.31
+
+median(spiders_sun$d15N) #8.48
+IQR(spiders_sun$d15N) #1.25
+
+#Spiders Cushing Bridge
+spiders_cush<-subset(spiders, Site=="Cushing Bridge")
+
+median(spiders_cush$d13C) #-26.5
+IQR(spiders_cush$d13C) #0.23
+
+median(spiders_cush$d15N) #8.65
+IQR(spiders_cush$d15N) #0.40
+
+#Spiders Graves Bridge
+spiders_grvbr<-subset(spiders, Site=="Graves Bridge")
+
+median(spiders_grvbr$d13C) #-24.6
+IQR(spiders_grvbr$d13C) #1.10
+
+median(spiders_grvbr$d15N) #12.8
+IQR(spiders_grvbr$d15N) #1.00
+
+#Spiders Policeman Flats
+spiders_pmf<-subset(spiders, Site=="Policeman Flats")
+
+median(spiders_pmf$d13C) #-25.1
+IQR(spiders_pmf$d13C) #0.99
+
+median(spiders_pmf$d15N) #8.20
+IQR(spiders_pmf$d15N) #0.99
+```
+
+Running MixSIAR model
+
+```{r}
+#Running model with primary consumers and basal food sources
+
+#Make sure the data is a comma delimited file because it gets very fussy about the file type
+mix<-load_mix_data(filename="C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Stable_isotope_ED\\primary_consumers.csv", 
+                   iso_names=c("d13C","d15N"), 
+                   factors=c("Site","Taxa"), 
+                   fac_random=c(FALSE,FALSE), 
+                   fac_nested = c(FALSE, FALSE),
+                   cont_effects=NULL)
+
+source<-load_source_data(filename="C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Stable_isotope_ED\\isotope_sources.csv",
+                         source_factors = "Site",
+                         conc_dep = FALSE, 
+                         data_type = "means",
+                         mix)
+
+discr<-load_discr_data(filename="C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Stable_isotope_ED\\isotope_tef.csv", mix)
+
+#isospace plot
+plot_data(filename="isospace_plot", plot_save_pdf = F, plot_save_png = F, mix, source, discr)
+
+#default uninformative/generalist prior (alpha=1)
+plot_prior(alpha.prior = c(1), source)
+
+#Informative prior
+plot_prior(alpha.prior = c(0.5, 1), source)
+
+#How do you know which weighting to use? Seems like the inverts consume a more terrestrial source so should I weight it higher?
+
+#JAGS model file
+model_filename<-"MixSIAR_model.txt"
+resid_err<-TRUE
+process_err<-TRUE
+write_JAGS_model(model_filename, resid_err, process_err, mix, source)
+output_options = list(summary_save = FALSE, summary_name = "summary_statistics.txt",
+    sup_post = FALSE, plot_post_save_pdf = FALSE, plot_post_name = "posterior_density",
+    sup_pairs = FALSE, plot_pairs_save_pdf = FALSE, plot_pairs_name = "pairs_plot", sup_xy
+    = FALSE, plot_xy_save_pdf = FALSE, plot_xy_name = "xy_plot", gelman = TRUE, heidel =
+    FALSE, geweke = TRUE, diag_save = FALSE, diag_name = "diagnostics.txt", indiv_effect =
+    FALSE, plot_post_save_png = FALSE, plot_pairs_save_png = FALSE, plot_xy_save_png =
+    FALSE, diag_save_ggmcmc = FALSE)
+
+#Running real model with 'normal' chain length and burn-in.
+run<-list(chainLength=100000, burn=50000, thin=50, chains=3, calcDIC=TRUE)
+jags<-run_model(run, mix, source, discr, model_filename, alpha.prior = 1, resid_err, process_err)
+output_JAGS(jags, mix, source, output_options)
+
+
+#Running model with secondary consumers and primary consumers as the food source
+
+```

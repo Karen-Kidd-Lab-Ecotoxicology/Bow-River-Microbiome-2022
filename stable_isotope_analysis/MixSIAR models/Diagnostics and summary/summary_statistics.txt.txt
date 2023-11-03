@@ -1,0 +1,139 @@
+
+#################################################################
+# Summary Statistics
+#################################################################
+
+DIC = 376.1992
+
+                                                      Mean    SD  2.5%    5%   25%    50%    75%
+Epsilon.1                                            8.045 3.006 3.153 3.778 5.866  7.729  9.923
+Epsilon.2                                            2.030 0.712 0.945 1.077 1.538  1.915  2.420
+Site.SD                                             11.575 5.406 1.011 1.872 7.463 12.182 16.185
+p.Chironomidae.Biofilm                               0.329 0.282 0.002 0.006 0.073  0.264  0.541
+p.Ephemerellidae.Biofilm                             0.406 0.329 0.002 0.005 0.083  0.357  0.702
+p.Heptageniidae.Biofilm                              0.308 0.304 0.001 0.002 0.038  0.198  0.534
+p.Hydropsychidae .Biofilm                            0.340 0.309 0.001 0.004 0.055  0.254  0.584
+p.Lepidoptera.Biofilm                                0.340 0.318 0.001 0.003 0.050  0.233  0.603
+p.Leptoceridae.Biofilm                               0.353 0.318 0.001 0.004 0.059  0.258  0.619
+p.Chironomidae.Terrestrial Shrub                     0.671 0.282 0.071 0.131 0.459  0.736  0.927
+p.Ephemerellidae.Terrestrial Shrub                   0.594 0.329 0.023 0.045 0.298  0.643  0.917
+p.Heptageniidae.Terrestrial Shrub                    0.692 0.304 0.048 0.089 0.466  0.802  0.962
+p.Hydropsychidae .Terrestrial Shrub                  0.660 0.309 0.040 0.081 0.416  0.746  0.945
+p.Lepidoptera.Terrestrial Shrub                      0.660 0.318 0.033 0.064 0.397  0.767  0.950
+p.Leptoceridae.Terrestrial Shrub                     0.647 0.318 0.031 0.059 0.381  0.742  0.941
+p.Chironomidae.Sunalta.Biofilm                       0.036 0.060 0.000 0.000 0.000  0.003  0.050
+p.Chironomidae.Sunalta.Terrestrial Shrub             0.964 0.060 0.796 0.843 0.950  0.997  1.000
+p.Chironomidae.Policeman Flats.Biofilm               0.012 0.033 0.000 0.000 0.000  0.000  0.005
+p.Chironomidae.Policeman Flats.Terrestrial Shrub     0.988 0.033 0.887 0.930 0.995  1.000  1.000
+p.Chironomidae.Cochrane.Biofilm                      0.002 0.006 0.000 0.000 0.000  0.000  0.000
+p.Chironomidae.Cochrane.Terrestrial Shrub            0.998 0.006 0.982 0.990 1.000  1.000  1.000
+p.Chironomidae.Cushing Bridge.Biofilm                0.002 0.007 0.000 0.000 0.000  0.000  0.001
+p.Chironomidae.Cushing Bridge.Terrestrial Shrub      0.998 0.007 0.978 0.987 0.999  1.000  1.000
+p.Chironomidae.Graves Bridge.Biofilm                 0.001 0.004 0.000 0.000 0.000  0.000  0.000
+p.Chironomidae.Graves Bridge.Terrestrial Shrub       0.999 0.004 0.988 0.993 1.000  1.000  1.000
+p.Ephemerellidae.Policeman Flats.Biofilm             0.018 0.045 0.000 0.000 0.000  0.000  0.007
+p.Ephemerellidae.Policeman Flats.Terrestrial Shrub   0.982 0.045 0.840 0.880 0.993  1.000  1.000
+p.Ephemerellidae.Graves Bridge.Biofilm               0.002 0.008 0.000 0.000 0.000  0.000  0.001
+p.Ephemerellidae.Graves Bridge.Terrestrial Shrub     0.998 0.008 0.973 0.984 0.999  1.000  1.000
+p.Ephemerellidae.Sunalta.Biofilm                     0.088 0.129 0.000 0.000 0.000  0.003  0.169
+p.Ephemerellidae.Sunalta.Terrestrial Shrub           0.912 0.129 0.591 0.644 0.831  0.997  1.000
+p.Ephemerellidae.Cushing Bridge.Biofilm              0.005 0.017 0.000 0.000 0.000  0.000  0.001
+p.Ephemerellidae.Cushing Bridge.Terrestrial Shrub    0.995 0.017 0.950 0.974 0.999  1.000  1.000
+p.Heptageniidae.Cochrane.Biofilm                     0.001 0.004 0.000 0.000 0.000  0.000  0.000
+p.Heptageniidae.Cochrane.Terrestrial Shrub           0.999 0.004 0.988 0.993 1.000  1.000  1.000
+p.Heptageniidae.Graves Bridge.Biofilm                0.001 0.003 0.000 0.000 0.000  0.000  0.000
+p.Heptageniidae.Graves Bridge.Terrestrial Shrub      0.999 0.003 0.991 0.995 1.000  1.000  1.000
+p.Heptageniidae.Policeman Flats.Biofilm              0.008 0.029 0.000 0.000 0.000  0.000  0.003
+p.Heptageniidae.Policeman Flats.Terrestrial Shrub    0.992 0.029 0.931 0.962 0.997  1.000  1.000
+p.Heptageniidae.Cushing Bridge.Biofilm               0.002 0.006 0.000 0.000 0.000  0.000  0.000
+p.Heptageniidae.Cushing Bridge.Terrestrial Shrub     0.998 0.006 0.983 0.991 1.000  1.000  1.000
+p.Heptageniidae.Sunalta.Biofilm                      0.037 0.069 0.000 0.000 0.000  0.002  0.042
+p.Heptageniidae.Sunalta.Terrestrial Shrub            0.963 0.069 0.754 0.806 0.958  0.998  1.000
+p.Hydropsychidae .Cochrane.Biofilm                   0.002 0.007 0.000 0.000 0.000  0.000  0.000
+p.Hydropsychidae .Cochrane.Terrestrial Shrub         0.998 0.007 0.982 0.990 1.000  1.000  1.000
+p.Hydropsychidae .Policeman Flats.Biofilm            0.017 0.043 0.000 0.000 0.000  0.000  0.004
+p.Hydropsychidae .Policeman Flats.Terrestrial Shrub  0.983 0.043 0.843 0.884 0.996  1.000  1.000
+p.Hydropsychidae .Graves Bridge.Biofilm              0.002 0.007 0.000 0.000 0.000  0.000  0.000
+p.Hydropsychidae .Graves Bridge.Terrestrial Shrub    0.998 0.007 0.981 0.989 1.000  1.000  1.000
+p.Hydropsychidae .Sunalta.Biofilm                    0.039 0.065 0.000 0.000 0.000  0.003  0.057
+p.Hydropsychidae .Sunalta.Terrestrial Shrub          0.961 0.065 0.778 0.819 0.943  0.997  1.000
+p.Hydropsychidae .Cushing Bridge.Biofilm             0.003 0.009 0.000 0.000 0.000  0.000  0.001
+p.Hydropsychidae .Cushing Bridge.Terrestrial Shrub   0.997 0.009 0.974 0.985 0.999  1.000  1.000
+p.Lepidoptera.Cochrane.Biofilm                       0.003 0.015 0.000 0.000 0.000  0.000  0.000
+p.Lepidoptera.Cochrane.Terrestrial Shrub             0.997 0.015 0.968 0.988 1.000  1.000  1.000
+p.Lepidoptera.Policeman Flats.Biofilm                0.007 0.018 0.000 0.000 0.000  0.000  0.004
+p.Lepidoptera.Policeman Flats.Terrestrial Shrub      0.993 0.018 0.939 0.957 0.996  1.000  1.000
+p.Lepidoptera.Sunalta.Biofilm                        0.050 0.088 0.000 0.000 0.000  0.002  0.064
+p.Lepidoptera.Sunalta.Terrestrial Shrub              0.950 0.088 0.695 0.746 0.936  0.998  1.000
+p.Lepidoptera.Graves Bridge.Biofilm                  0.002 0.007 0.000 0.000 0.000  0.000  0.000
+p.Lepidoptera.Graves Bridge.Terrestrial Shrub        0.998 0.007 0.981 0.991 1.000  1.000  1.000
+p.Leptoceridae.Policeman Flats.Biofilm               0.017 0.049 0.000 0.000 0.000  0.000  0.005
+p.Leptoceridae.Policeman Flats.Terrestrial Shrub     0.983 0.049 0.835 0.893 0.995  1.000  1.000
+p.Leptoceridae.Cushing Bridge.Biofilm                0.005 0.020 0.000 0.000 0.000  0.000  0.001
+p.Leptoceridae.Cushing Bridge.Terrestrial Shrub      0.995 0.020 0.958 0.976 0.999  1.000  1.000
+                                                       95%  97.5%
+Epsilon.1                                           13.400 14.829
+Epsilon.2                                            3.334  3.738
+Site.SD                                             19.272 19.657
+p.Chironomidae.Biofilm                               0.869  0.929
+p.Ephemerellidae.Biofilm                             0.955  0.977
+p.Heptageniidae.Biofilm                              0.911  0.952
+p.Hydropsychidae .Biofilm                            0.919  0.960
+p.Lepidoptera.Biofilm                                0.936  0.967
+p.Leptoceridae.Biofilm                               0.941  0.969
+p.Chironomidae.Terrestrial Shrub                     0.994  0.998
+p.Ephemerellidae.Terrestrial Shrub                   0.995  0.998
+p.Heptageniidae.Terrestrial Shrub                    0.998  0.999
+p.Hydropsychidae .Terrestrial Shrub                  0.996  0.999
+p.Lepidoptera.Terrestrial Shrub                      0.997  0.999
+p.Leptoceridae.Terrestrial Shrub                     0.996  0.999
+p.Chironomidae.Sunalta.Biofilm                       0.157  0.204
+p.Chironomidae.Sunalta.Terrestrial Shrub             1.000  1.000
+p.Chironomidae.Policeman Flats.Biofilm               0.070  0.113
+p.Chironomidae.Policeman Flats.Terrestrial Shrub     1.000  1.000
+p.Chironomidae.Cochrane.Biofilm                      0.010  0.018
+p.Chironomidae.Cochrane.Terrestrial Shrub            1.000  1.000
+p.Chironomidae.Cushing Bridge.Biofilm                0.013  0.022
+p.Chironomidae.Cushing Bridge.Terrestrial Shrub      1.000  1.000
+p.Chironomidae.Graves Bridge.Biofilm                 0.007  0.012
+p.Chironomidae.Graves Bridge.Terrestrial Shrub       1.000  1.000
+p.Ephemerellidae.Policeman Flats.Biofilm             0.120  0.160
+p.Ephemerellidae.Policeman Flats.Terrestrial Shrub   1.000  1.000
+p.Ephemerellidae.Graves Bridge.Biofilm               0.016  0.027
+p.Ephemerellidae.Graves Bridge.Terrestrial Shrub     1.000  1.000
+p.Ephemerellidae.Sunalta.Biofilm                     0.356  0.409
+p.Ephemerellidae.Sunalta.Terrestrial Shrub           1.000  1.000
+p.Ephemerellidae.Cushing Bridge.Biofilm              0.026  0.050
+p.Ephemerellidae.Cushing Bridge.Terrestrial Shrub    1.000  1.000
+p.Heptageniidae.Cochrane.Biofilm                     0.007  0.012
+p.Heptageniidae.Cochrane.Terrestrial Shrub           1.000  1.000
+p.Heptageniidae.Graves Bridge.Biofilm                0.005  0.009
+p.Heptageniidae.Graves Bridge.Terrestrial Shrub      1.000  1.000
+p.Heptageniidae.Policeman Flats.Biofilm              0.038  0.069
+p.Heptageniidae.Policeman Flats.Terrestrial Shrub    1.000  1.000
+p.Heptageniidae.Cushing Bridge.Biofilm               0.009  0.017
+p.Heptageniidae.Cushing Bridge.Terrestrial Shrub     1.000  1.000
+p.Heptageniidae.Sunalta.Biofilm                      0.194  0.246
+p.Heptageniidae.Sunalta.Terrestrial Shrub            1.000  1.000
+p.Hydropsychidae .Cochrane.Biofilm                   0.010  0.018
+p.Hydropsychidae .Cochrane.Terrestrial Shrub         1.000  1.000
+p.Hydropsychidae .Policeman Flats.Biofilm            0.116  0.157
+p.Hydropsychidae .Policeman Flats.Terrestrial Shrub  1.000  1.000
+p.Hydropsychidae .Graves Bridge.Biofilm              0.011  0.019
+p.Hydropsychidae .Graves Bridge.Terrestrial Shrub    1.000  1.000
+p.Hydropsychidae .Sunalta.Biofilm                    0.181  0.222
+p.Hydropsychidae .Sunalta.Terrestrial Shrub          1.000  1.000
+p.Hydropsychidae .Cushing Bridge.Biofilm             0.015  0.026
+p.Hydropsychidae .Cushing Bridge.Terrestrial Shrub   1.000  1.000
+p.Lepidoptera.Cochrane.Biofilm                       0.012  0.032
+p.Lepidoptera.Cochrane.Terrestrial Shrub             1.000  1.000
+p.Lepidoptera.Policeman Flats.Biofilm                0.043  0.061
+p.Lepidoptera.Policeman Flats.Terrestrial Shrub      1.000  1.000
+p.Lepidoptera.Sunalta.Biofilm                        0.254  0.305
+p.Lepidoptera.Sunalta.Terrestrial Shrub              1.000  1.000
+p.Lepidoptera.Graves Bridge.Biofilm                  0.009  0.019
+p.Lepidoptera.Graves Bridge.Terrestrial Shrub        1.000  1.000
+p.Leptoceridae.Policeman Flats.Biofilm               0.107  0.165
+p.Leptoceridae.Policeman Flats.Terrestrial Shrub     1.000  1.000
+p.Leptoceridae.Cushing Bridge.Biofilm                0.024  0.042
+p.Leptoceridae.Cushing Bridge.Terrestrial Shrub      1.000  1.000
