@@ -144,7 +144,7 @@ The phyloseq object will merge all this data together in one object that can be 
 
 ```{r Load data and phyloseq object}
 #Importing ASV table
-ASVseq<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_Analysis\\Raw data\\ASV_data_2022_ED_fulldataset_samplesordered.csv")
+ASVseq<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Raw data\\ASV_data_2022_ED_fulldataset_samplesordered.csv")
 
 #The row names have to be the ASV identifier (genetic barcode) in order for it to be read. The following lines of code are to re-organize the row names
 n1 <- ASVseq$X #Currently the ASVs are being called "X" in the first column. We want them to be unnamed in the row names column
@@ -155,7 +155,7 @@ ASVtable <- as.matrix(ASVseq) #must be a matrix so we convert to a matrix
 #View(ASVtable) #The ASVs are now the row names
 
 #Importing taxa table
-taxonomy <-read.csv ("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_Analysis\\Raw data\\Taxonomy_ED_2022_fulldataset.csv")
+taxonomy <-read.csv ("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Raw data\\Taxonomy_ED_2022_fulldataset.csv")
 
 #Using the same steps as above with the ASV table to make the genetic barcode the rowname
 n2 <- taxonomy$X
@@ -166,7 +166,7 @@ taxa_table<-as.matrix(taxonomy) #Turn into a matrix
 #View(taxa_table) #ASVs are now the row names
 
 #Importing metadata file
-metadata<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_Analysis\\Raw data\\metadata_noKK2078_samples_ordered.csv")
+metadata<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Raw data\\metadata_noKK2078_samples_ordered.csv")
 
 metadata$Site<-factor(metadata$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")) #Order sites
 metadata$Site_code<-factor(metadata$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF", "BRR2", "PCR1", "PCR3")) #Order sites
@@ -2256,7 +2256,7 @@ sun_hep_glom_df_3<-aggregate(data=sun_hep_glom_df_2, Mean ~ Phylum, FUN=sum)
 head(sun_hep_glom_df_3)
 
 
-#Adult Tricoptera
+#Adult Trichoptera
 sun_tricho<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Trichoptera")
 
 sun_tricho_glom = tax_glom(sun_tricho, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
@@ -2709,7 +2709,7 @@ pmf_ephem_glom = tax_glom(pmf_ephem, "Phylum") %>% transform_sample_counts(funct
 pmf_ephem_glom_df = data.frame(Phylum = tax_table(pmf_ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_ephem_glom)), row.names = NULL)
 pmf_ephem_glom_df = pmf_ephem_glom_df[order(-pmf_ephem_glom_df$Mean),]
 
-top3_pmf_ephem_glom <- pmf_ephem_glom_df$Phylum[1:3]
+top3_pmf_ephem_glom <- pmf_ephem_glom_df$Phylum[1:6]
 pmf_ephem_glom_df_2 <- pmf_ephem_glom_df %>%
     mutate(Phylum = fct_other(Phylum, top3_pmf_ephem_glom))
 
@@ -2903,7 +2903,6 @@ head(PCR3_bae_ad_glom_df_3)
 
 ### Testing significant differences across sites and invert taxa
 ```{r}
-
 #### Bow River ####
 
 ### Phylum level ###
@@ -3238,7 +3237,8 @@ shapiro.test(ephem_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal 
 #Proteobacteria
 proteo_ephem_Bow<-subset(ephem_phylum_Bow, taxon=="Proteobacteria")
 kruskal.test(data=proteo_ephem_Bow, rel_abund ~ Site) #p = 0.010 
-dunnTest(data=proteo_ephem_Bow, rel_abund ~ Site) #CUSHBR - GRVBR p = 0.0042
+dunnTest(data=proteo_ephem_Bow, rel_abund ~ Site) 
+#CUSHBR - GRVBR p = 0.0042
 
 #Bacteroidota
 bacter_ephem_Bow<-subset(ephem_phylum_Bow, taxon=="Bacteroidota")
@@ -3365,7 +3365,7 @@ dunnTest(data=cyano_aran_Bow, rel_abund ~ Site)
 
 tetra_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Tetragnathidae")
 
-tetra_phylum_Bow$taxon<-factor(tetra_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Proteobacteria", "Cyanobacteria", "Bacteroidota"))
+tetra_phylum_Bow$taxon<-factor(tetra_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Cyanobacteria", "Proteobacteria"))
 
 tetra_phylum_Bow$Site<-factor(tetra_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -3486,9 +3486,9 @@ annotate_figure(rel_abun_fig_Bow, left = textGrob("Phylum", rot = 90, vjust = 1,
 
 #### ACWA Streams ####
 
-metadata_ACWA<-subset(sample_data_4, Stream_Type=="Bow River")
+metadata_ACWA<-subset(sample_data_4, Stream_Type!="Bow River")
 
-otu_rel_abund_Bow <- dplyr::inner_join(ASVseq_ps_2, metadata_Bow, by="Study_ID") %>%
+otu_rel_abund_ACWA <- dplyr::inner_join(ASVseq_ps_2, metadata_ACWA, by="Study_ID") %>%
   dplyr::inner_join(., taxonomy_modified, by="Sequences") %>% #joins taxonomy, abundances, and metadata
   dplyr::group_by(Study_ID) %>%
   dplyr::mutate(rel_abund = count / sum(count)) %>% #transforms to relative abundance
@@ -3498,6 +3498,169 @@ otu_rel_abund_Bow <- dplyr::inner_join(ASVseq_ps_2, metadata_Bow, by="Study_ID")
     c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Sequences"),
     names_to="level",
     values_to="taxon") 
+
+#Phylum
+taxon_rel_abund_Phylum_ACWA <- otu_rel_abund_ACWA %>%
+  dplyr::filter(level=="Phylum") %>%
+  dplyr::group_by(Site, sample_Family, Study_ID, taxon) %>%
+  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
+  drop_na(Site, sample_Family, taxon)
+
+taxon_pool_Phylum_ACWA <- taxon_rel_abund_Phylum_ACWA %>%
+  dplyr::group_by(Site, sample_Family, taxon) %>%
+  dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
+  dplyr::group_by(taxon) %>%
+  dplyr::summarize(pool = max(median) < 3,
+            median = median(median),
+            .groups="drop")
+
+#Graphing pointrange plot with median and 50% quartiles
+Phylum_ACWA_graphing_df<- dplyr::inner_join(taxon_rel_abund_Phylum_ACWA, taxon_pool_Phylum_ACWA, by="taxon") %>%
+ dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
+  dplyr::group_by(Study_ID, Site, sample_Family, taxon) %>%
+  dplyr::summarize(rel_abund = sum(rel_abund),
+            median = min(median),
+            .groups="drop") %>%
+  dplyr::mutate(taxon = factor(taxon),
+         taxon = fct_reorder(taxon, median, .desc=T)) %>%
+  dplyr::mutate(rel_abund = if_else(rel_abund == 0,
+                             2/3 * lod,
+                             rel_abund))
+Phylum_ACWA_graphing_df
+
+## Hydropsychidae ##
+
+hydro_ACWA_phylum<-subset(Phylum_ACWA_graphing_df, sample_Family=="Hydropsychidae")
+
+hydro_ACWA_phylum$taxon<-factor(hydro_ACWA_phylum$taxon, levels=c("Other", "Cyanobacteria", "Firmicutes", "Proteobacteria", "Bacteroidota"))
+
+hydro_ACWA_phylum$Site<-factor(hydro_ACWA_phylum$Site, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
+
+hydro_rel_abun_plot_ACWA <- ggplot(hydro_ACWA_phylum, aes(y=taxon, x=rel_abund, color=Site)) +
+  stat_summary(fun.data=median_hilow, geom = "pointrange",
+               fun.args=list(conf.int=0.5),
+               position = position_dodge(width=1)) +
+  coord_trans(x="log10") +
+  scale_x_continuous(limits=c(NA, 100),
+                     breaks=c(0.01, 0.1, 1, 10, 100),
+                     labels=c(0.01, 0.1, 1, 10, 100)) +
+  scale_color_manual(name="Site", values=c("#CC9966", "#FF6666", "#990000")) +
+  labs(y="Phylum", x="Relative Abundance (%)") +
+  theme_bw() +
+  rremove("grid")+
+  theme(axis.text.y = element_text(color="black"), axis.text.x = element_text(color="black"))
+
+hydro_rel_abun_plot_ACWA
+
+#Statistical tests
+
+#Proteobacteria
+proteo_hydro_ACWA<-subset(hydro_ACWA_phylum, taxon=="Proteobacteria")
+kruskal.test(data=proteo_hydro_ACWA, rel_abund ~ Site) #p = 0.0767 no diff.
+dunnTest(data=proteo_hydro_ACWA, rel_abund ~ Site) #no diff
+
+#Bacteroidota
+bacter_hydro_ACWA<-subset(hydro_ACWA_phylum, taxon=="Bacteroidota")
+kruskal.test(data=bacter_hydro_ACWA, rel_abund ~ Site) #p = 0.117 no diff.
+
+#Firmicutes
+firm_hydro_Bow<-subset(hydro_ACWA_phylum, taxon=="Firmicutes")
+kruskal.test(data=firm_hydro_Bow, rel_abund ~ Site) #p = 0.0701
+dunnTest(data=firm_hydro_Bow, rel_abund ~ Site) #No diff
+
+#Cyanobacteria
+cyano_hydro_Bow<-subset(hydro_ACWA_phylum, taxon=="Cyanobacteria")
+kruskal.test(data=cyano_hydro_Bow, rel_abund ~ Site) #p = 0.032
+dunnTest(data=cyano_hydro_Bow, rel_abund ~ Site) 
+#EXP5 has higher compared to REF Z = 2.55, P = 0.0327
+
+
+## Baetidae ##
+
+baetid_ACWA_phylum<-subset(Phylum_ACWA_graphing_df, sample_Family=="Baetidae")
+
+baetid_ACWA_phylum$taxon<-factor(baetid_ACWA_phylum$taxon, levels=c("Firmicutes", "Other","Cyanobacteria", "Bacteroidota", "Proteobacteria"))
+
+baetid_ACWA_phylum$Site<-factor(baetid_ACWA_phylum$Site, levels=c("PCR1", "PCR3"), labels=c("EXP5", "EXP15"))
+
+baetid_rel_abun_plot_ACWA <- ggplot(baetid_ACWA_phylum, aes(y=taxon, x=rel_abund, color=Site)) +
+  stat_summary(fun.data=median_hilow, geom = "pointrange",
+               fun.args=list(conf.int=0.5),
+               position = position_dodge(width=1)) +
+  coord_trans(x="log10") +
+  scale_x_continuous(limits=c(NA, 100),
+                     breaks=c(0.01, 0.1, 1, 10, 100),
+                     labels=c(0.01, 0.1, 1, 10, 100)) +
+  scale_color_manual(name="Site", values=c("#FF6666", "#990000")) +
+  labs(y="Phylum", x="Relative Abundance (%)") +
+  theme_bw() +
+  rremove("grid")+
+  theme(axis.text.y = element_text(color="black"), axis.text.x = element_text(color="black"))
+
+baetid_rel_abun_plot_ACWA
+
+#Statistical tests
+
+#Proteobacteria
+proteo_baetid_ACWA<-subset(baetid_ACWA_phylum, taxon=="Proteobacteria")
+kruskal.test(data=proteo_baetid_ACWA, rel_abund ~ Site) #p = 0.355
+
+#Bacteroidota
+bacter_baetid_ACWA<-subset(baetid_ACWA_phylum, taxon=="Bacteroidota")
+kruskal.test(data=bacter_baetid_ACWA, rel_abund ~ Site) #p = 0.488 no diff.
+
+#Firmicutes
+firm_baetid_Bow<-subset(baetid_ACWA_phylum, taxon=="Firmicutes")
+kruskal.test(data=firm_baetid_Bow, rel_abund ~ Site) #p = 0.563
+
+#Cyanobacteria
+cyano_baetid_Bow<-subset(baetid_ACWA_phylum, taxon=="Cyanobacteria")
+kruskal.test(data=cyano_baetid_Bow, rel_abund ~ Site) #p = 0.418
+
+
+## Ephemeroptera ##
+
+ephem_ACWA_phylum<-subset(Phylum_ACWA_graphing_df, sample_Family=="Ephemeroptera")
+
+ephem_ACWA_phylum$taxon<-factor(ephem_ACWA_phylum$taxon, levels=c("Cyanobacteria", "Other", "Firmicutes", "Proteobacteria", "Bacteroidota"))
+
+ephem_ACWA_phylum$Site<-factor(ephem_ACWA_phylum$Site, levels=c("PCR1", "PCR3"), labels=c("EXP5", "EXP15"))
+
+ephem_rel_abun_plot_ACWA <- ggplot(ephem_ACWA_phylum, aes(y=taxon, x=rel_abund, color=Site)) +
+  stat_summary(fun.data=median_hilow, geom = "pointrange",
+               fun.args=list(conf.int=0.5),
+               position = position_dodge(width=1)) +
+  coord_trans(x="log10") +
+  scale_x_continuous(limits=c(NA, 100),
+                     breaks=c(0.01, 0.1, 1, 10, 100),
+                     labels=c(0.01, 0.1, 1, 10, 100)) +
+  scale_color_manual(name="Site", values=c("#FF6666", "#990000")) +
+  labs(y="Phylum", x="Relative Abundance (%)") +
+  theme_bw() +
+  rremove("grid")+
+  theme(axis.text.y = element_text(color="black"), axis.text.x = element_text(color="black"))
+
+ephem_rel_abun_plot_ACWA
+
+#Statistical tests
+
+#Proteobacteria
+proteo_ephem_ACWA<-subset(ephem_ACWA_phylum, taxon=="Proteobacteria")
+kruskal.test(data=proteo_ephem_ACWA, rel_abund ~ Site) #p = 0.115
+
+#Bacteroidota
+bacter_ephem_ACWA<-subset(ephem_ACWA_phylum, taxon=="Bacteroidota")
+kruskal.test(data=bacter_ephem_ACWA, rel_abund ~ Site) #p = 0.4008
+
+#Firmicutes
+firm_baetid_Bow<-subset(baetid_ACWA_phylum, taxon=="Firmicutes")
+kruskal.test(data=firm_baetid_Bow, rel_abund ~ Site) #p = 0.563
+
+#Cyanobacteria
+cyano_baetid_Bow<-subset(baetid_ACWA_phylum, taxon=="Cyanobacteria")
+kruskal.test(data=cyano_baetid_Bow, rel_abund ~ Site) #p = 0.418
+
+
 
 
 ```
@@ -4994,7 +5157,7 @@ annotate_figure(gridall_genus, left = textGrob("Mean Relative Abundance", rot = 
 ```
 
 ## All macroinvertebrates separated {.tabset} 
-##Larvae
+###Larvae
 ```{r}
 #Bow River and ACWA
 
@@ -12197,8 +12360,6 @@ ggplot(Bow_ali_agg, aes(x=Site, y=Abundance))+
 
 # Endosymbionts
 
-Endosymbiont genera were filtered out from the phyloseq object 
-
 ```{r Percent of endosymbionts to total abundance}
 #### Larval Hydropsychidae Bow River ####
 
@@ -12226,6 +12387,8 @@ sort((table(tax_table(endo_lar_hydro_Bow_coch)[,6]))/sum(ntaxa(endo_lar_hydro_Bo
 #Rickettsia: 100 %
 sum(sample_sums(endo_lar_hydro_Bow_coch))/sum(sample_sums(hydro_coch))*100
 #Ricketssia: 11.2%, non-endosymbionts: 88.8%
+
+
 
 #Sunalta
 hydro_sun<-subset_samples(hydro_lar_Bow, Site=="Sunalta")
@@ -12944,14 +13107,12 @@ endo_plot_ACWA
 #### Filtering for endosymbiont bacteria ####
 tax_select(sample_ps, tax_list="Buchnera") #1 taxa.
 tax_select(sample_ps, tax_list="Candidatus Cardinium") #1 taxa
-tax_select(sample_ps, tax_list="Candidatus") #75 taxa.
 tax_select(sample_ps, tax_list="Rickettsia") #58 taxa. 
 tax_select(sample_ps, tax_list="Rickettsiella") #No taxa matched
 tax_select(sample_ps, tax_list="Wolbachia") #10 taxa. 
 tax_select(sample_ps, tax_list="Spiroplasma") #11 taxa 
 tax_select(sample_ps, tax_list="Hamiltonella") #none matched
 tax_select(sample_ps, tax_list="Arsenophonus") #none matched
-tax_select(sample_ps, tax_list="Candidatus Hamiltonella") #none matched
 tax_select(sample_ps, tax_list="Diplorickettsia") #1 taxa
 tax_select(sample_ps, tax_list="Arsenophonus") #no taxa matched
 
@@ -12960,9 +13121,6 @@ endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" |
 endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
 endo #31 taxa 
 
-endo1<-subset_taxa(sample_ps, Genus %in% c("Buchnera", "Candidatus Cardinium", "Hamiltonella", "Rickettsia", "Rickettsiella", "Wolbachia", "Spiroplasma", "Arsenophonus", "Diplorickettsia", "Candidatus Hamiltonella"))
-endo1 #31. Same as above. 
-
 #Bow River
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
@@ -12970,13 +13128,12 @@ Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 endo_Bow<-subset_taxa(Bow_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Hamiltonella" | Genus=="Rickettsia" | Genus=="Rickettsiella" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Arsenophonus"| Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella")
 
 endo_Bow<-prune_taxa(taxa_sums(endo_Bow) > 0, endo_Bow) 
-endo_Bow #31 taxa, 280 samples
+endo_Bow #31 taxa, 284 samples
 
 #Cochrane
 endo_coch<-subset_samples(endo_Bow, Site=="Cochrane")
 endo_coch<-prune_taxa(taxa_sums(endo_coch) > 0, endo_coch) 
-endo_coch #23 taxa, 65 samples
-#43 samples have endosymbionts/65 = 66.2 %
+endo_coch #23 taxa, 67 samples
 
 sort((table(tax_table(endo_coch)[,6]))/sum(ntaxa(endo_coch))*100)
 
@@ -13276,6 +13433,85 @@ ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus)) 
   scale_y_continuous(label = scales::percent)+
   scale_fill_manual(name="Bacterial Genus", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
   rremove("grid")
+
+```
+
+```{r Statistically testing the difference in endosymbiont relative abudnance}
+
+#First transform the endosymbiont phyloseq data to a dataframe as we did with all the rel. abund. data
+
+#Metadata
+
+sample_data_endo<-as.data.frame(sample_data(endo))
+row_names_endo<-row.names(sample_data_endo) 
+sample_data_endo_1<-cbind(row_names_endo, sample_data_endo)
+sample_data_endo_1<-sample_data_endo_1 %>% dplyr::rename(Study_ID = row_names_endo)
+sample_data_endo_2<-sample_data_endo_1[ , c("Study_ID",  "Site", "Family", "Stream_Type")]
+sample_data_endo_3<-sample_data_endo_2 %>% dplyr::rename(sample_Family = Family)
+sample_data_endo_4<-sample_data_endo_3 %>% drop_na(Site, sample_Family)
+
+
+#ASV table from filtered phyloseq
+ASVseq_endo<- as.data.frame(otu_table(endo))
+Sequences<-row.names(ASVseq_endo) 
+ASVseq_endo_1<-cbind(Sequences, ASVseq_endo)
+ 
+ASVseq_endo_2<-ASVseq_endo_1 %>% pivot_longer(-Sequences, names_to="Study_ID", values_to = "count")
+
+#Taxonomy table
+taxonomy_endo<-as.data.frame(tax_table(endo)) %>% rownames_to_column(var="Sequences")
+
+nseqs_per_sample_endo <- ASVseq_endo_2 %>%
+  dplyr::group_by(Study_ID) %>%
+  dplyr::summarize(N = sum(count), .groups="drop") %>% 
+  dplyr::count(N) %>%
+  dplyr::pull(N)
+
+lod_endo <- 100* 1/max(nseqs_per_sample_endo) #Determines the limit of detection (0.000449)
+
+metadata_endo_Bow<-subset(sample_data_endo_4, Stream_Type=="Bow River")
+
+otu_rel_abund_endo_Bow <- dplyr::inner_join(ASVseq_endo_2, metadata_endo_Bow, by="Study_ID") %>%
+  dplyr::inner_join(., taxonomy_endo, by="Sequences") %>% #joins taxonomy, abundances, and metadata
+  dplyr::group_by(Study_ID) %>%
+  dplyr::mutate(rel_abund = count / sum(count)) %>% #transforms to relative abundance
+  dplyr::ungroup() %>%
+  dplyr::select(-count) %>%
+  pivot_longer(
+    c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Sequences"),
+    names_to="level",
+    values_to="taxon") 
+
+#Genus
+taxon_rel_abund_Genus_endo_Bow <- otu_rel_abund_endo_Bow %>%
+  dplyr::filter(level=="Genus") %>%
+  dplyr::group_by(Site, sample_Family, Study_ID, taxon) %>%
+  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
+  drop_na(Site, sample_Family, taxon)
+
+taxon_pool_Genus_endo_Bow <- taxon_rel_abund_Genus_endo_Bow %>%
+  dplyr::group_by(Site, sample_Family, taxon) %>%
+  dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
+  dplyr::group_by(taxon) %>%
+  dplyr::summarize(pool = max(median) < 0,
+            median = median(median),
+            .groups="drop")
+
+#Graphing pointrange plot with median and 50% quartiles
+Genus_endo_Bow_graphing_df<- dplyr::inner_join(taxon_rel_abund_Genus_endo_Bow, taxon_pool_Genus_endo_Bow, by="taxon") %>%
+ dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
+  dplyr::group_by(Study_ID, Site, sample_Family, taxon) %>%
+  dplyr::summarize(rel_abund = sum(rel_abund),
+            median = min(median),
+            .groups="drop") %>%
+  dplyr::mutate(taxon = factor(taxon),
+         taxon = fct_reorder(taxon, median, .desc=T)) %>%
+  dplyr::mutate(rel_abund = if_else(rel_abund == 0,
+                             2/3 * lod,
+                             rel_abund))
+Genus_endo_Bow_graphing_df
+
+
 
 ```
 
