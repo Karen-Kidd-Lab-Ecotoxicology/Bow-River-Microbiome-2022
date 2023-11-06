@@ -9359,14 +9359,14 @@ scree + theme(axis.text.x=element_text(size=8, color="black"), axis.text.y=eleme
 metadata_Bow <- data.frame(sample_data(Bow_rel_abun))
 
 #All together
-plot_ordination(Bow_rel_abun, ord_Bow, color="Site", shape="Order") + #Plots the ordination
+plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + #Plots the ordination
   theme_classic() +
   theme(strip.background = element_blank())+
   xlab("PC1 [11.4%]")+
   ylab("PC2 [8.6%]")
 
 #Faceted by stage (larvae, adults, spiders)
-plot_ordination(Bow_rel_abun, ord_Bow, color="Site", shape="Order") + 
+plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + 
   theme_classic() +
   theme(strip.background = element_blank())+
   facet_wrap(~Stage)+
@@ -9381,7 +9381,7 @@ plot_ordination(Bow_rel_abun, ord_Bow, color="Site", shape="Order") +
 # NMDS 
 set.seed(1)
 ord_NMDS_Bow = ordinate(Bow_rel_abun, method="NMDS", distance=Bow_bray)
-ord_NMDS_Bow #Stress=0.204
+ord_NMDS_Bow #Stress=0.197
 
 plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
   theme_classic() +
@@ -9455,7 +9455,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 plotNMDSsite$data <- newtabtaxa
 print(plotNMDSsite)
 
-ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites Bow.png", height=10, width=14)
+#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites Bow.png", height=10, width=14)
 
 
 
@@ -9479,11 +9479,11 @@ p<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Site") +
 
 newtab = data.table(p$data)
 newtab$Family <- ordered(newtab$Family,
-levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Chironomidae ", "Araneidae", "Tetragnathidae"))
+levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 p$data <- newtab
 print(p)
 
-#ggsave(filename="Microbiome_ED/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS across Bow River invertebrates and sites.png", height=10, width=20)
+#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS across Bow River invertebrates and sites.png", height=10, width=20)
 
 #Faceted by site
 p1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family") + 
@@ -9506,12 +9506,12 @@ p1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family") +
 
 newtab2 = data.table(p1$data)
 newtab2$Family <- ordered(newtab2$Family,
-levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Chironomidae", "Araneidae", "Tetragnathidae"))
+levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Diptera", "Araneidae", "Tetragnathidae"))
 p1$data <- newtab2
 print(p1)
 
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites faceted by invertebrate taxa rarefied Bow only.png", height=10, width=16)
+ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa non-rarefied Bow only.png", height=10, width=16)
 
 
 #Faceted by life stage (Larvae, Adults, Spiders)
@@ -9544,12 +9544,12 @@ pairwise.adonis2(Bow_bray ~ Family, data = metadata_Bow)
 
 #Testing variance (beta dispersion) differences between sites, and sample families:
 bd_all_site_Bow<-betadisper(Bow_bray, metadata_Bow$Site)
-anova(bd_all_site_Bow) #No significant beta dispersion (p=0.313)
+anova(bd_all_site_Bow) #No significant beta dispersion (p=0.193)
 permutest(bd_all_site_Bow) #Gives the same result but based on a permutation test. 
-#PERMANOVA results could be more driven by the spread in the variance of samples rather than the means if it was significant. (p=0.295)
+#PERMANOVA results could be more driven by the spread in the variance of samples rather than the means if it was significant. (p=0.201)
 
 bd_all_fam_Bow<-betadisper(Bow_bray, metadata_Bow$Family) 
-anova(bd_all_fam_Bow) #significantly different p<0.001
+anova(bd_all_fam_Bow) #significantly different p=0.0014
 permutest(bd_all_fam_Bow) #sig. different (same result)
 #Significant PERMANOVA could just be because of the variance within groups rather than between groups (groups = invertebrate taxa type)
 
@@ -9636,7 +9636,7 @@ Bow_bray_trichop = phyloseq::distance(Bow_rel_abun_trichop, method="bray")
 metadata_Bow_trichop <- data.frame(sample_data(Bow_rel_abun_trichop))
 
 test.adonis.Bow.trichop <- adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-test.adonis.Bow.trichop #p = 0.017. 
+test.adonis.Bow.trichop #p = 0.016 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
@@ -9678,7 +9678,7 @@ Bow_bray_dip = phyloseq::distance(Bow_rel_abun_dip, method="bray")
 metadata_Bow_dip <- data.frame(sample_data(Bow_rel_abun_dip))
 
 test.adonis.Bow.dip <- adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-test.adonis.Bow.dip #p = 0.184
+test.adonis.Bow.dip #p = 0.122
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
@@ -9721,7 +9721,7 @@ Bow_bray_tetra = phyloseq::distance(Bow_rel_abun_tetra, method="bray")
 metadata_Bow_tetra <- data.frame(sample_data(Bow_rel_abun_tetra))
 
 test.adonis.Bow.tetra <- adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
-test.adonis.Bow.tetra #p = 0.537
+test.adonis.Bow.tetra #p = 0.541
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
@@ -9730,6 +9730,99 @@ pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
 
 bd_all_fam_Bow_tetra<-betadisper(Bow_bray_tetra, metadata_Bow_tetra$Site) 
 anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.510
+
+## Cochrane ##
+
+coch_Bow<-subset_samples(ps_Bow, Site=="Cochrane")
+coch_rel_abun = transform_sample_counts(coch_Bow, function(x) x/sum(x)) 
+coch_bray = phyloseq::distance(coch_rel_abun, method="bray") 
+
+metadata_coch <- data.frame(sample_data(coch_rel_abun))
+
+test.adonis.Bow.coch <- adonis2(coch_bray ~ Family, data = metadata_coch)
+test.adonis.Bow.coch #p < 0.001
+
+#Pairwise comparisons
+pairwise.adonis2(coch_bray ~ Family, data = metadata_coch)
+#Most inverts are diff. from each other
+
+bd_all_fam_Bow_coch<-betadisper(coch_bray, metadata_coch$Family) 
+anova(bd_all_fam_Bow_coch) #no beta dispersion p = 0.1559.
+
+## Sunalta ##
+
+sun_Bow<-subset_samples(ps_Bow, Site=="Sunalta")
+sun_rel_abun = transform_sample_counts(sun_Bow, function(x) x/sum(x)) 
+sun_bray = phyloseq::distance(sun_rel_abun, method="bray") 
+
+metadata_sun <- data.frame(sample_data(sun_rel_abun))
+
+test.adonis.Bow.sun <- adonis2(sun_bray ~ Family, data = metadata_sun)
+test.adonis.Bow.sun #p < 0.001
+
+#Pairwise comparisons
+pairwise.adonis2(sun_bray ~ Family, data = metadata_sun)
+#Most inverts are diff. from each other
+
+bd_all_fam_Bow_sun<-betadisper(sun_bray, metadata_sun$Family) 
+anova(bd_all_fam_Bow_sun) #yes beta dispersion p = 0.0057.
+
+
+## Cushing Bridge ##
+
+cush_Bow<-subset_samples(ps_Bow, Site=="Cushing Bridge")
+cush_rel_abun = transform_sample_counts(cush_Bow, function(x) x/sum(x)) 
+cush_bray = phyloseq::distance(cush_rel_abun, method="bray") 
+
+metadata_cush <- data.frame(sample_data(cush_rel_abun))
+
+test.adonis.Bow.cush <- adonis2(cush_bray ~ Family, data = metadata_cush)
+test.adonis.Bow.cush #p < 0.001
+
+#Pairwise comparisons
+pairwise.adonis2(cush_bray ~ Family, data = metadata_cush)
+#Most inverts are diff. from each other
+
+bd_all_fam_Bow_cush<-betadisper(cush_bray, metadata_cush$Family) 
+anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.0068.
+
+
+## Graves Bridge ##
+
+grv_Bow<-subset_samples(ps_Bow, Site=="Graves Bridge")
+grv_rel_abun = transform_sample_counts(grv_Bow, function(x) x/sum(x)) 
+grv_bray = phyloseq::distance(grv_rel_abun, method="bray") 
+
+metadata_grv <- data.frame(sample_data(grv_rel_abun))
+
+test.adonis.Bow.grv <- adonis2(grv_bray ~ Family, data = metadata_grv)
+test.adonis.Bow.grv #p < 0.001
+
+#Pairwise comparisons
+pairwise.adonis2(grv_bray ~ Family, data = metadata_grv)
+#Most inverts are diff. from each other
+
+bd_all_fam_Bow_grv<-betadisper(grv_bray, metadata_grv$Family) 
+anova(bd_all_fam_Bow_grv) #no beta dispersion p = 0.335.
+
+
+## Policeman Flats ##
+
+pmf_Bow<-subset_samples(ps_Bow, Site=="Policeman Flats")
+pmf_rel_abun = transform_sample_counts(pmf_Bow, function(x) x/sum(x)) 
+pmf_bray = phyloseq::distance(pmf_rel_abun, method="bray") 
+
+metadata_pmf <- data.frame(sample_data(pmf_rel_abun))
+
+test.adonis.Bow.pmf <- adonis2(pmf_bray ~ Family, data = metadata_pmf)
+test.adonis.Bow.pmf #p < 0.001
+
+#Pairwise comparisons
+pairwise.adonis2(pmf_bray ~ Family, data = metadata_pmf)
+#Most inverts are diff. from each other
+
+bd_all_fam_Bow_pmf<-betadisper(pmf_bray, metadata_pmf$Family) 
+anova(bd_all_fam_Bow_pmf) #no beta dispersion p = 0.0797.
 
 
 #### Water quality variables Bow ####
@@ -9743,21 +9836,23 @@ ps_Bow_no_grvbr<-subset_samples(sample_ps, Stream_Type=="Bow River" & Site!="Gra
 Bow_rel_abun_no_grvbr  = transform_sample_counts(ps_Bow_no_grvbr, function(x) x/sum(x)) 
 
 env_Bow_no_grvbr<-data.frame(sample_data(Bow_rel_abun_no_grvbr))
-env_Bow_no_grvbr_2<-env_Bow_no_grvbr[ ,c("Water_Temp", "Dissolved_oxygen", "Conductivity", "Total_Phosphorus", "Total_Dissolved_Solids", "Total_Suspended_Solids", "Total_Organic_Carbon", "pH", "Nitrate")] #Selects only the numerical variables (water temp, conductivity, dissolved oxygen, etc)
+env_Bow_no_grvbr_2<-env_Bow_no_grvbr[ ,c("Water_Temp", "Dissolved_oxygen", "Conductivity", "Total_Phosphorus", "Total_Dissolved_Solids", "Total_Suspended_Solids", "Total_Organic_Carbon", "pH", "Nitrate")] #Selects only the numerical variables (water temp, conductivity, dissolved oxygen, etc). Ammonia and nitrite weren't selected since they did not differ at all between sites.
+
+env_Bow_no_grvbr_3<-as.data.frame(scale(env_Bow_no_grvbr_2))
 
 #All environmental data isn't normally distributed. Use Spearman correlations. 
-shapiro.test(env_Bow_no_grvbr_2$Water_Temp) #Non normal
-shapiro.test(env_Bow_no_grvbr_2$Dissolved_oxygen) #non normal
-shapiro.test(env_Bow_no_grvbr_2$Conductivity) #non normal
-shapiro.test(env_Bow_no_grvbr_2$Total_Phosphorus) #non normal
-shapiro.test(env_Bow_no_grvbr_2$Total_Dissolved_Solids) #Non normal
-shapiro.test(env_Bow_no_grvbr_2$Total_Suspended_Solids) #Non normal
-shapiro.test(env_Bow_no_grvbr_2$Total_Organic_Carbon) #Non normal
-shapiro.test(env_Bow_no_grvbr_2$pH) #non normal
-shapiro.test(env_Bow_no_grvbr_2$Nitrate) #non normal
+shapiro.test(env_Bow_no_grvbr_3$Water_Temp) #Non normal
+shapiro.test(env_Bow_no_grvbr_3$Dissolved_oxygen) #non normal
+shapiro.test(env_Bow_no_grvbr_3$Conductivity) #non normal
+shapiro.test(env_Bow_no_grvbr_3$Total_Phosphorus) #non normal
+shapiro.test(env_Bow_no_grvbr_3$Total_Dissolved_Solids) #Non normal
+shapiro.test(env_Bow_no_grvbr_3$Total_Suspended_Solids) #Non normal
+shapiro.test(env_Bow_no_grvbr_3$Total_Organic_Carbon) #Non normal
+shapiro.test(env_Bow_no_grvbr_3$pH) #non normal
+shapiro.test(env_Bow_no_grvbr_3$Nitrate) #non normal
 
 
-correlation_matrix_env<-as.data.frame(cor(env_Bow_no_grvbr_2), method="spearman") #Some variables are highly correlated. Test with all of them to see if any are significant then get rid of the correlated variable that is less significant based on p value. 
+correlation_matrix_env<-as.data.frame(cor(env_Bow_no_grvbr_3), method="spearman") #Some variables are highly correlated. Test with all of them to see if any are significant then get rid of the correlated variable that is less significant based on p value. 
 
 #Transform to Bray Curtis distance
 Bow_bray_no_grvbr = phyloseq::distance(Bow_rel_abun_no_grvbr, method="bray") #Bray Curtis distance matrix
@@ -9769,73 +9864,43 @@ Bow_bray_df_no_grvbr<-as.data.frame(Bow_bray_df_no_grvbr)
 #Ordinate with the bray curtis distance matrix
 set.seed(123)
 ord_Bow_mds_no_grvbr<-metaMDS(Bow_bray_df_no_grvbr) 
-ord_Bow_mds_no_grvbr #stress=0.196
+ord_Bow_mds_no_grvbr #stress=0.198
 
-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_2, perm = 9999, pt.size = 2, alpha = 0.2)
-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_2, permutations = 9999)
-cor(env_Bow_no_grvbr_2$Conductivity, env_Bow_no_grvbr_2$Total_Dissolved_Solids) #0.998 Highly correlated
-cor(env_Bow_no_grvbr_2$Conductivity, env_Bow_no_grvbr_2$Total_Suspended_Solids) #0.733 Correlated
-cor(env_Bow_no_grvbr_2$Conductivity, env_Bow_no_grvbr_2$Total_Organic_Carbon) #0.0944
-cor(env_Bow_no_grvbr_2$Conductivity, env_Bow_no_grvbr_2$pH) #-0.692 #Correlated
-cor(env_Bow_no_grvbr_2$pH, env_Bow_no_grvbr_2$Total_Organic_Carbon) #0.276
+#install.packages("ggordiplots")
+library(ggordiplots)
 
-env_Bow_no_grvbr_3<-env_Bow_no_grvbr_2[ , c("Conductivity", "pH", "Total_Organic_Carbon")]
+gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, perm = 9999, pt.size = 2, alpha = 0.05)
+#Determines that TOC, pH, Conductivity, TDS, and TSS are significant predictors of microbiome composition. But some of these variables are highly correlated.
 
-envfit_2<-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, permutations = 9999)
+envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, permutations = 9999)
+#Same conclusions here as above.
 
-vif(envfit_2)
+#Check correlations between significant variables:
+cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Dissolved_Solids) #0.998 Highly correlated. One variable must be removed. 
+cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Suspended_Solids) #0.733 Correlated
+cor(env_Bow_no_grvbr_3$Total_Dissolved_Solids, env_Bow_no_grvbr_3$Total_Suspended_Solids) #0.763 Correlated. 
+cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Organic_Carbon) #0.0944. Not correlated. These can both stay.
+cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$pH) #-0.692 #Somewhat correlated
+cor(env_Bow_no_grvbr_3$pH, env_Bow_no_grvbr_3$Total_Organic_Carbon) #0.276. Not correlated
+#Remove Total dissolved solids and total suspended solids
+
+env_Bow_no_grvbr_4<-env_Bow_no_grvbr_3[ , c("Conductivity", "pH", "Total_Organic_Carbon")]
+
+envfit_2<-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, permutations = 9999)
+envfit_2 #All significant but have low R squared.
 
 #Plotting ordination with sites as colours
-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, perm = 9999, groups = env_Bow_no_grvbr$Site, pt.size = 2, alpha = 0.05, len=0.05, unit="cm")
+ggenvfit_Bow_Sites<-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, perm = 9999, groups = env_Bow_no_grvbr$Site, pt.size = 2, alpha = 0.05, len=0.05, unit="cm")
+ggenvfit_Bow_Sites
 
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River sites.png", height=8, width=12)
+#ggsave(file="microbiome_analysis/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River sites.png", height=8, width=12)
 
 #Plotting ordination with invertebrate taxa as colours
-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, perm = 9999, groups = env_Bow_no_grvbr$Family, pt.size = 2, alpha = 0.2)
+ggenvfit_Bow_taxa<-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, perm = 9999, groups = env_Bow_no_grvbr$Family, pt.size = 2, alpha = 0.2)
 
 #ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River invert taxa.png", height=8, width=12)
 
-fit_all <- envfit(ord_Bow_mds_no_grvbr ~ Water_Temp + Dissolved_oxygen + Conductivity + Total_Phosphorus + Total_Dissolved_Solids + Total_Suspended_Solids + Total_Organic_Carbon + pH + Nitrate, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-fit_all
-
-#Remove non-significant variables
-
-
-bow1 <- envfit(ord_Bow_mds_no_grvbr ~ Dissolved_oxygen + Conductivity + Total_Phosphorus + Total_Dissolved_Solids + Total_Suspended_Solids + Total_Organic_Carbon + pH + Nitrate, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow1
-
-bow2 <- envfit(ord_Bow_mds_no_grvbr ~ Conductivity + Total_Phosphorus + Total_Dissolved_Solids + Total_Suspended_Solids + Total_Organic_Carbon + pH + Nitrate, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow2
-
-bow3 <- envfit(ord_Bow_mds_no_grvbr ~ Conductivity + Total_Dissolved_Solids + Total_Suspended_Solids + Total_Organic_Carbon + pH + Nitrate, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow3
-
-bow4 <- envfit(ord_Bow_mds_no_grvbr ~ Conductivity + Total_Dissolved_Solids + Total_Suspended_Solids + Total_Organic_Carbon + pH, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow4
-
-bow5 <- envfit(ord_Bow_mds_no_grvbr ~ Conductivity + Total_Dissolved_Solids + Total_Organic_Carbon + pH, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow5
-
-bow6 <- envfit(ord_Bow_mds_no_grvbr ~ Total_Dissolved_Solids + Total_Organic_Carbon + pH, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow6
-
-bow7 <- envfit(ord_Bow_mds_no_grvbr ~ Conductivity + Total_Organic_Carbon + pH, data = env_Bow_no_grvbr_2, perm = 999, na.rm=T)
-bow7
-
-cor(env_Bow_no_grvbr_2$pH, env_Bow_no_grvbr_2$Conductivity) #-0.692
-cor(env_Bow_no_grvbr_2$pH, env_Bow_no_grvbr_2$Total_Dissolved_Solids) #-0.731
-
-#pH is more corelated with total dissolved solids thus I will remove that variable and keep conductivity.
-
-cor(env_Bow_no_grvbr_2$Total_Organic_Carbon, env_Bow_no_grvbr_2$Conductivity) #0.0944
-cor(env_Bow_no_grvbr_2$Total_Organic_Carbon, env_Bow_no_grvbr_2$Total_Dissolved_Solids) #0.0777
-
-#Pretty similar. Doesn't matter which variable we use because it is not correlated with total organic carbon
-
-#Can't use AIC for envfit models. Need to use p-value method and ensure no multicollinearity
-
-
-#Total organic carbon, pH, and conductivity are significantly correlated to microbiome composition
+ggarrange(ggenvfit_Bow_Sites, ggenvfit_Bow_taxa, nrow=1, ncool=2)
 
 
 ## Mantel correlations ##
@@ -10048,8 +10113,8 @@ plot_ordination(ACWA_rel_abun, ord_ACWA, color="Family", shape="Site") + #Plots 
   xlab("PC1 [32.8%]")+
   ylab("PC2 [17.9%]")
 
-#Faceted by stage (larvae, adults, spiders)
-plot_ordination(ACWA_rel_abun, ord_ACWA, color="Site", shape="Order") + #Plots the ordination
+#Faceted by family and stage (larvae, adults)
+plot_ordination(ACWA_rel_abun, ord_ACWA, color="Site", shape="Family") + #Plots the ordination
   theme_bw() +
   rremove("grid")+
   facet_nested_wrap(~Stage+factor(Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera")), scale="free_x", nrow=1)+
@@ -10063,7 +10128,7 @@ plot_ordination(ACWA_rel_abun, ord_ACWA, color="Site", shape="Order") + #Plots t
 # NMDS 
 set.seed(1)
 ord_NMDS_ACWA = ordinate(ACWA_rel_abun, method="NMDS", distance=ACWA_bray)
-ord_NMDS_ACWA #Stress=0.11
+ord_NMDS_ACWA #Stress=0.111
 
 
 plot_ACWA<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", color="Family") + 
@@ -10112,7 +10177,7 @@ print(plot_ACWA_sites)
 
 #ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites ACWA only.png", height=8, width=10)
 
-plot_ACWA_taxa<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Family", color="Site") +
+plot_ACWA_taxa<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, color="Site") +
   theme_bw() +
   rremove("grid")+
   facet_nested_wrap(~Stage+Family, scales="free_x")+
@@ -10125,16 +10190,14 @@ plot_ACWA_taxa<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Family", 
   guides(color=guide_legend(nrow=3, byrow=TRUE, title="ACWA Stream")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
  stat_ellipse(type="norm", alpha=1, aes(group=Site))
-  #ylim(-0.65, 0.45)+
-  # xlim(-0.85, 0.95)
 
 plot_ACWA_taxa
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa and sites with ellipses ACWA only.png", height=8, width=10)
   
 
 newtab5 = data.table(plot_ACWA_taxa$data)
 newtab5$Site <- ordered(newtab5$Site,
 levels = c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
+newtab5$Family <- ordered(newtab5$Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
 plot_ACWA_taxa$data <- newtab5
 print(plot_ACWA_taxa)
 #ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa and sites with ellipses ACWA only.png", height=8, width=10)
@@ -10152,6 +10215,12 @@ pairwise.adonis2(ACWA_bray ~ Family, data = metadata_ACWA)
 
 pairwise.adonis2(ACWA_bray ~ Site, data = metadata_ACWA)
 #PCR1 - PCR3 are not significantly different from each other but they are both different from BRR2 (control)
+
+bd_sites_ACWA<-betadisper(ACWA_bray, metadata_ACWA$Site)
+anova(bd_sites_ACWA) #p<0.001, F (2, 52) = 23.7
+
+bd_fam_ACWA<-betadisper(ACWA_bray, metadata_ACWA$Family)
+anova(bd_fam_ACWA) #p<0.001, F (2, 52) = 16.4
 
 
 # Hydropsychidae larvae 
@@ -10194,17 +10263,6 @@ bd_ephem_ACWA<-betadisper(ephem_ACWA_bray, metadata_ephem_ACWA$Site)
 anova(bd_ephem_ACWA) #p=0.07
 
 
-
-#Testing variance (beta dispersion) differences between sites, sampling months, and sample families:
-bd_all_site_ACWA<-betadisper(ACWA_bray, metadata_ACWA$Site)
-anova(bd_all_site_ACWA) #p<0.001
-permutest(bd_all_site_ACWA) #P<0.001 significant beta disperison.
-
-bd_all_fam_ACWA<-betadisper(ACWA_bray, metadata_ACWA$Family) 
-anova(bd_all_fam_ACWA) #p<0.001
-permutest(bd_all_fam_ACWA) #P<0.001 sig. different (same result)
-
-
 #### Water quality variables ACWA ####
 
 ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
@@ -10220,6 +10278,7 @@ ACWA_bray_df<-as.data.frame(ACWA_bray_df)
 
 set.seed(1)
 ord_ACWA_mds = metaMDS(ACWA_bray_df) #Ordinate using NDMS
+ord_ACWA_mds #0.111
 
 #Extract environmental variables to correlate with
 env_ACWA<-data.frame(sample_data(ACWA_rel_abun))
@@ -11481,14 +11540,6 @@ Done on non-rarefied data to compare the mean absolute abundance between two eco
 
 Ignoring excess zeros in zero inflated data can lead to overestimation of dispersion and subsequent reduction in statistical power to detect differentially abundant features. To correct for this I used 'poscounts' which calculates a modified geometric mean by taking the nth root of the product of the non-zero counts. The prevalence threshold was increased to 3% to reduce the chance of false positives. Adjusted p-values using Benjamini-Hochberg correction were used to determine significance with an alpha of 0.001.
 
-## Increased filtering threshold
-```{r}
-#Increase prevalence threshold to 3% to reduce the chance of false positives.
-sample_ps2<-phyloseq_filter_prevalence(sample_ps, prev.trh = 0.03, abund.trh = 6, threshold_condition = "AND")
-sample_ps2<-prune_taxa(taxa_sums(sample_ps2) > 0, sample_ps2)
-sample_ps2 #1801 taxa, 335 samples. 
-```
-
 ## Single site comparisons - Bow River 
 ```{r}
 #### Sunalta - Cochrane ####
@@ -11877,7 +11928,7 @@ x_exposed_hydro = sort(x_exposed_hydro, TRUE)
 sigtab_exposed_hydro$Genus = factor(as.character(sigtab_exposed_hydro$Genus), levels=sort(names(x_exposed_hydro)))
 #140 differentially abundant taxa
 
-ggplot(sigtab_exposed_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_hydro_plot<-ggplot(sigtab_exposed_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -11886,12 +11937,12 @@ ggplot(sigtab_exposed_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette = "Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites hydropsychidae larvae only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites hydropsychidae larvae only.png", height=15, width=22)
 
 
-#### Adult caddisfly ####
+#### Adult Trichoptera ####
 
 trichop_ps<-subset_samples(sample_ps, Family=="Trichoptera")
 
@@ -11915,7 +11966,7 @@ x_exposed_trichop = sort(x_exposed_trichop, TRUE)
 sigtab_exposed_trichop$Genus = factor(as.character(sigtab_exposed_trichop$Genus), levels=sort(names(x_exposed_trichop)))
 #28 differentially abundant taxa
 
-ggplot(sigtab_exposed_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_trichop_plot<-ggplot(sigtab_exposed_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -11924,9 +11975,9 @@ ggplot(sigtab_exposed_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette="Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites caddisfly adults only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites caddisfly adults only.png", height=15, width=22)
 
 
 #### Larval Heptageniidae ####
@@ -11953,7 +12004,7 @@ x_exposed_hep = sort(x_exposed_hep, TRUE)
 sigtab_exposed_hep$Genus = factor(as.character(sigtab_exposed_hep$Genus), levels=sort(names(x_exposed_hep)))
 #45 differentially abundant taxa
 
-ggplot(sigtab_exposed_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_hep_plot<-ggplot(sigtab_exposed_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -11962,12 +12013,12 @@ ggplot(sigtab_exposed_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette="Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites larval heptageniidae only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites larval heptageniidae only.png", height=15, width=22)
 
 
-#### Adult mayfly ####
+#### Adult Ephemeroptera ####
 
 ephem_ps<-subset_samples(sample_ps, Family=="Ephemeroptera")
 
@@ -11991,7 +12042,7 @@ x_exposed_ephem = sort(x_exposed_ephem, TRUE)
 sigtab_exposed_ephem$Genus = factor(as.character(sigtab_exposed_ephem$Genus), levels=sort(names(x_exposed_ephem)))
 #9 differentially abundant taxa
 
-ggplot(sigtab_exposed_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_ephem_plot<-ggplot(sigtab_exposed_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -12000,9 +12051,9 @@ ggplot(sigtab_exposed_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette="Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites adult mayfly only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites adult mayfly only.png", height=15, width=22)
 
 
 #### Larval Chironomidae ####
@@ -12029,7 +12080,7 @@ x_exposed_chiro = sort(x_exposed_chiro, TRUE)
 sigtab_exposed_chiro$Genus = factor(as.character(sigtab_exposed_chiro$Genus), levels=sort(names(x_exposed_chiro)))
 #23 differentially abundant taxa
 
-ggplot(sigtab_exposed_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_chiro_plot<-ggplot(sigtab_exposed_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -12038,12 +12089,12 @@ ggplot(sigtab_exposed_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette="Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites chironomid larvae only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites chironomid larvae only.png", height=15, width=22)
 
 
-#### Chironomidae adults ####
+#### Adult Diptera ####
 
 dip_ps<-subset_samples(sample_ps, Family=="Diptera")
 
@@ -12067,7 +12118,7 @@ x_exposed_dip = sort(x_exposed_dip, TRUE)
 sigtab_exposed_dip$Genus = factor(as.character(sigtab_exposed_dip$Genus), levels=sort(names(x_exposed_dip)))
 #9 differentially abundant taxa
 
-ggplot(sigtab_exposed_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_dip_plot<-ggplot(sigtab_exposed_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -12076,9 +12127,9 @@ ggplot(sigtab_exposed_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette="Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites chironomidae adults only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites chironomidae adults only.png", height=15, width=22)
 
 
 #### Larval Perlidae ####
@@ -12105,7 +12156,7 @@ x_exposed_perl = sort(x_exposed_perl, TRUE)
 sigtab_exposed_perl$Genus = factor(as.character(sigtab_exposed_perl$Genus), levels=sort(names(x_exposed_perl)))
 #17 differentially abundant taxa
 
-ggplot(sigtab_exposed_perl, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+diff_abund_perl_plot<-ggplot(sigtab_exposed_perl, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -12114,9 +12165,9 @@ ggplot(sigtab_exposed_perl, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple", "pink", "lightcoral", "grey"))
+  scale_color_brewer(palette="Set3")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites larval perlidae only.png", height=15, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites larval perlidae only.png", height=15, width=22)
 
 
 #### Araneidae ####
@@ -12151,7 +12202,42 @@ alpha = 0.001
 sigtab_exposed_tetra = res_deseq_exposed_tetra[which(res_deseq_exposed_tetra$padj < alpha), ]
 sigtab_exposed_tetra = cbind(as(sigtab_exposed_tetra, "data.frame"), as(tax_table(tetra_ps)[rownames(sigtab_exposed_tetra), ], "matrix"))
 
-#No differentially abundant taxa when separate from Araneids
+x_exposed_tetra = tapply(sigtab_exposed_tetra$log2FoldChange, sigtab_exposed_tetra$Phylum, function(x) max(x))
+x_exposed_tetra = sort(x_exposed_tetra, TRUE)
+sigtab_exposed_tetra$Phylum = factor(as.character(sigtab_exposed_tetra$Phylum), levels=names(x_exposed_tetra))
+# Genus
+x_exposed_tetra = tapply(sigtab_exposed_tetra$log2FoldChange, sigtab_exposed_tetra$Genus, function(x) max(x))
+x_exposed_tetra = sort(x_exposed_tetra, TRUE)
+sigtab_exposed_tetra$Genus = factor(as.character(sigtab_exposed_tetra$Genus), levels=sort(names(x_exposed_tetra)))
+
+diff_abund_tetra_plot<-ggplot(sigtab_exposed_tetra, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette="Set3")
+
+diff_abund_tetra_plot
+
+#### Arranging invert plots all together ####
+
+diff_abund_hydro_plot_1<- diff_abund_hydro_plot + rremove("axis.title")
+diff_abund_hep_plot_1<- diff_abund_hep_plot + rremove("axis.title")
+diff_abund_chiro_plot_1<- diff_abund_chiro_plot + rremove("axis.title")
+diff_abund_perl_plot_1<- diff_abund_perl_plot + rremove("axis.title")
+diff_abund_trichop_plot_1<- diff_abund_trichop_plot + rremove("axis.title")
+diff_abund_ephem_plot_1<- diff_abund_ephem_plot + rremove("axis.title")
+diff_abund_dip_plot_1<- diff_abund_dip_plot + rremove("axis.title")
+diff_abund_tetra_plot_1<- diff_abund_tetra_plot + rremove("axis.title")
+
+ggarrange(diff_abund_hydro_plot_1, diff_abund_hep_plot_1, diff_abund_chiro_plot_1, diff_abund_perl_plot_1, diff_abund_trichop_plot_1, diff_abund_ephem_plot_1, diff_abund_dip_plot_1, diff_abund_tetra_plot_1, nrow=3, ncol=3)
+
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/diff abund across taxa Bow River.png", height=10, width=10)
+
 ```
 
 ## Differential abundance in ACWA streams {.tabset}
