@@ -11540,7 +11540,7 @@ Done on non-rarefied data to compare the mean absolute abundance between two eco
 
 Ignoring excess zeros in zero inflated data can lead to overestimation of dispersion and subsequent reduction in statistical power to detect differentially abundant features. To correct for this I used 'poscounts' which calculates a modified geometric mean by taking the nth root of the product of the non-zero counts. The prevalence threshold was increased to 3% to reduce the chance of false positives. Adjusted p-values using Benjamini-Hochberg correction were used to determine significance with an alpha of 0.001.
 
-## Single site comparisons - Bow River 
+## Single site comparisons - Bow River (all inverts combined)
 ```{r}
 #### Sunalta - Cochrane ####
 diff_abun_Coch_Sunal = subset_samples(sample_ps, Site %in% c("Cochrane", "Sunalta"))
@@ -11726,7 +11726,7 @@ ggplot(sigtab, aes(x=Genus, y=log2FoldChange, color=Family)) + geom_point(size=6
 #ggsave(filename="Differential Abundance Results/deseq_Sunalta_Coch.png", height=6.5, width=7.5)
 ```
 
-## Comparing un-exposed sites to exposed sites - Bow River
+## Comparing un-exposed sites to exposed sites - Bow River (inverts separated)
 ```{r}
 #### All invertebrate taxa ####
 #Wastewater exposed sites include Policeman Flats and Graves Bridge whereas unexposed sites are Cochrane, Sunalta, and Cushing Bridge.
@@ -11906,7 +11906,9 @@ ggplot(sigtab_exposed_lar, aes(x=Genus, y=log2FoldChange, color=Phylum))+
 
 #### Hydropsychidae larvae ####
 
-hydro_ps<-subset_samples(sample_ps, Family=="Hydropsychidae")
+#Exposed vs non wastewater exposed sites
+
+hydro_ps<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
 
 deseq_exposed_hydro <- phyloseq_to_deseq2(hydro_ps, ~ Exposure)
 #Re level the reference variable so that the comparison is exposed vs unexposed
@@ -11926,7 +11928,7 @@ sigtab_exposed_hydro$Phylum = factor(as.character(sigtab_exposed_hydro$Phylum), 
 x_exposed_hydro = tapply(sigtab_exposed_hydro$log2FoldChange, sigtab_exposed_hydro$Genus, function(x) max(x))
 x_exposed_hydro = sort(x_exposed_hydro, TRUE)
 sigtab_exposed_hydro$Genus = factor(as.character(sigtab_exposed_hydro$Genus), levels=sort(names(x_exposed_hydro)))
-#140 differentially abundant taxa
+#110 differentially abundant taxa
 
 diff_abund_hydro_plot<-ggplot(sigtab_exposed_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
@@ -11939,7 +11941,160 @@ diff_abund_hydro_plot<-ggplot(sigtab_exposed_hydro, aes(x=Genus, y=log2FoldChang
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")
 
+diff_abund_hydro_plot
+
 #ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites hydropsychidae larvae only.png", height=15, width=22)
+
+
+#COCH - SUN
+
+hydro_sun_coch<-subset_samples(hydro_ps, Site=="Cochrane" | Site=="Sunalta")
+
+deseq_sun_coch_hydro <- phyloseq_to_deseq2(hydro_sun_coch, ~ Site)
+
+deseq_sun_coch_hydro <- DESeq(deseq_sun_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_sun_coch_hydro <- results(deseq_sun_coch_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_sun_coch_hydro = res_deseq_sun_coch_hydro[which(res_deseq_sun_coch_hydro$padj < alpha), ]
+sigtab_sun_coch_hydro = cbind(as(sigtab_sun_coch_hydro, "data.frame"), as(tax_table(hydro_sun_coch)[rownames(sigtab_sun_coch_hydro), ], "matrix"))
+
+x_sun_coch_hydro = tapply(sigtab_sun_coch_hydro$log2FoldChange, sigtab_sun_coch_hydro$Phylum, function(x) max(x))
+x_sun_coch_hydro = sort(x_sun_coch_hydro, TRUE)
+sigtab_sun_coch_hydro$Phylum = factor(as.character(sigtab_sun_coch_hydro$Phylum), levels=names(x_sun_coch_hydro))
+# Genus
+x_sun_coch_hydro = tapply(sigtab_sun_coch_hydro$log2FoldChange, sigtab_sun_coch_hydro$Genus, function(x) max(x))
+x_sun_coch_hydro = sort(x_sun_coch_hydro, TRUE)
+sigtab_sun_coch_hydro$Genus = factor(as.character(sigtab_sun_coch_hydro$Genus), levels=sort(names(x_sun_coch_hydro)))
+#6 observations
+
+diff_abund_hydro_sun_coch_plot<-ggplot(sigtab_sun_coch_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hydro_sun_coch_plot
+
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River Sunalta vs Cochrane hydropsychidae larvae only.png", height=15, width=22)
+
+
+#CUSHBR - COCH
+
+hydro_cush_coch<-subset_samples(hydro_ps, Site=="Cushing Bridge" | Site=="Cochrane")
+
+deseq_cush_coch_hydro <- phyloseq_to_deseq2(hydro_cush_coch, ~ Site)
+
+deseq_cush_coch_hydro <- DESeq(deseq_cush_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_cush_coch_hydro <- results(deseq_cush_coch_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_hydro = res_deseq_cush_coch_hydro[which(res_deseq_cush_coch_hydro$padj < alpha), ]
+sigtab_cush_coch_hydro = cbind(as(sigtab_cush_coch_hydro, "data.frame"), as(tax_table(hydro_cush_coch)[rownames(sigtab_cush_coch_hydro), ], "matrix"))
+
+x_cush_coch_hydro = tapply(sigtab_cush_coch_hydro$log2FoldChange, sigtab_cush_coch_hydro$Phylum, function(x) max(x))
+x_cush_coch_hydro = sort(x_cush_coch_hydro, TRUE)
+sigtab_cush_coch_hydro$Phylum = factor(as.character(sigtab_cush_coch_hydro$Phylum), levels=names(x_cush_coch_hydro))
+# Genus
+x_cush_coch_hydro = tapply(sigtab_cush_coch_hydro$log2FoldChange, sigtab_cush_coch_hydro$Genus, function(x) max(x))
+x_cush_coch_hydro = sort(x_cush_coch_hydro, TRUE)
+sigtab_cush_coch_hydro$Genus = factor(as.character(sigtab_cush_coch_hydro$Genus), levels=sort(names(x_cush_coch_hydro)))
+#11 observations
+
+diff_abund_hydro_cush_coch_plot<-ggplot(sigtab_cush_coch_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hydro_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River Cushing Bridge vs Cochrane hydropsychidae larvae only.png", height=15, width=22)
+
+#GRVBR - COCH
+
+hydro_grvbr_coch<-subset_samples(hydro_ps, Site=="Graves Bridge" | Site=="Cochrane")
+
+deseq_grvbr_coch_hydro <- phyloseq_to_deseq2(hydro_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_hydro <- DESeq(deseq_grvbr_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_grvbr_coch_hydro <- results(deseq_grvbr_coch_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_hydro = res_deseq_grvbr_coch_hydro[which(res_deseq_grvbr_coch_hydro$padj < alpha), ]
+sigtab_grvbr_coch_hydro = cbind(as(sigtab_grvbr_coch_hydro, "data.frame"), as(tax_table(hydro_grvbr_coch)[rownames(sigtab_grvbr_coch_hydro), ], "matrix"))
+
+x_grvbr_coch_hydro = tapply(sigtab_grvbr_coch_hydro$log2FoldChange, sigtab_grvbr_coch_hydro$Phylum, function(x) max(x))
+x_grvbr_coch_hydro = sort(x_grvbr_coch_hydro, TRUE)
+sigtab_grvbr_coch_hydro$Phylum = factor(as.character(sigtab_grvbr_coch_hydro$Phylum), levels=names(x_grvbr_coch_hydro))
+# Genus
+x_grvbr_coch_hydro = tapply(sigtab_grvbr_coch_hydro$log2FoldChange, sigtab_grvbr_coch_hydro$Genus, function(x) max(x))
+x_grvbr_coch_hydro = sort(x_grvbr_coch_hydro, TRUE)
+sigtab_grvbr_coch_hydro$Genus = factor(as.character(sigtab_grvbr_coch_hydro$Genus), levels=sort(names(x_grvbr_coch_hydro)))
+#19 observations
+
+diff_abund_hydro_grvbr_coch_plot<-ggplot(sigtab_grvbr_coch_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hydro_grvbr_coch_plot
+
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River Graves Bridge vs Cochrane hydropsychidae larvae only.png", height=15, width=22)
+
+
+#PMF - COCH
+
+hydro_pmf_coch<-subset_samples(hydro_ps, Site=="Policeman Flats" | Site=="Cochrane")
+
+deseq_pmf_coch_hydro <- phyloseq_to_deseq2(hydro_pmf_coch, ~ Site)
+
+deseq_pmf_coch_hydro <- DESeq(deseq_pmf_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_pmf_coch_hydro <- results(deseq_pmf_coch_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_hydro = res_deseq_pmf_coch_hydro[which(res_deseq_pmf_coch_hydro$padj < alpha), ]
+sigtab_pmf_coch_hydro = cbind(as(sigtab_pmf_coch_hydro, "data.frame"), as(tax_table(hydro_pmf_coch)[rownames(sigtab_pmf_coch_hydro), ], "matrix"))
+
+x_pmf_coch_hydro = tapply(sigtab_pmf_coch_hydro$log2FoldChange, sigtab_pmf_coch_hydro$Phylum, function(x) max(x))
+x_pmf_coch_hydro = sort(x_pmf_coch_hydro, TRUE)
+sigtab_pmf_coch_hydro$Phylum = factor(as.character(sigtab_pmf_coch_hydro$Phylum), levels=names(x_pmf_coch_hydro))
+# Genus
+x_pmf_coch_hydro = tapply(sigtab_pmf_coch_hydro$log2FoldChange, sigtab_pmf_coch_hydro$Genus, function(x) max(x))
+x_pmf_coch_hydro = sort(x_pmf_coch_hydro, TRUE)
+sigtab_pmf_coch_hydro$Genus = factor(as.character(sigtab_pmf_coch_hydro$Genus), levels=sort(names(x_pmf_coch_hydro)))
+#156 observations
+
+diff_abund_hydro_pmf_coch_plot<-ggplot(sigtab_pmf_coch_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hydro_pmf_coch_plot
+
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River PMF vs Cochrane hydropsychidae larvae only.png", height=15, width=22)
 
 
 #### Adult Trichoptera ####
@@ -11964,7 +12119,7 @@ sigtab_exposed_trichop$Phylum = factor(as.character(sigtab_exposed_trichop$Phylu
 x_exposed_trichop = tapply(sigtab_exposed_trichop$log2FoldChange, sigtab_exposed_trichop$Genus, function(x) max(x))
 x_exposed_trichop = sort(x_exposed_trichop, TRUE)
 sigtab_exposed_trichop$Genus = factor(as.character(sigtab_exposed_trichop$Genus), levels=sort(names(x_exposed_trichop)))
-#28 differentially abundant taxa
+#23 differentially abundant taxa
 
 diff_abund_trichop_plot<-ggplot(sigtab_exposed_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
@@ -11977,7 +12132,114 @@ diff_abund_trichop_plot<-ggplot(sigtab_exposed_trichop, aes(x=Genus, y=log2FoldC
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette="Set3")
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites caddisfly adults only.png", height=15, width=22)
+diff_abund_trichop_plot
+
+#COCH - SUN
+
+trichop_sun_coch<-subset_samples(trichop_ps, Site=="Cochrane" | Site=="Sunalta")
+
+deseq_sun_coch_trichop <- phyloseq_to_deseq2(trichop_sun_coch, ~ Site)
+
+deseq_sun_coch_trichop <- DESeq(deseq_sun_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_sun_coch_trichop <- results(deseq_sun_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_sun_coch_trichop = res_deseq_sun_coch_trichop[which(res_deseq_sun_coch_trichop$padj < alpha), ]
+sigtab_sun_coch_trichop = cbind(as(sigtab_sun_coch_trichop, "data.frame"), as(tax_table(trichop_sun_coch)[rownames(sigtab_sun_coch_trichop), ], "matrix"))
+
+x_sun_coch_trichop = tapply(sigtab_sun_coch_trichop$log2FoldChange, sigtab_sun_coch_trichop$Phylum, function(x) max(x))
+x_sun_coch_trichop = sort(x_sun_coch_trichop, TRUE)
+sigtab_sun_coch_trichop$Phylum = factor(as.character(sigtab_sun_coch_trichop$Phylum), levels=names(x_sun_coch_trichop))
+# Genus
+x_sun_coch_trichop = tapply(sigtab_sun_coch_trichop$log2FoldChange, sigtab_sun_coch_trichop$Genus, function(x) max(x))
+x_sun_coch_trichop = sort(x_sun_coch_trichop, TRUE)
+sigtab_sun_coch_trichop$Genus = factor(as.character(sigtab_sun_coch_trichop$Genus), levels=sort(names(x_sun_coch_trichop)))
+#3 observations
+
+diff_abund_trichop_sun_coch_plot<-ggplot(sigtab_sun_coch_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_trichop_sun_coch_plot
+
+
+#COCH - CUSHBR
+
+trichop_cush_coch<-subset_samples(trichop_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_trichop <- phyloseq_to_deseq2(trichop_cush_coch, ~ Site)
+
+deseq_cush_coch_trichop <- DESeq(deseq_cush_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_cush_coch_trichop <- results(deseq_cush_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_trichop = res_deseq_cush_coch_trichop[which(res_deseq_cush_coch_trichop$padj < alpha), ]
+sigtab_cush_coch_trichop = cbind(as(sigtab_cush_coch_trichop, "data.frame"), as(tax_table(trichop_cush_coch)[rownames(sigtab_cush_coch_trichop), ], "matrix"))
+
+x_cush_coch_trichop = tapply(sigtab_cush_coch_trichop$log2FoldChange, sigtab_cush_coch_trichop$Phylum, function(x) max(x))
+x_cush_coch_trichop = sort(x_cush_coch_trichop, TRUE)
+sigtab_cush_coch_trichop$Phylum = factor(as.character(sigtab_cush_coch_trichop$Phylum), levels=names(x_cush_coch_trichop))
+# Genus
+x_cush_coch_trichop = tapply(sigtab_cush_coch_trichop$log2FoldChange, sigtab_cush_coch_trichop$Genus, function(x) max(x))
+x_cush_coch_trichop = sort(x_cush_coch_trichop, TRUE)
+sigtab_cush_coch_trichop$Genus = factor(as.character(sigtab_cush_coch_trichop$Genus), levels=sort(names(x_cush_coch_trichop)))
+#3 observations
+
+diff_abund_trichop_cush_coch_plot<-ggplot(sigtab_cush_coch_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_trichop_cush_coch_plot
+
+
+#COCH - GRVBR
+
+trichop_grvbr_coch<-subset_samples(trichop_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+deseq_grvbr_coch_trichop <- phyloseq_to_deseq2(trichop_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_trichop <- DESeq(deseq_grvbr_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_grvbr_coch_trichop <- results(deseq_grvbr_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_trichop = res_deseq_grvbr_coch_trichop[which(res_deseq_grvbr_coch_trichop$padj < alpha), ]
+sigtab_grvbr_coch_trichop = cbind(as(sigtab_grvbr_coch_trichop, "data.frame"), as(tax_table(trichop_grvbr_coch)[rownames(sigtab_grvbr_coch_trichop), ], "matrix"))
+
+x_grvbr_coch_trichop = tapply(sigtab_grvbr_coch_trichop$log2FoldChange, sigtab_grvbr_coch_trichop$Phylum, function(x) max(x))
+x_grvbr_coch_trichop = sort(x_grvbr_coch_trichop, TRUE)
+sigtab_grvbr_coch_trichop$Phylum = factor(as.character(sigtab_grvbr_coch_trichop$Phylum), levels=names(x_grvbr_coch_trichop))
+# Genus
+x_grvbr_coch_trichop = tapply(sigtab_grvbr_coch_trichop$log2FoldChange, sigtab_grvbr_coch_trichop$Genus, function(x) max(x))
+x_grvbr_coch_trichop = sort(x_grvbr_coch_trichop, TRUE)
+sigtab_grvbr_coch_trichop$Genus = factor(as.character(sigtab_grvbr_coch_trichop$Genus), levels=sort(names(x_grvbr_coch_trichop)))
+#20 observations
+
+diff_abund_trichop_grvbr_coch_plot<-ggplot(sigtab_grvbr_coch_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_trichop_grvbr_coch_plot
 
 
 #### Larval Heptageniidae ####
@@ -12014,13 +12276,197 @@ diff_abund_hep_plot<-ggplot(sigtab_exposed_hep, aes(x=Genus, y=log2FoldChange, c
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette="Set3")
+diff_abund_hep_plot
 
 #ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites larval heptageniidae only.png", height=15, width=22)
 
 
+#COCH - SUN
+
+hep_sun_coch<-subset_samples(hep_ps, Site=="Cochrane" | Site=="Sunalta")
+
+deseq_sun_coch_hep <- phyloseq_to_deseq2(hep_sun_coch, ~ Site)
+
+deseq_sun_coch_hep <- DESeq(deseq_sun_coch_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_sun_coch_hep <- results(deseq_sun_coch_hep, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_sun_coch_hep = res_deseq_sun_coch_hep[which(res_deseq_sun_coch_hep$padj < alpha), ]
+sigtab_sun_coch_hep = cbind(as(sigtab_sun_coch_hep, "data.frame"), as(tax_table(hep_sun_coch)[rownames(sigtab_sun_coch_hep), ], "matrix"))
+
+x_sun_coch_hep = tapply(sigtab_sun_coch_hep$log2FoldChange, sigtab_sun_coch_hep$Phylum, function(x) max(x))
+x_sun_coch_hep = sort(x_sun_coch_hep, TRUE)
+sigtab_sun_coch_hep$Phylum = factor(as.character(sigtab_sun_coch_hep$Phylum), levels=names(x_sun_coch_hep))
+# Genus
+x_sun_coch_hep = tapply(sigtab_sun_coch_hep$log2FoldChange, sigtab_sun_coch_hep$Genus, function(x) max(x))
+x_sun_coch_hep = sort(x_sun_coch_hep, TRUE)
+sigtab_sun_coch_hep$Genus = factor(as.character(sigtab_sun_coch_hep$Genus), levels=sort(names(x_sun_coch_hep)))
+#2 observations
+
+diff_abund_hep_sun_coch_plot<-ggplot(sigtab_sun_coch_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hep_sun_coch_plot
+
+
+#COCH - CUSHBR
+
+hep_cush_coch<-subset_samples(hep_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_hep <- phyloseq_to_deseq2(hep_cush_coch, ~ Site)
+
+deseq_cush_coch_hep <- DESeq(deseq_cush_coch_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_hep <- results(deseq_cush_coch_hep, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_hep = res_deseq_cush_coch_hep[which(res_deseq_cush_coch_hep$padj < alpha), ]
+sigtab_cush_coch_hep = cbind(as(sigtab_cush_coch_hep, "data.frame"), as(tax_table(hep_cush_coch)[rownames(sigtab_cush_coch_hep), ], "matrix"))
+
+x_cush_coch_hep = tapply(sigtab_cush_coch_hep$log2FoldChange, sigtab_cush_coch_hep$Phylum, function(x) max(x))
+x_cush_coch_hep = sort(x_cush_coch_hep, TRUE)
+sigtab_cush_coch_hep$Phylum = factor(as.character(sigtab_cush_coch_hep$Phylum), levels=names(x_cush_coch_hep))
+# Genus
+x_cush_coch_hep = tapply(sigtab_cush_coch_hep$log2FoldChange, sigtab_cush_coch_hep$Genus, function(x) max(x))
+x_cush_coch_hep = sort(x_cush_coch_hep, TRUE)
+sigtab_cush_coch_hep$Genus = factor(as.character(sigtab_cush_coch_hep$Genus), levels=sort(names(x_cush_coch_hep)))
+#3 observations
+
+diff_abund_hep_cush_coch_plot<-ggplot(sigtab_cush_coch_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hep_cush_coch_plot
+
+
+#COCH - GRVBR
+
+hep_grvbr_coch<-subset_samples(hep_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+deseq_grvbr_coch_hep <- phyloseq_to_deseq2(hep_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_hep <- DESeq(deseq_grvbr_coch_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_grvbr_coch_hep <- results(deseq_grvbr_coch_hep, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_hep = res_deseq_grvbr_coch_hep[which(res_deseq_grvbr_coch_hep$padj < alpha), ]
+sigtab_grvbr_coch_hep = cbind(as(sigtab_grvbr_coch_hep, "data.frame"), as(tax_table(hep_grvbr_coch)[rownames(sigtab_grvbr_coch_hep), ], "matrix"))
+
+x_grvbr_coch_hep = tapply(sigtab_grvbr_coch_hep$log2FoldChange, sigtab_grvbr_coch_hep$Phylum, function(x) max(x))
+x_grvbr_coch_hep = sort(x_grvbr_coch_hep, TRUE)
+sigtab_grvbr_coch_hep$Phylum = factor(as.character(sigtab_grvbr_coch_hep$Phylum), levels=names(x_grvbr_coch_hep))
+# Genus
+x_grvbr_coch_hep = tapply(sigtab_grvbr_coch_hep$log2FoldChange, sigtab_grvbr_coch_hep$Genus, function(x) max(x))
+x_grvbr_coch_hep = sort(x_grvbr_coch_hep, TRUE)
+sigtab_grvbr_coch_hep$Genus = factor(as.character(sigtab_grvbr_coch_hep$Genus), levels=sort(names(x_grvbr_coch_hep)))
+#35 observations
+
+diff_abund_hep_grvbr_coch_plot<-ggplot(sigtab_grvbr_coch_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hep_grvbr_coch_plot
+
+#COCH - GRVBR
+
+hep_grvbr_coch<-subset_samples(hep_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+deseq_grvbr_coch_hep <- phyloseq_to_deseq2(hep_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_hep <- DESeq(deseq_grvbr_coch_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_grvbr_coch_hep <- results(deseq_grvbr_coch_hep, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_hep = res_deseq_grvbr_coch_hep[which(res_deseq_grvbr_coch_hep$padj < alpha), ]
+sigtab_grvbr_coch_hep = cbind(as(sigtab_grvbr_coch_hep, "data.frame"), as(tax_table(hep_grvbr_coch)[rownames(sigtab_grvbr_coch_hep), ], "matrix"))
+
+x_grvbr_coch_hep = tapply(sigtab_grvbr_coch_hep$log2FoldChange, sigtab_grvbr_coch_hep$Phylum, function(x) max(x))
+x_grvbr_coch_hep = sort(x_grvbr_coch_hep, TRUE)
+sigtab_grvbr_coch_hep$Phylum = factor(as.character(sigtab_grvbr_coch_hep$Phylum), levels=names(x_grvbr_coch_hep))
+# Genus
+x_grvbr_coch_hep = tapply(sigtab_grvbr_coch_hep$log2FoldChange, sigtab_grvbr_coch_hep$Genus, function(x) max(x))
+x_grvbr_coch_hep = sort(x_grvbr_coch_hep, TRUE)
+sigtab_grvbr_coch_hep$Genus = factor(as.character(sigtab_grvbr_coch_hep$Genus), levels=sort(names(x_grvbr_coch_hep)))
+#35 observations
+
+diff_abund_hep_grvbr_coch_plot<-ggplot(sigtab_grvbr_coch_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hep_grvbr_coch_plot
+
+
+#COCH - PMF
+
+hep_pmf_coch<-subset_samples(hep_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_hep <- phyloseq_to_deseq2(hep_pmf_coch, ~ Site)
+
+deseq_pmf_coch_hep <- DESeq(deseq_pmf_coch_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_hep <- results(deseq_pmf_coch_hep, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_hep = res_deseq_pmf_coch_hep[which(res_deseq_pmf_coch_hep$padj < alpha), ]
+sigtab_pmf_coch_hep = cbind(as(sigtab_pmf_coch_hep, "data.frame"), as(tax_table(hep_pmf_coch)[rownames(sigtab_pmf_coch_hep), ], "matrix"))
+
+x_pmf_coch_hep = tapply(sigtab_pmf_coch_hep$log2FoldChange, sigtab_pmf_coch_hep$Phylum, function(x) max(x))
+x_pmf_coch_hep = sort(x_pmf_coch_hep, TRUE)
+sigtab_pmf_coch_hep$Phylum = factor(as.character(sigtab_pmf_coch_hep$Phylum), levels=names(x_pmf_coch_hep))
+# Genus
+x_pmf_coch_hep = tapply(sigtab_pmf_coch_hep$log2FoldChange, sigtab_pmf_coch_hep$Genus, function(x) max(x))
+x_pmf_coch_hep = sort(x_pmf_coch_hep, TRUE)
+sigtab_pmf_coch_hep$Genus = factor(as.character(sigtab_pmf_coch_hep$Genus), levels=sort(names(x_pmf_coch_hep)))
+#71 observations
+
+diff_abund_hep_pmf_coch_plot<-ggplot(sigtab_pmf_coch_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_hep_pmf_coch_plot
+
 #### Adult Ephemeroptera ####
 
-ephem_ps<-subset_samples(sample_ps, Family=="Ephemeroptera")
+ephem_ps<-subset_samples(sample_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
 
 deseq_exposed_ephem <- phyloseq_to_deseq2(ephem_ps, ~ Exposure)
 #Re level the reference variable so that the comparison is exposed vs unexposed
@@ -12040,7 +12486,7 @@ sigtab_exposed_ephem$Phylum = factor(as.character(sigtab_exposed_ephem$Phylum), 
 x_exposed_ephem = tapply(sigtab_exposed_ephem$log2FoldChange, sigtab_exposed_ephem$Genus, function(x) max(x))
 x_exposed_ephem = sort(x_exposed_ephem, TRUE)
 sigtab_exposed_ephem$Genus = factor(as.character(sigtab_exposed_ephem$Genus), levels=sort(names(x_exposed_ephem)))
-#9 differentially abundant taxa
+#8 differentially abundant taxa
 
 diff_abund_ephem_plot<-ggplot(sigtab_exposed_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
@@ -12053,8 +12499,152 @@ diff_abund_ephem_plot<-ggplot(sigtab_exposed_ephem, aes(x=Genus, y=log2FoldChang
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette="Set3")
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites adult mayfly only.png", height=15, width=22)
 
+#COCH - SUN
+
+ephem_sun_coch<-subset_samples(ephem_ps, Site=="Cochrane" | Site=="Sunalta")
+
+deseq_sun_coch_ephem <- phyloseq_to_deseq2(ephem_sun_coch, ~ Site)
+
+deseq_sun_coch_ephem <- DESeq(deseq_sun_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_sun_coch_ephem <- results(deseq_sun_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_sun_coch_ephem = res_deseq_sun_coch_ephem[which(res_deseq_sun_coch_ephem$padj < alpha), ]
+sigtab_sun_coch_ephem = cbind(as(sigtab_sun_coch_ephem, "data.frame"), as(tax_table(ephem_sun_coch)[rownames(sigtab_sun_coch_ephem), ], "matrix"))
+
+x_sun_coch_ephem = tapply(sigtab_sun_coch_ephem$log2FoldChange, sigtab_sun_coch_ephem$Phylum, function(x) max(x))
+x_sun_coch_ephem = sort(x_sun_coch_ephem, TRUE)
+sigtab_sun_coch_ephem$Phylum = factor(as.character(sigtab_sun_coch_ephem$Phylum), levels=names(x_sun_coch_ephem))
+# Genus
+x_sun_coch_ephem = tapply(sigtab_sun_coch_ephem$log2FoldChange, sigtab_sun_coch_ephem$Genus, function(x) max(x))
+x_sun_coch_ephem = sort(x_sun_coch_ephem, TRUE)
+sigtab_sun_coch_ephem$Genus = factor(as.character(sigtab_sun_coch_ephem$Genus), levels=sort(names(x_sun_coch_ephem)))
+#12 observations
+
+diff_abund_ephem_sun_coch_plot<-ggplot(sigtab_sun_coch_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_ephem_sun_coch_plot
+
+
+#COCH - CUSHBR
+
+ephem_cush_coch<-subset_samples(ephem_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_ephem <- phyloseq_to_deseq2(ephem_cush_coch, ~ Site)
+
+deseq_cush_coch_ephem <- DESeq(deseq_cush_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_ephem <- results(deseq_cush_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_ephem = res_deseq_cush_coch_ephem[which(res_deseq_cush_coch_ephem$padj < alpha), ]
+sigtab_cush_coch_ephem = cbind(as(sigtab_cush_coch_ephem, "data.frame"), as(tax_table(ephem_cush_coch)[rownames(sigtab_cush_coch_ephem), ], "matrix"))
+
+x_cush_coch_ephem = tapply(sigtab_cush_coch_ephem$log2FoldChange, sigtab_cush_coch_ephem$Phylum, function(x) max(x))
+x_cush_coch_ephem = sort(x_cush_coch_ephem, TRUE)
+sigtab_cush_coch_ephem$Phylum = factor(as.character(sigtab_cush_coch_ephem$Phylum), levels=names(x_cush_coch_ephem))
+# Genus
+x_cush_coch_ephem = tapply(sigtab_cush_coch_ephem$log2FoldChange, sigtab_cush_coch_ephem$Genus, function(x) max(x))
+x_cush_coch_ephem = sort(x_cush_coch_ephem, TRUE)
+sigtab_cush_coch_ephem$Genus = factor(as.character(sigtab_cush_coch_ephem$Genus), levels=sort(names(x_cush_coch_ephem)))
+#8 observations
+
+diff_abund_ephem_cush_coch_plot<-ggplot(sigtab_cush_coch_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_ephem_cush_coch_plot
+
+
+#COCH - GRVBR
+
+ephem_grvbr_coch<-subset_samples(ephem_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+deseq_grvbr_coch_ephem <- phyloseq_to_deseq2(ephem_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_ephem <- DESeq(deseq_grvbr_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_grvbr_coch_ephem <- results(deseq_grvbr_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_ephem = res_deseq_grvbr_coch_ephem[which(res_deseq_grvbr_coch_ephem$padj < alpha), ]
+sigtab_grvbr_coch_ephem = cbind(as(sigtab_grvbr_coch_ephem, "data.frame"), as(tax_table(ephem_grvbr_coch)[rownames(sigtab_grvbr_coch_ephem), ], "matrix"))
+
+x_grvbr_coch_ephem = tapply(sigtab_grvbr_coch_ephem$log2FoldChange, sigtab_grvbr_coch_ephem$Phylum, function(x) max(x))
+x_grvbr_coch_ephem = sort(x_grvbr_coch_ephem, TRUE)
+sigtab_grvbr_coch_ephem$Phylum = factor(as.character(sigtab_grvbr_coch_ephem$Phylum), levels=names(x_grvbr_coch_ephem))
+# Genus
+x_grvbr_coch_ephem = tapply(sigtab_grvbr_coch_ephem$log2FoldChange, sigtab_grvbr_coch_ephem$Genus, function(x) max(x))
+x_grvbr_coch_ephem = sort(x_grvbr_coch_ephem, TRUE)
+sigtab_grvbr_coch_ephem$Genus = factor(as.character(sigtab_grvbr_coch_ephem$Genus), levels=sort(names(x_grvbr_coch_ephem)))
+#10 observations
+
+diff_abund_ephem_grvbr_coch_plot<-ggplot(sigtab_grvbr_coch_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_ephem_grvbr_coch_plot
+
+#COCH - PMF
+
+ephem_pmf_coch<-subset_samples(ephem_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_ephem <- phyloseq_to_deseq2(ephem_pmf_coch, ~ Site)
+
+deseq_pmf_coch_ephem <- DESeq(deseq_pmf_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_ephem <- results(deseq_pmf_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_ephem = res_deseq_pmf_coch_ephem[which(res_deseq_pmf_coch_ephem$padj < alpha), ]
+sigtab_pmf_coch_ephem = cbind(as(sigtab_pmf_coch_ephem, "data.frame"), as(tax_table(ephem_pmf_coch)[rownames(sigtab_pmf_coch_ephem), ], "matrix"))
+
+x_pmf_coch_ephem = tapply(sigtab_pmf_coch_ephem$log2FoldChange, sigtab_pmf_coch_ephem$Phylum, function(x) max(x))
+x_pmf_coch_ephem = sort(x_pmf_coch_ephem, TRUE)
+sigtab_pmf_coch_ephem$Phylum = factor(as.character(sigtab_pmf_coch_ephem$Phylum), levels=names(x_pmf_coch_ephem))
+# Genus
+x_pmf_coch_ephem = tapply(sigtab_pmf_coch_ephem$log2FoldChange, sigtab_pmf_coch_ephem$Genus, function(x) max(x))
+x_pmf_coch_ephem = sort(x_pmf_coch_ephem, TRUE)
+sigtab_pmf_coch_ephem$Genus = factor(as.character(sigtab_pmf_coch_ephem$Genus), levels=sort(names(x_pmf_coch_ephem)))
+#1 observation
+
+diff_abund_ephem_pmf_coch_plot<-ggplot(sigtab_pmf_coch_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_ephem_pmf_coch_plot
 
 #### Larval Chironomidae ####
 
@@ -12078,7 +12668,7 @@ sigtab_exposed_chiro$Phylum = factor(as.character(sigtab_exposed_chiro$Phylum), 
 x_exposed_chiro = tapply(sigtab_exposed_chiro$log2FoldChange, sigtab_exposed_chiro$Genus, function(x) max(x))
 x_exposed_chiro = sort(x_exposed_chiro, TRUE)
 sigtab_exposed_chiro$Genus = factor(as.character(sigtab_exposed_chiro$Genus), levels=sort(names(x_exposed_chiro)))
-#23 differentially abundant taxa
+#21 differentially abundant taxa
 
 diff_abund_chiro_plot<-ggplot(sigtab_exposed_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
@@ -12092,6 +12682,79 @@ diff_abund_chiro_plot<-ggplot(sigtab_exposed_chiro, aes(x=Genus, y=log2FoldChang
   scale_color_brewer(palette="Set3")
 
 #ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites chironomid larvae only.png", height=15, width=22)
+
+#COCH - CUSHBR
+
+chiro_cush_coch<-subset_samples(chiro_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_chiro <- phyloseq_to_deseq2(chiro_cush_coch, ~ Site)
+
+deseq_cush_coch_chiro <- DESeq(deseq_cush_coch_chiro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_chiro <- results(deseq_cush_coch_chiro, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_chiro = res_deseq_cush_coch_chiro[which(res_deseq_cush_coch_chiro$padj < alpha), ]
+sigtab_cush_coch_chiro = cbind(as(sigtab_cush_coch_chiro, "data.frame"), as(tax_table(chiro_cush_coch)[rownames(sigtab_cush_coch_chiro), ], "matrix"))
+
+x_cush_coch_chiro = tapply(sigtab_cush_coch_chiro$log2FoldChange, sigtab_cush_coch_chiro$Phylum, function(x) max(x))
+x_cush_coch_chiro = sort(x_cush_coch_chiro, TRUE)
+sigtab_cush_coch_chiro$Phylum = factor(as.character(sigtab_cush_coch_chiro$Phylum), levels=names(x_cush_coch_chiro))
+# Genus
+x_cush_coch_chiro = tapply(sigtab_cush_coch_chiro$log2FoldChange, sigtab_cush_coch_chiro$Genus, function(x) max(x))
+x_cush_coch_chiro = sort(x_cush_coch_chiro, TRUE)
+sigtab_cush_coch_chiro$Genus = factor(as.character(sigtab_cush_coch_chiro$Genus), levels=sort(names(x_cush_coch_chiro)))
+#20 observations
+
+diff_abund_chiro_cush_coch_plot<-ggplot(sigtab_cush_coch_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_chiro_cush_coch_plot
+
+
+#COCH - PMF
+
+chiro_pmf_coch<-subset_samples(chiro_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_chiro <- phyloseq_to_deseq2(chiro_pmf_coch, ~ Site)
+
+deseq_pmf_coch_chiro <- DESeq(deseq_pmf_coch_chiro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_chiro <- results(deseq_pmf_coch_chiro, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_chiro = res_deseq_pmf_coch_chiro[which(res_deseq_pmf_coch_chiro$padj < alpha), ]
+sigtab_pmf_coch_chiro = cbind(as(sigtab_pmf_coch_chiro, "data.frame"), as(tax_table(chiro_pmf_coch)[rownames(sigtab_pmf_coch_chiro), ], "matrix"))
+
+x_pmf_coch_chiro = tapply(sigtab_pmf_coch_chiro$log2FoldChange, sigtab_pmf_coch_chiro$Phylum, function(x) max(x))
+x_pmf_coch_chiro = sort(x_pmf_coch_chiro, TRUE)
+sigtab_pmf_coch_chiro$Phylum = factor(as.character(sigtab_pmf_coch_chiro$Phylum), levels=names(x_pmf_coch_chiro))
+# Genus
+x_pmf_coch_chiro = tapply(sigtab_pmf_coch_chiro$log2FoldChange, sigtab_pmf_coch_chiro$Genus, function(x) max(x))
+x_pmf_coch_chiro = sort(x_pmf_coch_chiro, TRUE)
+sigtab_pmf_coch_chiro$Genus = factor(as.character(sigtab_pmf_coch_chiro$Genus), levels=sort(names(x_pmf_coch_chiro)))
+#31 observations
+
+diff_abund_chiro_pmf_coch_plot<-ggplot(sigtab_pmf_coch_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_chiro_pmf_coch_plot
 
 
 #### Adult Diptera ####
@@ -12116,7 +12779,7 @@ sigtab_exposed_dip$Phylum = factor(as.character(sigtab_exposed_dip$Phylum), leve
 x_exposed_dip = tapply(sigtab_exposed_dip$log2FoldChange, sigtab_exposed_dip$Genus, function(x) max(x))
 x_exposed_dip = sort(x_exposed_dip, TRUE)
 sigtab_exposed_dip$Genus = factor(as.character(sigtab_exposed_dip$Genus), levels=sort(names(x_exposed_dip)))
-#9 differentially abundant taxa
+#8 differentially abundant taxa
 
 diff_abund_dip_plot<-ggplot(sigtab_exposed_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
   geom_point(size=6) + 
@@ -12130,6 +12793,79 @@ diff_abund_dip_plot<-ggplot(sigtab_exposed_dip, aes(x=Genus, y=log2FoldChange, c
   scale_color_brewer(palette="Set3")
 
 #ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites chironomidae adults only.png", height=15, width=22)
+
+#COCH - CUSHBR
+
+dip_cush_coch<-subset_samples(dip_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_dip <- phyloseq_to_deseq2(dip_cush_coch, ~ Site)
+
+deseq_cush_coch_dip <- DESeq(deseq_cush_coch_dip, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_dip <- results(deseq_cush_coch_dip, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_dip = res_deseq_cush_coch_dip[which(res_deseq_cush_coch_dip$padj < alpha), ]
+sigtab_cush_coch_dip = cbind(as(sigtab_cush_coch_dip, "data.frame"), as(tax_table(dip_cush_coch)[rownames(sigtab_cush_coch_dip), ], "matrix"))
+
+x_cush_coch_dip = tapply(sigtab_cush_coch_dip$log2FoldChange, sigtab_cush_coch_dip$Phylum, function(x) max(x))
+x_cush_coch_dip = sort(x_cush_coch_dip, TRUE)
+sigtab_cush_coch_dip$Phylum = factor(as.character(sigtab_cush_coch_dip$Phylum), levels=names(x_cush_coch_dip))
+# Genus
+x_cush_coch_dip = tapply(sigtab_cush_coch_dip$log2FoldChange, sigtab_cush_coch_dip$Genus, function(x) max(x))
+x_cush_coch_dip = sort(x_cush_coch_dip, TRUE)
+sigtab_cush_coch_dip$Genus = factor(as.character(sigtab_cush_coch_dip$Genus), levels=sort(names(x_cush_coch_dip)))
+#71 observations
+
+diff_abund_dip_cush_coch_plot<-ggplot(sigtab_cush_coch_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_dip_cush_coch_plot
+
+
+#COCH - PMF
+
+dip_pmf_coch<-subset_samples(dip_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_dip <- phyloseq_to_deseq2(dip_pmf_coch, ~ Site)
+
+deseq_pmf_coch_dip <- DESeq(deseq_pmf_coch_dip, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_dip <- results(deseq_pmf_coch_dip, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_dip = res_deseq_pmf_coch_dip[which(res_deseq_pmf_coch_dip$padj < alpha), ]
+sigtab_pmf_coch_dip = cbind(as(sigtab_pmf_coch_dip, "data.frame"), as(tax_table(dip_pmf_coch)[rownames(sigtab_pmf_coch_dip), ], "matrix"))
+
+x_pmf_coch_dip = tapply(sigtab_pmf_coch_dip$log2FoldChange, sigtab_pmf_coch_dip$Phylum, function(x) max(x))
+x_pmf_coch_dip = sort(x_pmf_coch_dip, TRUE)
+sigtab_pmf_coch_dip$Phylum = factor(as.character(sigtab_pmf_coch_dip$Phylum), levels=names(x_pmf_coch_dip))
+# Genus
+x_pmf_coch_dip = tapply(sigtab_pmf_coch_dip$log2FoldChange, sigtab_pmf_coch_dip$Genus, function(x) max(x))
+x_pmf_coch_dip = sort(x_pmf_coch_dip, TRUE)
+sigtab_pmf_coch_dip$Genus = factor(as.character(sigtab_pmf_coch_dip$Genus), levels=sort(names(x_pmf_coch_dip)))
+#75 observations
+
+diff_abund_dip_pmf_coch_plot<-ggplot(sigtab_pmf_coch_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_dip_pmf_coch_plot
 
 
 #### Larval Perlidae ####
@@ -12170,6 +12906,78 @@ diff_abund_perl_plot<-ggplot(sigtab_exposed_perl, aes(x=Genus, y=log2FoldChange,
 #ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Bow River exposed vs unexposed sites larval perlidae only.png", height=15, width=22)
 
 
+#COCH - CUSHBR
+
+perl_cush_coch<-subset_samples(perl_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_perl <- phyloseq_to_deseq2(perl_cush_coch, ~ Site)
+
+deseq_cush_coch_perl <- DESeq(deseq_cush_coch_perl, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_perl <- results(deseq_cush_coch_perl, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_perl = res_deseq_cush_coch_perl[which(res_deseq_cush_coch_perl$padj < alpha), ]
+sigtab_cush_coch_perl = cbind(as(sigtab_cush_coch_perl, "data.frame"), as(tax_table(perl_cush_coch)[rownames(sigtab_cush_coch_perl), ], "matrix"))
+
+x_cush_coch_perl = tapply(sigtab_cush_coch_perl$log2FoldChange, sigtab_cush_coch_perl$Phylum, function(x) max(x))
+x_cush_coch_perl = sort(x_cush_coch_perl, TRUE)
+sigtab_cush_coch_perl$Phylum = factor(as.character(sigtab_cush_coch_perl$Phylum), levels=names(x_cush_coch_perl))
+# Genus
+x_cush_coch_perl = tapply(sigtab_cush_coch_perl$log2FoldChange, sigtab_cush_coch_perl$Genus, function(x) max(x))
+x_cush_coch_perl = sort(x_cush_coch_perl, TRUE)
+sigtab_cush_coch_perl$Genus = factor(as.character(sigtab_cush_coch_perl$Genus), levels=sort(names(x_cush_coch_perl)))
+#31 observations
+
+diff_abund_perl_cush_coch_plot<-ggplot(sigtab_cush_coch_perl, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_perl_cush_coch_plot
+
+#COCH - PMF
+
+perl_pmf_coch<-subset_samples(perl_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_perl <- phyloseq_to_deseq2(perl_pmf_coch, ~ Site)
+
+deseq_pmf_coch_perl <- DESeq(deseq_pmf_coch_perl, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_perl <- results(deseq_pmf_coch_perl, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_perl = res_deseq_pmf_coch_perl[which(res_deseq_pmf_coch_perl$padj < alpha), ]
+sigtab_pmf_coch_perl = cbind(as(sigtab_pmf_coch_perl, "data.frame"), as(tax_table(perl_pmf_coch)[rownames(sigtab_pmf_coch_perl), ], "matrix"))
+
+x_pmf_coch_perl = tapply(sigtab_pmf_coch_perl$log2FoldChange, sigtab_pmf_coch_perl$Phylum, function(x) max(x))
+x_pmf_coch_perl = sort(x_pmf_coch_perl, TRUE)
+sigtab_pmf_coch_perl$Phylum = factor(as.character(sigtab_pmf_coch_perl$Phylum), levels=names(x_pmf_coch_perl))
+# Genus
+x_pmf_coch_perl = tapply(sigtab_pmf_coch_perl$log2FoldChange, sigtab_pmf_coch_perl$Genus, function(x) max(x))
+x_pmf_coch_perl = sort(x_pmf_coch_perl, TRUE)
+sigtab_pmf_coch_perl$Genus = factor(as.character(sigtab_pmf_coch_perl$Genus), levels=sort(names(x_pmf_coch_perl)))
+#12 observations
+
+diff_abund_perl_pmf_coch_plot<-ggplot(sigtab_pmf_coch_perl, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+diff_abund_perl_pmf_coch_plot
+
 #### Araneidae ####
 
 aran_ps<-subset_samples(sample_ps, Family=="Araneidae")
@@ -12185,6 +12993,67 @@ alpha = 0.001
 sigtab_exposed_aran = res_deseq_exposed_aran[which(res_deseq_exposed_aran$padj < alpha), ]
 sigtab_exposed_aran = cbind(as(sigtab_exposed_aran, "data.frame"), as(tax_table(aran_ps)[rownames(sigtab_exposed_aran), ], "matrix"))
 #no differentially abundant taxa!
+
+#COCH - SUN
+
+aran_sun_coch<-subset_samples(aran_ps, Site=="Cochrane" | Site=="Sunalta")
+
+deseq_sun_coch_aran <- phyloseq_to_deseq2(aran_sun_coch, ~ Site)
+
+deseq_sun_coch_aran <- DESeq(deseq_sun_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_sun_coch_aran <- results(deseq_sun_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_sun_coch_aran = res_deseq_sun_coch_aran[which(res_deseq_sun_coch_aran$padj < alpha), ]
+sigtab_sun_coch_aran = cbind(as(sigtab_sun_coch_aran, "data.frame"), as(tax_table(aran_sun_coch)[rownames(sigtab_sun_coch_aran), ], "matrix"))
+#No diff abund taxa
+
+#COCH - CUSHBR
+
+aran_cush_coch<-subset_samples(aran_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_aran <- phyloseq_to_deseq2(aran_cush_coch, ~ Site)
+
+deseq_cush_coch_aran <- DESeq(deseq_cush_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_aran <- results(deseq_cush_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_aran = res_deseq_cush_coch_aran[which(res_deseq_cush_coch_aran$padj < alpha), ]
+sigtab_cush_coch_aran = cbind(as(sigtab_cush_coch_aran, "data.frame"), as(tax_table(aran_cush_coch)[rownames(sigtab_cush_coch_aran), ], "matrix"))
+#1 obs
+
+#COCH - GRVBR
+
+aran_grvbr_coch<-subset_samples(aran_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+deseq_grvbr_coch_aran <- phyloseq_to_deseq2(aran_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_aran <- DESeq(deseq_grvbr_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_grvbr_coch_aran <- results(deseq_grvbr_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_aran = res_deseq_grvbr_coch_aran[which(res_deseq_grvbr_coch_aran$padj < alpha), ]
+sigtab_grvbr_coch_aran = cbind(as(sigtab_grvbr_coch_aran, "data.frame"), as(tax_table(aran_grvbr_coch)[rownames(sigtab_grvbr_coch_aran), ], "matrix"))
+#none
+
+#COCH - PMF
+
+aran_pmf_coch<-subset_samples(aran_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_aran <- phyloseq_to_deseq2(aran_pmf_coch, ~ Site)
+
+deseq_pmf_coch_aran <- DESeq(deseq_pmf_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_aran <- results(deseq_pmf_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_aran = res_deseq_pmf_coch_aran[which(res_deseq_pmf_coch_aran$padj < alpha), ]
+sigtab_pmf_coch_aran = cbind(as(sigtab_pmf_coch_aran, "data.frame"), as(tax_table(aran_pmf_coch)[rownames(sigtab_pmf_coch_aran), ], "matrix"))
+#6 obs
+
 
 
 #### Tetragnathidae ####
@@ -12223,20 +13092,278 @@ diff_abund_tetra_plot<-ggplot(sigtab_exposed_tetra, aes(x=Genus, y=log2FoldChang
 
 diff_abund_tetra_plot
 
+
+#COCH - SUN
+
+tetra_sun_coch<-subset_samples(tetra_ps, Site=="Cochrane" | Site=="Sunalta")
+
+deseq_sun_coch_tetra <- phyloseq_to_deseq2(tetra_sun_coch, ~ Site)
+
+deseq_sun_coch_tetra <- DESeq(deseq_sun_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_sun_coch_tetra <- results(deseq_sun_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_sun_coch_tetra = res_deseq_sun_coch_tetra[which(res_deseq_sun_coch_tetra$padj < alpha), ]
+sigtab_sun_coch_tetra = cbind(as(sigtab_sun_coch_tetra, "data.frame"), as(tax_table(tetra_sun_coch)[rownames(sigtab_sun_coch_tetra), ], "matrix"))
+#1
+
+x_sun_coch_tetra = tapply(sigtab_sun_coch_tetra$log2FoldChange, sigtab_sun_coch_tetra$Phylum, function(x) max(x))
+x_sun_coch_tetra = sort(x_sun_coch_tetra, TRUE)
+sigtab_sun_coch_tetra$Phylum = factor(as.character(sigtab_sun_coch_tetra$Phylum), levels=names(x_sun_coch_tetra))
+# Genus
+x_sun_coch_tetra = tapply(sigtab_sun_coch_tetra$log2FoldChange, sigtab_sun_coch_tetra$Genus, function(x) max(x))
+x_sun_coch_tetra = sort(x_sun_coch_tetra, TRUE)
+sigtab_sun_coch_tetra$Genus = factor(as.character(sigtab_sun_coch_tetra$Genus), levels=sort(names(x_sun_coch_tetra)))
+
+ggplot(sigtab_sun_coch_tetra, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette="Set3")
+
+#COCH - CUSHBR
+
+tetra_cush_coch<-subset_samples(tetra_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+deseq_cush_coch_tetra <- phyloseq_to_deseq2(tetra_cush_coch, ~ Site)
+
+deseq_cush_coch_tetra <- DESeq(deseq_cush_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_cush_coch_tetra <- results(deseq_cush_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_cush_coch_tetra = res_deseq_cush_coch_tetra[which(res_deseq_cush_coch_tetra$padj < alpha), ]
+sigtab_cush_coch_tetra = cbind(as(sigtab_cush_coch_tetra, "data.frame"), as(tax_table(tetra_cush_coch)[rownames(sigtab_cush_coch_tetra), ], "matrix"))
+#none
+
+#COCH - GRVBR
+
+tetra_grvbr_coch<-subset_samples(tetra_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+deseq_grvbr_coch_tetra <- phyloseq_to_deseq2(tetra_grvbr_coch, ~ Site)
+
+deseq_grvbr_coch_tetra <- DESeq(deseq_grvbr_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_grvbr_coch_tetra <- results(deseq_grvbr_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_grvbr_coch_tetra = res_deseq_grvbr_coch_tetra[which(res_deseq_grvbr_coch_tetra$padj < alpha), ]
+sigtab_grvbr_coch_tetra = cbind(as(sigtab_grvbr_coch_tetra, "data.frame"), as(tax_table(tetra_grvbr_coch)[rownames(sigtab_grvbr_coch_tetra), ], "matrix"))
+#none
+
+#COCH - PMF
+
+tetra_pmf_coch<-subset_samples(tetra_ps, Site=="Cochrane" | Site=="Policeman Flats")
+
+deseq_pmf_coch_tetra <- phyloseq_to_deseq2(tetra_pmf_coch, ~ Site)
+
+deseq_pmf_coch_tetra <- DESeq(deseq_pmf_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+
+res_deseq_pmf_coch_tetra <- results(deseq_pmf_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+sigtab_pmf_coch_tetra = res_deseq_pmf_coch_tetra[which(res_deseq_pmf_coch_tetra$padj < alpha), ]
+sigtab_pmf_coch_tetra = cbind(as(sigtab_pmf_coch_tetra, "data.frame"), as(tax_table(tetra_pmf_coch)[rownames(sigtab_pmf_coch_tetra), ], "matrix"))
+#none
+
+x_pmf_coch_tetra = tapply(sigtab_pmf_coch_tetra$log2FoldChange, sigtab_pmf_coch_tetra$Phylum, function(x) max(x))
+x_pmf_coch_tetra = sort(x_pmf_coch_tetra, TRUE)
+sigtab_pmf_coch_tetra$Phylum = factor(as.character(sigtab_pmf_coch_tetra$Phylum), levels=names(x_pmf_coch_tetra))
+# Genus
+x_pmf_coch_tetra = tapply(sigtab_pmf_coch_tetra$log2FoldChange, sigtab_pmf_coch_tetra$Genus, function(x) max(x))
+x_pmf_coch_tetra = sort(x_pmf_coch_tetra, TRUE)
+sigtab_pmf_coch_tetra$Genus = factor(as.character(sigtab_pmf_coch_tetra$Genus), levels=sort(names(x_pmf_coch_tetra)))
+
+ggplot(sigtab_pmf_coch_tetra, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette="Set3")
+
+
+
 #### Arranging invert plots all together ####
 
-diff_abund_hydro_plot_1<- diff_abund_hydro_plot + rremove("axis.title")
-diff_abund_hep_plot_1<- diff_abund_hep_plot + rremove("axis.title")
-diff_abund_chiro_plot_1<- diff_abund_chiro_plot + rremove("axis.title")
-diff_abund_perl_plot_1<- diff_abund_perl_plot + rremove("axis.title")
-diff_abund_trichop_plot_1<- diff_abund_trichop_plot + rremove("axis.title")
-diff_abund_ephem_plot_1<- diff_abund_ephem_plot + rremove("axis.title")
-diff_abund_dip_plot_1<- diff_abund_dip_plot + rremove("axis.title")
-diff_abund_tetra_plot_1<- diff_abund_tetra_plot + rremove("axis.title")
+#Hydropsychidae
 
-ggarrange(diff_abund_hydro_plot_1, diff_abund_hep_plot_1, diff_abund_chiro_plot_1, diff_abund_perl_plot_1, diff_abund_trichop_plot_1, diff_abund_ephem_plot_1, diff_abund_dip_plot_1, diff_abund_tetra_plot_1, nrow=3, ncol=3)
+sigtab_exposed_hydro$Phylum<-factor(sigtab_exposed_hydro$Phylum, levels=c("Acidobacteriota", "Actinobacteriota", "Bacteroidota", "Cyanobacteria", "Firmicutes", "Myxococcota", "Proteobacteria", "Rs-K70 termite group", "Synergistota"))
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/diff abund across taxa Bow River.png", height=10, width=10)
+diff_abund_hydro_plot<-ggplot(sigtab_exposed_hydro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=20, face="italic")) + theme(axis.text=element_text(size=20, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#f22020", "#991919", "#e68f66", "#f47a22", "#fcff5d", "#ffc413", "#228c68", "#235b54", "#3998f5", "#2f2aa0"))
+diff_abund_hydro_plot
+
+#Acidobacteriota, Actinobacteriota, Bacteroidota, Cyanobacteria, Firmicutes, Myxococcota, Proteobacteria, Rs-K70 termite group, Synergistota
+
+#Heptageniidae
+
+sigtab_exposed_hep$Phylum<-factor(sigtab_exposed_hep$Phylum, levels=c("Actinobacteriota", "Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
+
+diff_abund_hep_plot<-ggplot(sigtab_exposed_hep, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=16, face="italic")) + theme(axis.text=element_text(size=16, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#991919", "#e68f66", "#f47a22", "#fcff5d", "#228c68"))
+diff_abund_hep_plot
+
+#Actinobacteriota, Bacteroidota, Cyanobacteria, Firmicutes, Proteobacteria
+
+#Chironomidae
+
+sigtab_exposed_chiro$Phylum<-factor(sigtab_exposed_chiro$Phylum, levels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
+
+diff_abund_chiro_plot<-ggplot(sigtab_exposed_chiro, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#e68f66", "#f47a22", "#fcff5d", "#228c68"))
+diff_abund_chiro_plot
+
+#Bacteroidota, Cyanobacteria, Firmicutes, Proteobacteria
+
+#Perlidae
+
+sigtab_exposed_perl$Phylum<-factor(sigtab_exposed_perl$Phylum, levels=c("Bacteroidota", "Cyanobacteria", "Proteobacteria", "Verrucomicrobiota"))
+
+diff_abund_perl_plot<-ggplot(sigtab_exposed_perl, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#e68f66", "#f47a22", "#228c68", "#2f2aa0"))
+diff_abund_perl_plot
+
+#Bacteroidota, Cyanobacteria, Proteobacteria, Verrucomicrobiota
+
+#Trichoptera
+
+sigtab_exposed_trichop$Phylum<-factor(sigtab_exposed_trichop$Phylum, levels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
+
+diff_abund_trichop_plot<-ggplot(sigtab_exposed_trichop, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=18, face="italic")) + theme(axis.text=element_text(size=18, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#e68f66", "#f47a22", "#fcff5d", "#228c68"))
+diff_abund_trichop_plot
+
+#Bacteroidota, Cyanobacteria, Firmicutes, Proteobacteria
+
+#Ephemeroptera
+
+sigtab_exposed_ephem$Phylum<-factor(sigtab_exposed_ephem$Phylum, levels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
+
+diff_abund_ephem_plot<-ggplot(sigtab_exposed_ephem, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#e68f66", "#f47a22", "#fcff5d", "#228c68"))
+diff_abund_ephem_plot
+
+#Bacteroidota, Cyanobacteria, Firmicutes, Proteobacteria
+
+#Diptera
+
+sigtab_exposed_dip$Phylum<-factor(sigtab_exposed_dip$Phylum, levels=c("Cyanobacteria, Firmicutes, Proteobacteria"))
+
+diff_abund_dip_plot<-ggplot(sigtab_exposed_dip, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=10, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values=c("#f47a22", "#fcff5d", "#228c68"))
+diff_abund_dip_plot
+
+#Cyanobacteria, Firmicutes, Proteobacteria
+
+#Tetragnathidae
+
+diff_abund_tetra_plot<-ggplot(sigtab_exposed_tetra, aes(x=Genus, y=log2FoldChange, color=Phylum))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=24, face="italic")) + theme(axis.text=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_manual(values="#228c68")
+diff_abund_tetra_plot
+
+
+diff_abund_hydro_plot_1<- diff_abund_hydro_plot + rremove("axis.title") + rremove("legend")
+diff_abund_hydro_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_hydro_exposed.png", height=16, width=24, bg="white")
+diff_abund_hep_plot_1<- diff_abund_hep_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_hep_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_hep_exposed.png", height=16, width=18, bg="white")
+diff_abund_chiro_plot_1<- diff_abund_chiro_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_chiro_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_chiro_exposed.png", height=12, width=10, bg="white")
+diff_abund_perl_plot_1<- diff_abund_perl_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_perl_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_perl_exposed.png", height=10, width=8, bg="white")
+diff_abund_trichop_plot_1<- diff_abund_trichop_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_trichop_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_trichop_exposed.png", height=14, width=26, bg="white")
+diff_abund_ephem_plot_1<- diff_abund_ephem_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_ephem_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_ephem_exposed.png", height=6, width=8, bg="white")
+diff_abund_dip_plot_1<- diff_abund_dip_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_dip_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_dip_exposed.png", height=10, width=12, bg="white")
+diff_abund_tetra_plot_1<- diff_abund_tetra_plot + rremove("axis.title")+ rremove("legend")
+diff_abund_tetra_plot_1
+#ggsave("microbiome_analysis/Final analysis/Differential Abundance Results/diff_abund_tetra_exposed.png", height=6, width=8, bg="white")
+
+ggarrange(diff_abund_hydro_plot_1, diff_abund_hep_plot_1, diff_abund_chiro_plot_1, diff_abund_perl_plot_1, diff_abund_trichop_plot_1, diff_abund_ephem_plot_1, diff_abund_dip_plot_1, diff_abund_tetra_plot_1, nrow=3, ncol=3, common.legend = T, legend="bottom")
+
+ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/diff abund across taxa Bow River.png", height=20, width=26, bg="white")
 
 ```
 
