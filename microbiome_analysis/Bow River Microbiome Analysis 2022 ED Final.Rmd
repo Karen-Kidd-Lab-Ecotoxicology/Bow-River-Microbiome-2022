@@ -571,7 +571,7 @@ sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2283 reads.
 sample_ps #4564 taxa, 339 samples.
 ```
 
-### Re-frame data to work as one data frame
+### Re-frame data to work as a data frame
 ```{r}
 #Metadata (from filtered phyloseq) back into a useable data frame
 
@@ -16099,7 +16099,7 @@ top5effbacplot
 
 # Picrust2
 
-## Data prep
+## Data prep from PICRUSt2 output files
 
 ```{r}
 #Need to create a fasta file which requires an ASV identifier in the first column (ex. 'ASV1', 'ASV2', etc.) and the bacterial DNA sequence in the second column.
@@ -16217,395 +16217,360 @@ sample_ps %>%
 
 ```
 
-Load packages
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-par(mar=c(3.0, 3.0, 1.5, 1.5)) 
-```
+## Load and modify data format
 
-```{r}
-library(devtools)
-library(phyloseq)
-#devtools::install_github("cafferychen777/ggpicrust2")
-library(ggpicrust2)
-library(readr)
-library(tibble)
-library(tidyverse)
-library(ggprism)
-library(patchwork)
-library(DESeq2)
-library(ggpubr)
-library(ggplot2)
-library(dplyr)
-library(janitor)
-library(ALDEx2)
-#BiocManager::install("microbiomeMarker")
-library(microbiomeMarker)
-library(nlme)
-library(tidyverse)
-library(compositions)
-library(pals)
-library(scales)
-```
-
-Load and modify data format
+'description' is the description of the individual pathway and 'Pathway_type' is a higher order classification (pathway class). Multiple individual pathways can be cateogrized into a pathway class.
 
 ```{r}
 #### Merge picrust data to phyloseq ####
 
 #The MetaCyc abundance data acts as the "ASV" file
-metacyc<-read.delim("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\PICRUSt2 Data\\Output files\\pathways_descrip.tsv")
+metacyc<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\Output files\\pathways_descrip.tsv")
 
 #Rename column
 metacyc<-rename(metacyc, "function." = "Pathways")
 
 #Names of pathways and classification
-metacyc_ont<-read.delim("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\PICRUSt2 Data\\MetaCyc_Ontology.txt")
+metacyc_ont<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\MetaCyc_Ontology.txt")
 
 metacyc_ont<-metacyc_ont[,-2]
 
-
 #Combining metacyc abundance data with the higher order classifications
+metacyc_combined<-dplyr::inner_join(metacyc, metacyc_ont, by="Pathways")
 
-#metacyc_combined<-left_join(metacyc, metacyc_ont, by="Pathways")
-
-#remove description of pathway so that it can be transformed to KEGG pathways
-#metacyc_only<-metacyc_combined[,!names(metacyc_combined) %in% c("description.x", "description.y", "Pathway_type")]
-
-metacyc_only<-metacyc[,!names(metacyc) %in% c("description")]
+#Creating "otu" table
+metacyc_only<-metacyc[,!names(metacyc) %in% c("description")] #Remove columns with descriptions so the values can be rounded for the "ASV" table
 
 metacyc_only_column_to_row<-column_to_rownames(metacyc_only, "Pathways")
 
-metacyc_rounded<-ceiling(metacyc_only_column_to_row)
-
-metacyc_rounded_mat<-as.matrix(metacyc_rounded)
+metacyc_rounded<-ceiling(metacyc_only_column_to_row) #Have to round it to nearest value for it to work
+metacyc_rounded_mat<-as.matrix(metacyc_rounded) #Final table we will use for otu table
 
 #Descriptions of the pathways acts as the taxonomy file
-descriptions<-metacyc[,names(metacyc) %in% c("Pathways", "description")]
+descriptions<-metacyc_combined[,names(metacyc_combined) %in% c("Pathways", "description", "Pathway_type")]
 descriptions_1<-column_to_rownames(descriptions, "Pathways")
 descriptions_mat<-as.matrix(descriptions_1)
 
 
 #Metadata is treated the same
-metadata<-read_delim("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\PICRUSt2 Data\\sample-metadata-2.txt", delim="\t", escape_double = FALSE, trim_ws = TRUE)
+metadata_picrust<-read_delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\sample-metadata-2.txt", delim="\t", escape_double = FALSE, trim_ws = TRUE)
 
-metadata<-column_to_rownames(metadata, "Study_ID")
+metadata_picrust<-column_to_rownames(metadata_picrust, "Study_ID")
 
-
+#Putting data together as phyloseq object
 metacyc_table<-otu_table(metacyc_rounded_mat, taxa_are_rows = TRUE)
 descrip_table = tax_table(descriptions_mat)
 
-picrust_ps<-phyloseq(metacyc_table, sample_data(metadata), descrip_table)
-
+picrust_ps<-phyloseq(metacyc_table, sample_data(metadata_picrust), descrip_table)
 ```
 
 
-Relative abundance of top MetaCyc pathways across sites
+## Relative abundance of top MetaCyc pathway classes across sites
 
 ```{r}
+#### Bow River ####
 
-rel_abun_bow <- speedyseq::tax_glom(picrust_ps, taxrank = "description")
+Bow_ps_picrust<-subset_samples(picrust_ps, Stream_Type=="Bow River")
+
+rel_abun_bow <- speedyseq::tax_glom(Bow_ps_picrust, taxrank = "Pathway_type")
 comp_rel_abun_bow <- transform_sample_counts(rel_abun_bow, function(x) x/sum(x))
 
 rel_abun_bow_df <- psmelt(comp_rel_abun_bow)
 
-sample.df.agg_bow <- aggregate(Abundance ~ description + Site, data = rel_abun_bow_df, FUN = mean) 
+sample.df.agg_bow <- aggregate(Abundance ~ Pathway_type + Site_code + Family + Stage, data = rel_abun_bow_df, FUN = mean) 
 
 
-#Top 5 phyla relative abundance, all inverts included (Bow River and ACWA combined)
-top_phyla_bow <- sample.df.agg_bow %>%
-    group_by(description, Site) %>%
+#Top pathways
+top_pathways_bow <- sample.df.agg_bow %>%
+    group_by(Pathway_type, Site_code) %>%
     summarise(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top_phyla_bow
-top5_bow <- top_phyla_bow$description[1:79]
+top_24_pathways_bow <- top_pathways_bow$Pathway_type[1:106]
 df0_bow <- sample.df.agg_bow %>%
-    mutate(description = fct_other(description, top5_bow))
+    mutate(Pathway_type = fct_other(Pathway_type, top_24_pathways_bow))
 df0_bow
-df0_bow<-aggregate(Abundance~description + Site, data=df0_bow, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
 
+df0_bow<-aggregate(Abundance~Pathway_type + Site_code + Family + Stage, data=df0_bow, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
 
-df0_bow$Site<-factor(df0_bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3"))
+length(unique(df0_bow$Pathway_type))
 
-top5phylumplot_bow <- ggplot(df0_bow, aes(x=Site, y=Abundance, fill=description)) + 
+df0_bow$Site_code<-factor(df0_bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+df0_bow$Stage<-factor(df0_bow$Stage, levels=c("Larvae", "Adults", "Spiders"))
+
+df0_bow$Family<-factor(df0_bow$Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+toppathwaysplot_bow <- ggplot(df0_bow, aes(x=Site_code, y=Abundance, fill=Pathway_type)) + 
   geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage + Family, scales="free_x", nrow=1)+
   ylab("Mean Relative Abundance") +
   theme_bw()+
   rremove("grid")+
   theme(strip.text = element_text(size = 16, color="black")) + 
   theme(legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10), legend.title=element_text(size=10), legend.position = "right") +
-  guides (fill=guide_legend(nrow=24)) +
+        legend.text=element_text(size=14), legend.title=element_text(size=14), legend.position = "right") +
+  guides (fill=guide_legend(nrow=25)) +
   theme(axis.title.y=element_text(size=24),
         axis.text.y=element_text(size=18, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=18, color="black"),
                         axis.title.x=element_text(size=24))+
-  scale_fill_manual(name="MetaCyc Pathways", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  scale_fill_manual(name="MetaCyc Pathways", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#faf0e6", "#43464B"))+
   scale_y_continuous(label = scales::percent)+
   rremove("grid")+
   xlab("Site")
-top5phylumplot_bow
+toppathwaysplot_bow
 
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/Top 20 individual MetaCyc pathways across sites.png", height=10, width=16)
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/Top 24 MetaCyc pathway classes across sites and taxa Bow.png", height=10, width=24)
 
 
+#All taxa together 
 
-bow_glom = transform_sample_counts(picrust_ps, function(x) {x * 100/sum(x)})
+bow_all_picrust_agg <- aggregate(Abundance ~ Pathway_type, data = rel_abun_bow_df, FUN = mean) 
 
-bow_glom_df = data.frame(description = tax_table(bow_glom)[,"description"], Mean = rowMeans(otu_table(bow_glom)), row.names = NULL)
-bow_glom_df = bow_glom_df[order(-bow_glom_df$Mean),]
+ggplot(bow_all_picrust_agg, aes(x=Pathway_type, y=Abundance)) + 
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.01, "cm"),
+        legend.text=element_text(size=1), legend.title=element_text(size=11), legend.position = "right") +
+  guides (fill=guide_legend(nrow=25)) +
+  theme(axis.title.y=element_text(size=24),
+        axis.text.y=element_text(size=14, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=3, color="black"),
+                        axis.title.x=element_text(size=24))+
+  #scale_fill_manual(name="MetaCyc Pathways", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#faf0e6", "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("Site")
 
-top3_bow_glom <- bow_glom_df$description[1:5]
-bow_glom_df_2 <- bow_glom_df %>%
-    mutate(description = fct_other(description, top3_bow_glom))
 
-bow_glom_df_3<-aggregate(data=bow_glom_df_2, Mean ~ description, FUN=sum)
-bow_glom_df_4<-sort(bow_glom_df_3$Mean)
-head(bow_glom_df_4)
+df0_bow %>%
+  group_by(Pathway_type) %>%
+  dplyr::summarise(mean = mean(Abundance),
+            sd = sd(Abundance))%>%
+  arrange(desc(mean))
+
+
+#### ACWA ####
+
+ACWA_ps_picrust<-subset_samples(picrust_ps, Stream_Type!="Bow River")
+
+rel_abun_ACWA<- speedyseq::tax_glom(ACWA_ps_picrust, taxrank = "Pathway_type")
+comp_rel_abun_ACWA <- transform_sample_counts(rel_abun_ACWA, function(x) x/sum(x))
+
+rel_abun_ACWA_df <- psmelt(comp_rel_abun_ACWA)
+
+sample.df.agg_ACWA <- aggregate(Abundance ~ Pathway_type + Site_code + Family + Stage, data = rel_abun_ACWA_df, FUN = mean) 
+
+
+#Top pathways
+top_pathways_ACWA <- sample.df.agg_ACWA %>%
+    group_by(Pathway_type, Site_code) %>%
+    summarise(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top_24_pathways_ACWA <- top_pathways_ACWA$Pathway_type[1:62]
+df0_ACWA <- sample.df.agg_ACWA %>%
+    mutate(Pathway_type = fct_other(Pathway_type, top_24_pathways_ACWA))
+df0_ACWA
+
+df0_ACWA<-aggregate(Abundance~Pathway_type + Site_code + Family + Stage, data=df0_ACWA, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
+
+length(unique(df0_ACWA$Pathway_type))
+
+df0_ACWA$Site_code<-factor(df0_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
+
+df0_ACWA$Stage<-factor(df0_ACWA$Stage, levels=c("Larvae", "Adults"))
+
+df0_ACWA$Family<-factor(df0_ACWA$Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
+
+toppathwaysplot_ACWA <- ggplot(df0_ACWA, aes(x=Site_code, y=Abundance, fill=Pathway_type)) + 
+  geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage + Family, scales="free_x", nrow=1)+
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=14), legend.title=element_text(size=14), legend.position = "right") +
+  guides (fill=guide_legend(nrow=25)) +
+  theme(axis.title.y=element_text(size=24),
+        axis.text.y=element_text(size=18, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=18, color="black"),
+                        axis.title.x=element_text(size=24))+
+  scale_fill_manual(name="MetaCyc Pathways", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#faf0e6", "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("Site")
+toppathwaysplot_ACWA
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/Top 24 MetaCyc pathway classes across sites and taxa ACWA.png", height=10, width=24)
+
+
+#top pathways with all samples combined 
+
+ACWA_all_picrust_agg <- aggregate(Abundance ~ Pathway_type, data = rel_abun_ACWA_df, FUN = mean) 
+
+ggplot(ACWA_all_picrust_agg, aes(x=Pathway_type, y=Abundance)) + 
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.01, "cm"),
+        legend.text=element_text(size=1), legend.title=element_text(size=11), legend.position = "right") +
+  guides (fill=guide_legend(nrow=25)) +
+  theme(axis.title.y=element_text(size=24),
+        axis.text.y=element_text(size=14, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=3, color="black"),
+                        axis.title.x=element_text(size=24))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("Site")
+
+
+df0_ACWA %>%
+  group_by(Pathway_type) %>%
+  dplyr::summarise(mean = mean(Abundance),
+            sd = sd(Abundance))%>%
+  arrange(desc(mean))
+
 ```
 
-Differential Abundance of MetaCyc pathways across sites - Phyloseq
+## Differential Abundance of individual MetaCyc pathways across sites 
 
 ```{r}
 #### ACWA comparisons ####
-#### DESeq2 ####
-#BRR2 vs PCR1 
+### REF vs EXP5 ###
 
-BRR2_PCR1<-subset_samples(picrust_ps, Site=="BRR2"|Site=="PCR1")
+## Hydropyschidae ##
 
-dds_BRR2_PCR1 <- phyloseq_to_deseq2(BRR2_PCR1, ~ Site)
+hydro_BRR2_PCR1<-subset_samples(picrust_ps, Site %in% c("BRR2", "PCR1"))
+hydro_BRR2_PCR1<-subset_samples(hydro_BRR2_PCR1, Family=="Hydropsychidae")
+nsamples(hydro_BRR2_PCR1) #16
 
-deseq_BRR2_PCR1 <- DESeq(dds_BRR2_PCR1, test = "Wald", fitType = "parametric", sfType = "poscounts")
+dds_hydro_BRR2_PCR1 <- phyloseq_to_deseq2(hydro_BRR2_PCR1, ~ Site)
 
-res_deseq_BRR2_PCR1 <- results(deseq_BRR2_PCR1, cooksCutoff = FALSE)
-res_deseq_BRR2_PCR1
+deseq_hydro_BRR2_PCR1 <- DESeq(dds_hydro_BRR2_PCR1, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+res_deseq_hydro_BRR2_PCR1 <- results(deseq_hydro_BRR2_PCR1, cooksCutoff = FALSE)
+res_deseq_hydro_BRR2_PCR1
 alpha = 0.001
-sigtab_BRR2_PCR1 = res_deseq_BRR2_PCR1[which(res_deseq_BRR2_PCR1$padj < alpha), ]
-sigtab_BRR2_PCR1 = cbind(as(sigtab_BRR2_PCR1, "data.frame"), as(tax_table(picrust_ps)[rownames(sigtab_BRR2_PCR1), ], "matrix"))
+sigtab_hydro_BRR2_PCR1 = res_deseq_hydro_BRR2_PCR1[which(res_deseq_hydro_BRR2_PCR1$padj < alpha), ]
+sigtab_hydro_BRR2_PCR1 = cbind(as(sigtab_hydro_BRR2_PCR1, "data.frame"), as(tax_table(hydro_BRR2_PCR1)[rownames(sigtab_hydro_BRR2_PCR1), ], "matrix"))
 
-x_BRR2_PCR1 = tapply(sigtab_BRR2_PCR1$log2FoldChange, sigtab_BRR2_PCR1$description, function(x) max(x))
-x_BRR2_PCR1 = sort(x_BRR2_PCR1, TRUE)
-sigtab_BRR2_PCR1$description = factor(as.character(sigtab_BRR2_PCR1$description), levels=names(x_BRR2_PCR1))
+# Adding colours as classes
+x_hydro_BRR2_PCR1 = tapply(sigtab_hydro_BRR2_PCR1$log2FoldChange, sigtab_hydro_BRR2_PCR1$Pathway_type, function(x) max(x))
+x_hydro_BRR2_PCR1 = sort(x_hydro_BRR2_PCR1, TRUE)
+sigtab_hydro_BRR2_PCR1$Pathway_type = factor(as.character(sigtab_hydro_BRR2_PCR1$Pathway_type), levels=sort(names(x_hydro_BRR2_PCR1)))
+#Points as descriptions
+x_hydro_BRR2_PCR1 = tapply(sigtab_hydro_BRR2_PCR1$log2FoldChange, sigtab_hydro_BRR2_PCR1$description, function(x) max(x))
+x_hydro_BRR2_PCR1 = sort(x_hydro_BRR2_PCR1, TRUE)
+sigtab_hydro_BRR2_PCR1$description = factor(as.character(sigtab_hydro_BRR2_PCR1$description), levels=names(x_hydro_BRR2_PCR1))
 
-ggplot(sigtab_BRR2_PCR1, aes(x=description, y=log2FoldChange))+
+
+diff_abun_hydro_EXP5_REF<-ggplot(sigtab_hydro_BRR2_PCR1, aes(x=description, y=log2FoldChange, color=Pathway_type))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
   rremove("grid")+
   ylab("Log2 Fold Change")+
-  xlab("Metabolic Pathways")
+  xlab("Metabolic Pathways")+
+  scale_color_brewer(name = "Pathway Class", palette = "Pastel1")+
+   labs(y = expression(Log[2]~ "Ratio of Differential Expression"))
+diff_abun_hydro_EXP5_REF
 
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/DESeq2 log2 fold changes in diff pathways PCR1-BRR2.png", height=10, width=12)
+#ggsave(filename="microbiome_analysis/Final analysis/PICRUSt2 Data/Figures/diff abun pathways hydro PCR1-BRR2.png", height=10, width=12)
 
 
 #BRR2 vs PCR3
 
-BRR2_PCR3<-subset_samples(picrust_ps, Site=="BRR2"|Site=="PCR3")
+hydro_BRR2_PCR3<-subset_samples(picrust_ps, Site %in% c("BRR2", "PCR3"))
+hydro_BRR2_PCR3<-subset_samples(hydro_BRR2_PCR3, Family=="Hydropsychidae")
+nsamples(hydro_BRR2_PCR3) #16
 
-dds_BRR2_PCR3 <- phyloseq_to_deseq2(BRR2_PCR3, ~ Site)
+dds_hydro_BRR2_PCR3 <- phyloseq_to_deseq2(hydro_BRR2_PCR3, ~ Site)
 
-deseq_BRR2_PCR3 <- DESeq(dds_BRR2_PCR3, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_hydro_BRR2_PCR3 <- DESeq(dds_hydro_BRR2_PCR3, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_BRR2_PCR3 <- results(deseq_BRR2_PCR3, cooksCutoff = FALSE)
-res_deseq_BRR2_PCR3
+res_deseq_hydro_BRR2_PCR3 <- results(deseq_hydro_BRR2_PCR3, cooksCutoff = FALSE)
+res_deseq_hydro_BRR2_PCR3
 alpha = 0.001
-sigtab_BRR2_PCR3 = res_deseq_BRR2_PCR3[which(res_deseq_BRR2_PCR3$padj < alpha), ]
-sigtab_BRR2_PCR3 = cbind(as(sigtab_BRR2_PCR3, "data.frame"), as(tax_table(picrust_ps)[rownames(sigtab_BRR2_PCR3), ], "matrix"))
+sigtab_hydro_BRR2_PCR3 = res_deseq_hydro_BRR2_PCR3[which(res_deseq_hydro_BRR2_PCR3$padj < alpha), ]
+sigtab_hydro_BRR2_PCR3 = cbind(as(sigtab_hydro_BRR2_PCR3, "data.frame"), as(tax_table(hydro_BRR2_PCR3)[rownames(sigtab_hydro_BRR2_PCR3), ], "matrix"))
 
+# Adding colours as classes
+x_hydro_BRR2_PCR3 = tapply(sigtab_hydro_BRR2_PCR3$log2FoldChange, sigtab_hydro_BRR2_PCR3$Pathway_type, function(x) max(x))
+x_hydro_BRR2_PCR3 = sort(x_hydro_BRR2_PCR3, TRUE)
+sigtab_hydro_BRR2_PCR3$Pathway_type = factor(as.character(sigtab_hydro_BRR2_PCR3$Pathway_type), levels=sort(names(x_hydro_BRR2_PCR3)))
+#Points as descriptions
+x_hydro_BRR2_PCR3 = tapply(sigtab_hydro_BRR2_PCR3$log2FoldChange, sigtab_hydro_BRR2_PCR3$description, function(x) max(x))
+x_hydro_BRR2_PCR3 = sort(x_hydro_BRR2_PCR3, TRUE)
+sigtab_hydro_BRR2_PCR3$description = factor(as.character(sigtab_hydro_BRR2_PCR3$description), levels=names(x_hydro_BRR2_PCR3))
 
-x_BRR2_PCR3 = tapply(sigtab_BRR2_PCR3$log2FoldChange, sigtab_BRR2_PCR3$description, function(x) max(x))
-x_BRR2_PCR3 = sort(x_BRR2_PCR3, TRUE)
-sigtab_BRR2_PCR3$description = factor(as.character(sigtab_BRR2_PCR3$description), levels=names(x_BRR2_PCR3))
-
-ggplot(sigtab_BRR2_PCR3, aes(x=description, y=log2FoldChange))+
+diff_abun_hydro_EXP15_REF<-ggplot(sigtab_hydro_BRR2_PCR3, aes(x=description, y=log2FoldChange, color=Pathway_type))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
   rremove("grid")+
   ylab("Log2 Fold Change")+
-  xlab("Metabolic Pathways")
+  xlab("Metabolic Pathways")+
+  scale_color_brewer(name = "Pathway Class", palette = "Pastel1")+
+   labs(y = expression(Log[2]~ "Ratio of Differential Expression"))
+diff_abun_hydro_EXP15_REF
 
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/DESeq2 log2 fold changes in diff pathways PCR3-BRR2.png", height=10, width=12)
+#ggsave(filename="microbiome_analysis/Final analysis/PICRUSt2 Data/Figures/diff abun pathways hydro PCR3-BRR2.png", height=10, width=12)
 
 #PCR1 vs PCR3
 
-PCR1_PCR3<-subset_samples(picrust_ps, Site=="PCR1"|Site=="PCR3")
+hydro_PCR1_PCR3<-subset_samples(picrust_ps, Site %in% c("PCR1", "PCR3"))
+hydro_PCR1_PCR3<-subset_samples(hydro_PCR1_PCR3, Family=="Hydropsychidae")
+nsamples(hydro_PCR1_PCR3) #16
 
-dds_PCR1_PCR3 <- phyloseq_to_deseq2(PCR1_PCR3, ~ Site)
+dds_hydro_PCR1_PCR3 <- phyloseq_to_deseq2(hydro_PCR1_PCR3, ~ Site)
 
-deseq_PCR1_PCR3 <- DESeq(dds_PCR1_PCR3, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_hydro_PCR1_PCR3 <- DESeq(dds_hydro_PCR1_PCR3, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_PCR1_PCR3 <- results(deseq_PCR1_PCR3, cooksCutoff = FALSE)
-res_deseq_PCR1_PCR3
+res_deseq_hydro_PCR1_PCR3 <- results(deseq_hydro_PCR1_PCR3, cooksCutoff = FALSE)
+res_deseq_hydro_PCR1_PCR3
 alpha = 0.001
-sigtab_PCR1_PCR3 = res_deseq_PCR1_PCR3[which(res_deseq_PCR1_PCR3$padj < alpha), ]
-sigtab_PCR1_PCR3 = cbind(as(sigtab_PCR1_PCR3, "data.frame"), as(tax_table(picrust_ps)[rownames(sigtab_PCR1_PCR3), ], "matrix"))
+sigtab_hydro_PCR1_PCR3 = res_deseq_hydro_PCR1_PCR3[which(res_deseq_hydro_PCR1_PCR3$padj < alpha), ]
+sigtab_hydro_PCR1_PCR3 = cbind(as(sigtab_hydro_PCR1_PCR3, "data.frame"), as(tax_table(hydro_PCR1_PCR3)[rownames(sigtab_hydro_PCR1_PCR3), ], "matrix"))
 
+# Adding colours as classes
+x_hydro_PCR1_PCR3 = tapply(sigtab_hydro_PCR1_PCR3$log2FoldChange, sigtab_hydro_PCR1_PCR3$Pathway_type, function(x) max(x))
+x_hydro_PCR1_PCR3 = sort(x_hydro_PCR1_PCR3, TRUE)
+sigtab_hydro_PCR1_PCR3$Pathway_type = factor(as.character(sigtab_hydro_PCR1_PCR3$Pathway_type), levels=sort(names(x_hydro_PCR1_PCR3)))
+#Points as descriptions
+x_hydro_PCR1_PCR3 = tapply(sigtab_hydro_PCR1_PCR3$log2FoldChange, sigtab_hydro_PCR1_PCR3$description, function(x) max(x))
+x_hydro_PCR1_PCR3 = sort(x_hydro_PCR1_PCR3, TRUE)
+sigtab_hydro_PCR1_PCR3$description = factor(as.character(sigtab_hydro_PCR1_PCR3$description), levels=names(x_hydro_PCR1_PCR3))
 
-x_PCR1_PCR3 = tapply(sigtab_PCR1_PCR3$log2FoldChange, sigtab_PCR1_PCR3$description, function(x) max(x))
-x_PCR1_PCR3 = sort(x_PCR1_PCR3, TRUE)
-sigtab_PCR1_PCR3$description = factor(as.character(sigtab_PCR1_PCR3$description), levels=names(x_PCR1_PCR3))
-
-ggplot(sigtab_PCR1_PCR3, aes(x=description, y=log2FoldChange))+
+diff_abun_hydro_EXP15_EXP5<-ggplot(sigtab_hydro_PCR1_PCR3, aes(x=description, y=log2FoldChange, color=Pathway_type))+
   geom_point(size=6) + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
   rremove("grid")+
   ylab("Log2 Fold Change")+
-  xlab("Metabolic Pathways")
+  xlab("Metabolic Pathways")+
+  scale_color_brewer(name = "Pathway Class", palette = "Pastel1")+
+   labs(y = expression(Log[2]~ "Ratio of Differential Expression"))
+diff_abun_hydro_EXP15_EXP5
 
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/DESeq2 log2 fold changes in diff pathways PCR3-PCR1.png", height=10, width=12)
-
-
-# Abundance graph
-
-ACWA<-subset_samples(picrust_ps, Stream_Type=="ACWA Streams")
+#ggsave(filename="microbiome_analysis/Final analysis/PICRUSt2 Data/Figures/diff abun pathways hydro PCR3-PCR1.png", height=10, width=12)
 
 
-diff_ACWA<-subset_taxa(ACWA, description=="L-isoleucine degradation I" | description=="superpathway of mycolyl-arabinogalactan-peptidoglycan complex biosynthesis"| description=="ADP-L-glycero-&beta;-D-manno-heptose biosynthesis"| description== "sucrose degradation III (sucrose invertase)"| description=="3-phenylpropanoate degradation" | description=="L-valine degradation I" | description=="pyrimidine deoxyribonucleotides de novo biosynthesis III")
+# Combining hydro graphs #
 
-diff_ACWA<-prune_taxa(taxa_sums(diff_ACWA)>0, diff_ACWA)
+a<-diff_abun_hydro_EXP5_REF + rremove("axis.title")
+b<-diff_abun_hydro_EXP15_REF + rremove("axis.title")
+c<-diff_abun_hydro_EXP15_EXP5 + rremove("axis.title")
 
-#diff_ACWA_comp <- microbiome::transform(diff_ACWA, "compositional")
-diff_ACWA_df <- psmelt(diff_ACWA)
+ggarrange(a, b, c, nrow=1)
 
-diff_ACWA_agg <- aggregate(Abundance ~ description + Site, data = diff_ACWA_df, FUN = mean) 
-
-diff_ACWA_agg$Site<-factor(diff_ACWA_agg$Site, levels=c("BRR2", "PCR1", "PCR3"))
-
-
-ggplot(diff_ACWA_agg, aes(y=description, x=Abundance, fill=Site)) + geom_bar(stat="identity", color="black", position = position_dodge()) + 
-  xlab("Mean Absolute Abundance") +
-  theme_bw()+
-  theme(legend.position="bottom", legend.key.size = unit(1, "cm"),
-        legend.text=element_text(size=16), legend.title=element_text(size=16)) +
-  guides (fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=22),
-        axis.text.y=element_text(size=18, color="black"),
-        axis.text.x=element_text(size=18, color="black"),
-                        axis.title=element_text(size=22))+
-  scale_fill_manual(name="ACWA Stream", values=c('#edddd4', '#197278', '#283d3b'))+
-  scale_x_continuous(trans='log10', labels=label_number())+
-  coord_cartesian(xlim =c(1, 500000))+
-  rremove("grid")+
-  ylab("Metabolic Pathways")
-
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/Differentially abundant ACWA taxa absolute abundances.png", height=12, width=18)
-
-#### ALDEx2 ####
-
-BRR2_PCR1<-subset_samples(picrust_ps, Site=="BRR2"|Site=="PCR1")
-
-#BRR2 vs PCR1
-aldex2_BRR2_PCR1 <- ALDEx2::aldex(data.frame(phyloseq::otu_table(BRR2_PCR1)), phyloseq::sample_data(BRR2_PCR1)$Site, test="t", effect = TRUE, denom="iqlr")
-
-aldex2_BRR2_PCR1_Wilcox<-ALDEx2::aldex.plot(aldex2_BRR2_PCR1, type="MW", test="wilcox", called.cex = 1, cutoff = 0.001)
-
-sig_aldex2_BRR2_PCR1 <- aldex2_BRR2_PCR1 %>%
-  rownames_to_column(var = "Pathways") %>%
-  filter(wi.eBH < 0.01) %>%
-  arrange(effect, wi.eBH) %>%
-  dplyr::select(Pathways, diff.btw, diff.win, effect, wi.ep, wi.eBH)
-sig_aldex2_BRR2_PCR1 <- inner_join(sig_aldex2_BRR2_PCR1, descriptions, by="Pathways")
-
-
-aldex_BRR2_PCR1 = tapply(sig_aldex2_BRR2_PCR1$effect, sig_aldex2_BRR2_PCR1$description, function(x) max(x))
-aldex_BRR2_PCR1 = sort(aldex_BRR2_PCR1, TRUE)
-sig_aldex2_BRR2_PCR1$description = factor(as.character(sig_aldex2_BRR2_PCR1$description), levels=names(aldex_BRR2_PCR1))
-
-ggplot(sig_aldex2_BRR2_PCR1, aes(x=description, y=effect))+
-  geom_point(size=6) + 
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
-  rremove("grid")+
-  #ylab(expression("Log [2] ~Fold Change"))+
-  labs(y = expression(Log[2]~Difference))+
-  xlab("Metabolic Pathways")
-
-#Differentially abundant pathways: sucrose degradation III (sucrose invertase), L-tryptophan degradation XII (Geobacillus), 2-aminophenol degradation, chlorosalicylate degradation, 4-methylcatechol degradation (ortho cleavage)
-
-BRR2_PCR3<-subset_samples(picrust_ps, Site=="BRR2"|Site=="PCR3")
-
-#BRR2 vs PCR3
-aldex2_BRR2_PCR3 <- ALDEx2::aldex(data.frame(phyloseq::otu_table(BRR2_PCR3)), phyloseq::sample_data(BRR2_PCR3)$Site, test="t", effect = TRUE, denom="iqlr")
-
-aldex2_BRR2_PCR3_Wilcox<-ALDEx2::aldex.plot(aldex2_BRR2_PCR3, type="MW", test="wilcox", called.cex = 1, cutoff = 0.001)
-
-sig_aldex2_BRR2_PCR3 <- aldex2_BRR2_PCR3 %>%
-  rownames_to_column(var = "Pathways") %>%
-  filter(wi.eBH < 0.01) %>%
-  arrange(effect, wi.eBH) %>%
-  dplyr::select(Pathways, diff.btw, diff.win, effect, wi.ep, wi.eBH)
-sig_aldex2_BRR2_PCR3 <- inner_join(sig_aldex2_BRR2_PCR3, descriptions, by="Pathways")
-
-
-aldex_BRR2_PCR3 = tapply(sig_aldex2_BRR2_PCR3$effect, sig_aldex2_BRR2_PCR3$description, function(x) max(x))
-aldex_BRR2_PCR3 = sort(aldex_BRR2_PCR3, TRUE)
-sig_aldex2_BRR2_PCR3$description = factor(as.character(sig_aldex2_BRR2_PCR3$description), levels=names(aldex_BRR2_PCR3))
-
-ggplot(sig_aldex2_BRR2_PCR3, aes(x=description, y=effect))+
-  geom_point(size=6) + 
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
-  rremove("grid")+
-  #ylab(expression("Log [2] ~Fold Change"))+
-  labs(y = expression(Log[2]~Difference))+
-  xlab("Metabolic Pathways")
-
-#Differentially abundant pathways: sucrose degradation III (sucrose invertase), 3-phenylpropanoate degradation, benzoyl-CoA degradation II (anaerobic), superpathway of UDP-N-acetylglucosamine-derived O-antigen building blocks biosynthesis, UDP-2,3-diacetamido-2,3-dideoxy-&alpha;-D-mannuronate biosynthesis
-
-
-PCR1_PCR3<-subset_samples(picrust_ps, Site=="PCR1"|Site=="PCR3")
-
-#PCR1 vs PCR3
-aldex2_PCR1_PCR3 <- ALDEx2::aldex(data.frame(phyloseq::otu_table(PCR1_PCR3)), phyloseq::sample_data(PCR1_PCR3)$Site, test="t", effect = TRUE, denom="iqlr")
-
-aldex2_PCR1_PCR3_Wilcox<-ALDEx2::aldex.plot(aldex2_PCR1_PCR3, type="MW", test="wilcox", called.cex = 1, cutoff = 0.001)
-
-sig_aldex2_PCR1_PCR3 <- aldex2_PCR1_PCR3 %>%
-  rownames_to_column(var = "Pathways") %>%
-  filter(wi.eBH < 0.01) %>%
-  arrange(effect, wi.eBH) %>%
-  dplyr::select(Pathways, diff.btw, diff.win, effect, wi.ep, wi.eBH)
-sig_aldex2_PCR1_PCR3 <- inner_join(sig_aldex2_PCR1_PCR3, descriptions, by="Pathways")
-#No differentially abundant pathways
-
-
-#Abundance graph
-
-ACWA<-subset_samples(picrust_ps, Stream_Type=="ACWA Streams")
-
-alde_ACWA<-subset_taxa(ACWA, description=="benzoyl-CoA degradation II (anaerobic)" | description=="3-phenylpropanoate degradation"| description=="sucrose degradation III (sucrose invertase)"| description== "UDP-2,3-diacetamido-2,3-dideoxy-&alpha;-D-mannuronate biosynthesis"| description=="superpathway of UDP-N-acetylglucosamine-derived O-antigen building blocks biosynthesis" | description=="chlorosalicylate degradation" | description=="4-methylcatechol degradation (ortho cleavage)"| description=="2-aminophenol degradation" | description=="L-tryptophan degradation XII (Geobacillus)")
-
-
-alde_ACWA<-prune_taxa(taxa_sums(alde_ACWA)>0, alde_ACWA)
-
-#diff_ACWA_comp <- microbiome::transform(diff_ACWA, "compositional")
-alde_ACWA_df <- psmelt(alde_ACWA)
-
-alde_ACWA_agg <- aggregate(Abundance ~ description + Site, data = alde_ACWA_df, FUN = mean) 
-
-alde_ACWA_agg$Site<-factor(alde_ACWA_agg$Site, levels=c("BRR2", "PCR1", "PCR3"))
-
-
-ggplot(alde_ACWA_agg, aes(y=description, x=Abundance, fill=Site)) + geom_bar(stat="identity", color="black", position = position_dodge()) + 
-  xlab("Mean Absolute Abundance") +
-  theme_bw()+
-  theme(legend.position="bottom", legend.key.size = unit(1, "cm"),
-        legend.text=element_text(size=16), legend.title=element_text(size=16)) +
-  guides (fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=22),
-        axis.text.y=element_text(size=18, color="black"),
-        axis.text.x=element_text(size=18, color="black"),
-                        axis.title=element_text(size=22))+
-  scale_fill_manual(name="ACWA Stream", values=c('#edddd4', '#197278', '#283d3b'))+
-  scale_x_continuous(trans='log10', labels = scales::comma_format())+
-  coord_cartesian(xlim =c(1, 45000))+
-  rremove("grid")+
-  ylab("Metabolic Pathways")
-
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/Differentially abundant ACWA taxa absolute abundances ALDEx2.png", height=12, width=20)
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/ACWA diff abun pathways taxa facets.png", height=10, width=18)
 
 
 #### Comparing between Bow River wastewater exposed sites vs non exposed sites ####
