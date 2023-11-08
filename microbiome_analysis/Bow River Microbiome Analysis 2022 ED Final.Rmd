@@ -571,7 +571,7 @@ sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2283 reads.
 sample_ps #4564 taxa, 339 samples.
 ```
 
-### Re-frame data to work as a data frame
+### Re-frame filtered data to work as a data frame
 ```{r}
 #Metadata (from filtered phyloseq) back into a useable data frame
 
