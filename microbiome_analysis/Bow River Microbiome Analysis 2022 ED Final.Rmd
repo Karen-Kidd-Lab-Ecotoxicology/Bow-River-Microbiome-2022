@@ -5068,11 +5068,13 @@ wilcox.test(data=ephem_ACWA_rare, Shannon~Site) # W = 18, p = 0.195
 
 Beta diversity is a measure of dissimilarity between communities. It is useful to see how the bacterial community changes across sites/invertebrate families/exposures/etc. This analysis was split by invertebrate taxa to tease out some variability in the data. A PERMANOVA (function 'adonis') was used to calculate significant differences across sites and beta dispersion (measure of variance within groups) was also tested to determine if there was a location or dispersion effect. The results were ordinated with an NMDS using Bray-Curtis dissimilarity matrices. 
 
+Transforming the data to proportions (relative abundance) is the best method of normalizing the data prior to beta diversity analysis according to McCurdie & Holmes, 2014; Weiss et al., 2017; McKnight et al., 2019. 
+
 
 ## Blanks and experimental samples 
 ```{r}
-
 #Combine filtered experimental samples with blanks
+blank_ps<-subset_samples(ps, Sample_Type=="Blank")
 
 exp_bl_ps<-merge_phyloseq(blank_ps, sample_ps)
 nsamples(exp_bl_ps) #362 (339 samples, 23 blanks)
@@ -5092,9 +5094,9 @@ plot_ordination(ps_rel_abun, ordination_all, shape="Blank_collection_method", co
   ylab("PC2[10.7%]")
 #Doesn't explain much of the data, need to do an NMDS
  
-set.seed(852)
+set.seed(1)
 ord_NMDS_blanks = ordinate(ps_rel_abun, method="NMDS", distance=dist_all)
-ord_NMDS_blanks #stress=0.21
+ord_NMDS_blanks #stress=0.213
 
 
 blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks, color="Sample_Type", shape="Blank_Type") + 
@@ -5110,7 +5112,6 @@ blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks, color="Sample_Type", s
 newtab$Blank_Type <- factor(newtab$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Floating emergence trap","Buffer tube","DNA extraction reagent","Nested PCR negative"))
 blank_nmds$Blank_Type <- newtab
 print(blank_nmds)
-#Why is it still plotting an empty Blank type?
 
 #ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/blank and experimental samples.png", height=10, width=12)
 
@@ -5130,11 +5131,41 @@ anova(bd_blanks) #Sig. dispersion F(1,360) = 17.7, p<0.001
 water_July<-subset_samples(ps_rel_abun, Blank_collection_method=="Water July")
 dist_wat_July<-phyloseq::distance(water_July, method="bray")
 metadata_wat_July<-data.frame(sample_data(water_July))
-adonis.blank.lar.July<-adonis2(dist_wat_July~ Sample_Type, data = metadata_wat_July)
+adonis.blank.lar.July<-adonis2(dist_wat_July ~ Sample_Type, data = metadata_wat_July)
 adonis.blank.lar.July #p=0.001 sig. diff. 
 
 bd_wat_July<-betadisper(dist_wat_July, metadata_wat_July$Sample_Type)
 anova(bd_wat_July) #Sig. dispersion
+
+#Water September (larvae and blanks from September)
+water_Sept<-subset_samples(ps_rel_abun, Blank_collection_method=="Water September")
+dist_wat_Sept<-phyloseq::distance(water_Sept, method="bray")
+metadata_wat_Sept<-data.frame(sample_data(water_Sept))
+adonis.blank.lar.Sept<-adonis2(dist_wat_Sept ~ Sample_Type, data = metadata_wat_Sept)
+adonis.blank.lar.Sept #p=0.001 sig. diff. 
+
+bd_wat_Sept<-betadisper(dist_wat_Sept, metadata_wat_Sept$Sample_Type)
+anova(bd_wat_Sept) #Sig. dispersion
+
+#Bedsheet 
+bedsheet_ps<-subset_samples(ps_rel_abun, Blank_collection_method=="Sheet")
+bedsheet_bray<-phyloseq::distance(bedsheet_ps, method="bray")
+metadata_bedsheet<-data.frame(sample_data(bedsheet_ps))
+adonis.blank.bedsheet<-adonis2(bedsheet_bray ~ Sample_Type, data = metadata_bedsheet)
+adonis.blank.bedsheet #p=0.001 sig. diff. 
+
+bd_bedsheet<-betadisper(bedsheet_bray, metadata_bedsheet$Sample_Type)
+anova(bd_bedsheet) #Sig. dispersion
+
+#Floating emergence traps
+emerg_trap_ps<-subset_samples(ps_rel_abun, Blank_collection_method=="Mesh")
+emerg_trap_bray<-phyloseq::distance(emerg_trap_ps, method="bray")
+metadata_emerg_trap<-data.frame(sample_data(emerg_trap_ps))
+adonis.blank.emerg_trap<-adonis2(emerg_trap_bray ~ Sample_Type, data = metadata_emerg_trap)
+adonis.blank.emerg_trap #p=0.043 sig. diff. 
+
+bd_emerg_trap<-betadisper(emerg_trap_bray, metadata_emerg_trap$Sample_Type)
+anova(bd_emerg_trap) #no sig. dispersion
 
 
 #Pairwise comparisons between all blank collection methods
@@ -5154,9 +5185,10 @@ anova(bd_blanks_type) #Sig. dispersion
 
 #### Bow River 
 ```{r}
+#### Beta Diversity Graphs + PERMANOVA ####
 #Normalize the filtered data by relative abundance 
-ps_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River")
-Bow_rel_abun  = transform_sample_counts(ps_Bow, function(x) x/sum(x)) 
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+Bow_rel_abun  = transform_sample_counts(Bow_ps, function(x) x/sum(x)) 
 #transform to relative abundance. Seems to be the best method of normalizing.
 
 Bow_bray = phyloseq::distance(Bow_rel_abun, method="bray") #Bray Curtis distance matrix
@@ -5174,20 +5206,20 @@ metadata_Bow <- data.frame(sample_data(Bow_rel_abun))
 plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + #Plots the ordination
   theme_classic() +
   theme(strip.background = element_blank())+
-  xlab("PC1 [11.4%]")+
-  ylab("PC2 [8.6%]")
+  xlab("PC1 [12.8%]")+
+  ylab("PC2 [10.9%]")
 
 #Faceted by stage (larvae, adults, spiders)
 plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + 
   theme_classic() +
   theme(strip.background = element_blank())+
   facet_wrap(~Stage)+
-  xlab("PC1 [11.4%]")+
-  ylab("PC2 [8.6%]")
-#Points are very clustered together and the axes don't explain aton of variation so I will try ordinating with an NMDS as well. 
+  xlab("PC1 [12.8%]")+
+  ylab("PC2 [10.9%]")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/PCoA by site and invertebrate family faceted by life stage Bow River.png", height = 7, width=8)
+#Axes don't explain a ton of variation so I will try ordinating with an NMDS as well. 
 
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/PCoA by site and invert Bow River.png", height = 7, width=8)
 
 
 # NMDS 
@@ -5216,7 +5248,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 plotNMDS1$data <- newtab1
 print(plotNMDS1)
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites Bow only relative abundance normalized.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites Bow only relative abundance normalized.png", height=10, width=14)
 
 #Ellipses by taxa
 plotNMDStaxa<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shape="Site") + 
@@ -5241,7 +5273,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 plotNMDStaxa$data <- newtabtaxa
 print(plotNMDStaxa)
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa Bow.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across taxa Bow.png", height=10, width=14)
 
 
 #Ellipses by Site
@@ -5267,7 +5299,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 plotNMDSsite$data <- newtabtaxa
 print(plotNMDSsite)
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites Bow.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites Bow.png", height=10, width=14)
 
 
 
@@ -5323,7 +5355,7 @@ p1$data <- newtab2
 print(p1)
 
 
-ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa non-rarefied Bow only.png", height=10, width=16)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa non-rarefied Bow only.png", height=10, width=16)
 
 
 #Faceted by life stage (Larvae, Adults, Spiders)
@@ -5348,7 +5380,7 @@ test.adonis.Bow <- adonis2(Bow_bray ~ Site*Family, data = metadata_Bow)
 test.adonis.Bow #p<0.001. Significant dissimilarity between sites, families and significant interaction between the two.
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray ~ Site, data = metadata_Bow) #Gives the same result as above. 
+pairwise.adonis2(Bow_bray ~ Site, data = metadata_Bow)  
 #All sites except COCH-SUN are sig diff when invertebrate taxa are combined
 
 pairwise.adonis2(Bow_bray ~ Family, data = metadata_Bow)
@@ -5368,7 +5400,7 @@ permutest(bd_all_fam_Bow) #sig. different (same result)
 
 ## Hydropsychidae ##
 
-hydro_Bow<-subset_samples(ps_Bow, Family=="Hydropsychidae")
+hydro_Bow<-subset_samples(Bow_ps, Family=="Hydropsychidae")
 Bow_rel_abun_hydro  = transform_sample_counts(hydro_Bow, function(x) x/sum(x)) 
 Bow_bray_hydro = phyloseq::distance(Bow_rel_abun_hydro, method="bray") 
 
@@ -5545,7 +5577,7 @@ anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.510
 
 ## Cochrane ##
 
-coch_Bow<-subset_samples(ps_Bow, Site=="Cochrane")
+coch_Bow<-subset_samples(Bow_ps, Site=="Cochrane")
 coch_rel_abun = transform_sample_counts(coch_Bow, function(x) x/sum(x)) 
 coch_bray = phyloseq::distance(coch_rel_abun, method="bray") 
 
@@ -5563,7 +5595,7 @@ anova(bd_all_fam_Bow_coch) #no beta dispersion p = 0.1559.
 
 ## Sunalta ##
 
-sun_Bow<-subset_samples(ps_Bow, Site=="Sunalta")
+sun_Bow<-subset_samples(Bow_ps, Site=="Sunalta")
 sun_rel_abun = transform_sample_counts(sun_Bow, function(x) x/sum(x)) 
 sun_bray = phyloseq::distance(sun_rel_abun, method="bray") 
 
@@ -5582,7 +5614,7 @@ anova(bd_all_fam_Bow_sun) #yes beta dispersion p = 0.0057.
 
 ## Cushing Bridge ##
 
-cush_Bow<-subset_samples(ps_Bow, Site=="Cushing Bridge")
+cush_Bow<-subset_samples(Bow_ps, Site=="Cushing Bridge")
 cush_rel_abun = transform_sample_counts(cush_Bow, function(x) x/sum(x)) 
 cush_bray = phyloseq::distance(cush_rel_abun, method="bray") 
 
@@ -5601,7 +5633,7 @@ anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.0068.
 
 ## Graves Bridge ##
 
-grv_Bow<-subset_samples(ps_Bow, Site=="Graves Bridge")
+grv_Bow<-subset_samples(Bow_ps, Site=="Graves Bridge")
 grv_rel_abun = transform_sample_counts(grv_Bow, function(x) x/sum(x)) 
 grv_bray = phyloseq::distance(grv_rel_abun, method="bray") 
 
@@ -5620,7 +5652,7 @@ anova(bd_all_fam_Bow_grv) #no beta dispersion p = 0.335.
 
 ## Policeman Flats ##
 
-pmf_Bow<-subset_samples(ps_Bow, Site=="Policeman Flats")
+pmf_Bow<-subset_samples(Bow_ps, Site=="Policeman Flats")
 pmf_rel_abun = transform_sample_counts(pmf_Bow, function(x) x/sum(x)) 
 pmf_bray = phyloseq::distance(pmf_rel_abun, method="bray") 
 
@@ -5903,7 +5935,7 @@ mm
 
 #### ACWA
 ```{r}
-#### ACWA streams ####
+#### Beta Diversity Graphs + PERMANOVA ####
 
 ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
 
@@ -6305,47 +6337,43 @@ ACWA_cor_plot
 #### Bow River 
 ```{r}
 #Normalize the filtered data by relative abundance 
-ps_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River")
-Bow_rel_abun  = transform_sample_counts(ps_Bow, function(x) x/sum(x)) 
+Bow_ps_rare<-subset_samples(ps_rare, Stream_Type=="Bow River")
+Bow_rel_abun_rare  = transform_sample_counts(Bow_ps_rare, function(x) x/sum(x)) 
 #transform to relative abundance. Seems to be the best method of normalizing.
 
-Bow_bray = phyloseq::distance(Bow_rel_abun, method="bray") #Bray Curtis distance matrix
-ord_Bow = ordinate(Bow_rel_abun, method="PCoA", distance=Bow_bray) #Ordinate using PCoA
+Bow_bray_rare = phyloseq::distance(Bow_rel_abun_rare, method="bray") #Bray Curtis distance matrix
+ord_Bow_rare = ordinate(Bow_rel_abun_rare, method="PCoA", distance=Bow_bray_rare) #Ordinate using PCoA
 
 #Scree plot of PCoA
-scree <- plot_scree(ord_Bow)
+scree <- plot_scree(ord_Bow_rare)
 scree + theme(axis.text.x=element_text(size=8, color="black"), axis.text.y=element_text(size=18, color="black"), 
         axis.text=element_text(size=18, color="black"), axis.title=element_text(size=18)) 
 #axis 1, 2, and 3 account for most variation explained (mostly axis 1)
 
-metadata_Bow <- data.frame(sample_data(Bow_rel_abun))
+metadata_Bow_rare <- data.frame(sample_data(Bow_rel_abun_rare))
 
 #All together
-plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + #Plots the ordination
+plot_ordination(Bow_rel_abun_rare, ord_Bow_rare, shape="Site", color="Family") + #Plots the ordination
   theme_classic() +
   theme(strip.background = element_blank())+
   xlab("PC1 [11.4%]")+
   ylab("PC2 [8.6%]")
 
 #Faceted by stage (larvae, adults, spiders)
-plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + 
+plot_ordination(Bow_rel_abun_rare, ord_Bow_rare, shape="Site", color="Family") + 
   theme_classic() +
   theme(strip.background = element_blank())+
   facet_wrap(~Stage)+
   xlab("PC1 [11.4%]")+
   ylab("PC2 [8.6%]")
-#Points are very clustered together and the axes don't explain aton of variation so I will try ordinating with an NMDS as well. 
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/PCoA by site and invertebrate family faceted by life stage Bow River.png", height = 7, width=8)
-
 
 
 # NMDS 
 set.seed(1)
-ord_NMDS_Bow = ordinate(Bow_rel_abun, method="NMDS", distance=Bow_bray)
-ord_NMDS_Bow #Stress=0.197
+ord_NMDS_Bow_rare = ordinate(Bow_rel_abun_rare, method="NMDS", distance=Bow_bray_rare)
+ord_NMDS_Bow_rare #Stress=0.177
 
-plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
+plotNMDS1_rare<-plot_ordination(Bow_rel_abun_rare, ord_NMDS_Bow_rare, shape="Site", color = "Family") + 
   theme_classic() +
   geom_point(size=3)+
   theme(strip.background = element_blank())+
@@ -6360,266 +6388,135 @@ plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Fa
   ylim(-0.5, 0.5)+
   xlim(-0.5, 0.5)
 
-newtab1 = data.table(plotNMDS1$data)
-newtab1$Family <- ordered(newtab1$Family,
+newtab1_rare = data.table(plotNMDS1_rare$data)
+newtab1_rare$Family <- ordered(newtab1_rare$Family,
 levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Chironomidae", "Araneidae", "Tetragnathidae"))
-plotNMDS1$data <- newtab1
-print(plotNMDS1)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites Bow only relative abundance normalized.png", height=10, width=14)
-
-#Ellipses by taxa
-plotNMDStaxa<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shape="Site") + 
-  theme_classic() +
-  geom_point(size=3)+
-  theme(strip.background = element_blank())+
-  theme(legend.key.size = unit(0.3, 'cm'), 
-        legend.title = element_text(size=20), 
-        legend.text = element_text(size=18), 
-        axis.text = element_text(size=16, color="black"),
-        axis.title = element_text(size=18, color="black"),
-        legend.position = "right")+
-  guides(color=guide_legend(title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  stat_ellipse(type="norm", alpha=1, aes(group=Family, color=Family))+
-  ylim(-0.5, 0.5)+
-  xlim(-0.5, 0.5)
-
-newtabtaxa = data.table(plotNMDStaxa$data)
-newtabtaxa$Family <- ordered(newtabtaxa$Family,
-levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Chironomidae", "Araneidae", "Tetragnathidae"))
-plotNMDStaxa$data <- newtabtaxa
-print(plotNMDStaxa)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa Bow.png", height=10, width=14)
-
-
-#Ellipses by Site
-plotNMDSsite<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shape="Site") + 
-  theme_classic() +
-  geom_point(size=3)+
-  theme(strip.background = element_blank())+
-  theme(legend.key.size = unit(0.3, 'cm'), 
-        legend.title = element_text(size=20), 
-        legend.text = element_text(size=18), 
-        axis.text = element_text(size=16, color="black"),
-        axis.title = element_text(size=18, color="black"),
-        legend.position = "right")+
-  guides(color=guide_legend(title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  stat_ellipse(type="norm", alpha=1, aes(group=Site))+
-   ylim(-0.5, 0.5)+
-  xlim(-0.5, 0.5)
-
-newtabtaxa = data.table(plotNMDSsite$data)
-newtabtaxa$Family <- ordered(newtabtaxa$Family,
-levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Chironomidae", "Araneidae", "Tetragnathidae"))
-plotNMDSsite$data <- newtabtaxa
-print(plotNMDSsite)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites Bow.png", height=10, width=14)
-
-
-
-#Faceted by invertebrate taxa and life Stage
-p<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Site") + 
-  theme_classic() +
-  geom_point(size=2)+
-  facet_wrap(vars(Stage, Family), scales="free", nrow=1)+
-  theme_bw()+
-  rremove("grid")+
-  theme(legend.key.size = unit(0.7, 'cm'), 
-        legend.title = element_text(size=20), 
-        legend.text = element_text(size=20), 
-        legend.position = "bottom", 
-        axis.text.x=element_text(size=16, color="black", angle=90, hjust=0.5, vjust=0.5),
-        axis.text.y=element_text(size=16, color="black"),
-        axis.title = element_text(size=18),
-        strip.text.x = element_text(size=20))+
-  facet_nested_wrap(~Stage + Family, scale="free_x", nrow=1)+
-  stat_ellipse()
-
-newtab = data.table(p$data)
-newtab$Family <- ordered(newtab$Family,
-levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
-p$data <- newtab
-print(p)
-
-#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS across Bow River invertebrates and sites.png", height=10, width=20)
-
-#Faceted by site
-p1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family") + 
-  theme_classic() +
-  geom_point(size=2)+
-  facet_grid(~Site, scales="free")+
-  theme_bw()+
-  rremove("grid")+
-  theme(legend.key.size = unit(0.7, 'cm'), 
-        legend.title = element_text(size=20), 
-        legend.text = element_text(size=20), 
-        legend.position = "bottom", 
-        axis.text=element_text(size=18, color="black", angle=90, hjust=1, vjust=1),
-        axis.title = element_text(size=18, color="black"),
-        strip.text.x = element_text(size=20))+
-  stat_ellipse(linetype=1, type="norm")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE, title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))
- 
-
-newtab2 = data.table(p1$data)
-newtab2$Family <- ordered(newtab2$Family,
-levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Diptera", "Araneidae", "Tetragnathidae"))
-p1$data <- newtab2
-print(p1)
-
-
-ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa non-rarefied Bow only.png", height=10, width=16)
-
-
-#Faceted by life stage (Larvae, Adults, Spiders)
-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
-  theme_classic() +
-  geom_point(size=2)+
-  facet_grid(~Stage, scales="free")+
-  theme_bw()+
-  rremove("grid")+
-  theme(legend.key.size = unit(0.7, 'cm'), 
-        legend.title = element_text(size=14), 
-        legend.text = element_text(size=12), 
-        legend.position = "right")+
-  stat_ellipse()
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites faceted by life stage rarefied Bow only.png", height=8, width=16)
-
+plotNMDS1_rare$data <- newtab1_rare
+print(plotNMDS1_rare)
 
 #PERMANOVA by Site and invertebrate taxa
 
-test.adonis.Bow <- adonis2(Bow_bray ~ Site*Family, data = metadata_Bow)
-test.adonis.Bow #p<0.001. Significant dissimilarity between sites, families and significant interaction between the two.
+test.adonis.Bow.rare <- adonis2(Bow_bray_rare ~ Site*Family, data = metadata_Bow_rare)
+test.adonis.Bow.rare #p<0.001. Significant dissimilarity between sites, families and significant interaction between the two.
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray ~ Site, data = metadata_Bow) #Gives the same result as above. 
-#All sites except COCH-SUN are sig diff when invertebrate taxa are combined
+pairwise.adonis2(Bow_bray_rare ~ Site, data = metadata_Bow_rare) 
+#All sites are diff from eachother, slightly different from the non-rarefied results
 
-pairwise.adonis2(Bow_bray ~ Family, data = metadata_Bow)
-#All invertebrate taxa are sig diff when sites are combined
+pairwise.adonis2(Bow_bray_rare ~ Family, data = metadata_Bow_rare)
+#All invertebrate taxa except for Diptera - Ephemeroptera are sig diff when sites are combined. Slightly different from non rarefied data
 
 #Testing variance (beta dispersion) differences between sites, and sample families:
-bd_all_site_Bow<-betadisper(Bow_bray, metadata_Bow$Site)
-anova(bd_all_site_Bow) #No significant beta dispersion (p=0.193)
-permutest(bd_all_site_Bow) #Gives the same result but based on a permutation test. 
-#PERMANOVA results could be more driven by the spread in the variance of samples rather than the means if it was significant. (p=0.201)
+bd_all_site_Bow_rare<-betadisper(Bow_bray_rare, metadata_Bow_rare$Site)
+anova(bd_all_site_Bow_rare) #No significant beta dispersion (p=0.204)
 
-bd_all_fam_Bow<-betadisper(Bow_bray, metadata_Bow$Family) 
-anova(bd_all_fam_Bow) #significantly different p=0.0014
-permutest(bd_all_fam_Bow) #sig. different (same result)
-#Significant PERMANOVA could just be because of the variance within groups rather than between groups (groups = invertebrate taxa type)
-
+bd_all_fam_Bow_rare<-betadisper(Bow_bray_rare, metadata_Bow_rare$Family) 
+anova(bd_all_fam_Bow_rare) #significantly different p=0.0036
 
 ## Hydropsychidae ##
 
-hydro_Bow<-subset_samples(ps_Bow, Family=="Hydropsychidae")
-Bow_rel_abun_hydro  = transform_sample_counts(hydro_Bow, function(x) x/sum(x)) 
-Bow_bray_hydro = phyloseq::distance(Bow_rel_abun_hydro, method="bray") 
+hydro_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Hydropsychidae")
+Bow_rel_abun_hydro_rare  = transform_sample_counts(hydro_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_hydro_rare = phyloseq::distance(Bow_rel_abun_hydro_rare, method="bray") 
 
-metadata_Bow_hydro <- data.frame(sample_data(Bow_rel_abun_hydro))
+metadata_Bow_hydro_rare <- data.frame(sample_data(Bow_rel_abun_hydro_rare))
 
-test.adonis.Bow.hydro <- adonis2(Bow_bray_hydro ~ Site, data = metadata_Bow_hydro)
-test.adonis.Bow.hydro #p<0.001. 
+test.adonis.Bow.hydro.rare <- adonis2(Bow_bray_hydro_rare ~ Site, data = metadata_Bow_hydro_rare)
+test.adonis.Bow.hydro.rare #p<0.001. 
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_hydro ~ Site, data = metadata_Bow_hydro)
-#All sites except CUSHBR - SUN are sig diff
+pairwise.adonis2(Bow_bray_hydro_rare ~ Site, data = metadata_Bow_hydro_rare)
+#All sites except CUSHBR - SUN are sig diff. Same as non rarefied
 
-bd_all_fam_Bow_hydro<-betadisper(Bow_bray_hydro, metadata_Bow_hydro$Site) 
-anova(bd_all_fam_Bow_hydro) #no beta dispersion p = 0.063
+bd_all_fam_Bow_hydro_rare<-betadisper(Bow_bray_hydro_rare, metadata_Bow_hydro_rare$Site) 
+anova(bd_all_fam_Bow_hydro_rare) #no beta dispersion p = 0.15
 
 ## Heptageniidae ##
 
-hep_Bow<-subset_samples(ps_Bow, Family=="Heptageniidae")
-Bow_rel_abun_hep  = transform_sample_counts(hep_Bow, function(x) x/sum(x)) 
-Bow_bray_hep = phyloseq::distance(Bow_rel_abun_hep, method="bray") 
+hep_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Heptageniidae")
+Bow_rel_abun_hep_rare  = transform_sample_counts(hep_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_hep_rare = phyloseq::distance(Bow_rel_abun_hep_rare, method="bray") 
 
-metadata_Bow_hep <- data.frame(sample_data(Bow_rel_abun_hep))
+metadata_Bow_hep_rare <- data.frame(sample_data(Bow_rel_abun_hep_rare))
 
-test.adonis.Bow.hep <- adonis2(Bow_bray_hep ~ Site, data = metadata_Bow_hep)
-test.adonis.Bow.hep #p<0.001. 
+test.adonis.Bow.hep.rare <- adonis2(Bow_bray_hep_rare ~ Site, data = metadata_Bow_hep_rare)
+test.adonis.Bow.hep.rare #p<0.001. 
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_hep ~ Site, data = metadata_Bow_hep)
-#All sites are sig. diff from each other
+pairwise.adonis2(Bow_bray_hep_rare ~ Site, data = metadata_Bow_hep_rare)
+#All sites are sig. diff from each other. Same as non rarefied
 
-bd_all_fam_Bow_hep<-betadisper(Bow_bray_hep, metadata_Bow_hep$Site) 
-anova(bd_all_fam_Bow_hep) #sig beta dispersion p = 0.0126
+bd_all_fam_Bow_hep_rare<-betadisper(Bow_bray_hep_rare, metadata_Bow_hep_rare$Site) 
+anova(bd_all_fam_Bow_hep_rare) #sig beta dispersion p = 0.0074
 
 
 ## Chironomidae ##
 
-chiro_Bow<-subset_samples(ps_Bow, Family=="Chironomidae")
-Bow_rel_abun_chiro  = transform_sample_counts(chiro_Bow, function(x) x/sum(x)) 
-Bow_bray_chiro = phyloseq::distance(Bow_rel_abun_chiro, method="bray") 
+chiro_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Chironomidae")
+Bow_rel_abun_chiro_rare  = transform_sample_counts(chiro_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_chiro_rare = phyloseq::distance(Bow_rel_abun_chiro_rare, method="bray") 
 
-metadata_Bow_chiro <- data.frame(sample_data(Bow_rel_abun_chiro))
+metadata_Bow_chiro_rare <- data.frame(sample_data(Bow_rel_abun_chiro_rare))
 
-test.adonis.Bow.chiro <- adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
-test.adonis.Bow.chiro #p=0.002. 
+test.adonis.Bow.chiro.rare <- adonis2(Bow_bray_chiro_rare ~ Site, data = metadata_Bow_chiro_rare)
+test.adonis.Bow.chiro.rare #p=0.003. 
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
+pairwise.adonis2(Bow_bray_chiro_rare ~ Site, data = metadata_Bow_chiro_rare)
 #Cochrane - Policeman Flats are not diff from each other
 
-bd_all_fam_Bow_chiro<-betadisper(Bow_bray_chiro, metadata_Bow_chiro$Site) 
-anova(bd_all_fam_Bow_chiro) #no beta dispersion p = 0.34
+bd_all_fam_Bow_chiro_rare<-betadisper(Bow_bray_chiro_rare, metadata_Bow_chiro_rare$Site) 
+anova(bd_all_fam_Bow_chiro_rare) #no beta dispersion p = 0.28
 
 ## Perlidae ##
 
-perl_Bow<-subset_samples(ps_Bow, Family=="Perlidae")
-Bow_rel_abun_perl  = transform_sample_counts(perl_Bow, function(x) x/sum(x)) 
-Bow_bray_perl = phyloseq::distance(Bow_rel_abun_perl, method="bray") 
+perl_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Perlidae")
+Bow_rel_abun_perl_rare  = transform_sample_counts(perl_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_perl_rare = phyloseq::distance(Bow_rel_abun_perl_rare, method="bray") 
 
-metadata_Bow_perl <- data.frame(sample_data(Bow_rel_abun_perl))
+metadata_Bow_perl_rare <- data.frame(sample_data(Bow_rel_abun_perl_rare))
 
-test.adonis.Bow.perl <- adonis2(Bow_bray_perl ~ Site, data = metadata_Bow_perl)
-test.adonis.Bow.perl #p<0.001. 
+test.adonis.Bow.perl.rare <- adonis2(Bow_bray_perl_rare ~ Site, data = metadata_Bow_perl_rare)
+test.adonis.Bow.perl.rare #p<0.001. 
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_perl ~ Site, data = metadata_Bow_perl)
+pairwise.adonis2(Bow_bray_perl_rare ~ Site, data = metadata_Bow_perl_rare)
 #All sites were significantly different from each other
 
-bd_all_fam_Bow_perl<-betadisper(Bow_bray_perl, metadata_Bow_perl$Site) 
-anova(bd_all_fam_Bow_perl) #sig beta dispersion p = 0.0048
+bd_all_fam_Bow_perl_rare<-betadisper(Bow_bray_perl_rare, metadata_Bow_perl_rare$Site) 
+anova(bd_all_fam_Bow_perl_rare) #sig beta dispersion p = 0.0050
 
 ## Trichoptera (adult caddis) ##
 
-trichop_Bow<-subset_samples(ps_Bow, Family=="Trichoptera")
-Bow_rel_abun_trichop  = transform_sample_counts(trichop_Bow, function(x) x/sum(x)) 
-Bow_bray_trichop = phyloseq::distance(Bow_rel_abun_trichop, method="bray") 
+trichop_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Trichoptera")
+Bow_rel_abun_trichop_rare  = transform_sample_counts(trichop_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_trichop_rare = phyloseq::distance(Bow_rel_abun_trichop_rare, method="bray") 
 
-metadata_Bow_trichop <- data.frame(sample_data(Bow_rel_abun_trichop))
+metadata_Bow_trichop_rare <- data.frame(sample_data(Bow_rel_abun_trichop_rare))
 
-test.adonis.Bow.trichop <- adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-test.adonis.Bow.trichop #p = 0.016 
+test.adonis.Bow.trichop.rare <- adonis2(Bow_bray_trichop_rare ~ Site, data = metadata_Bow_trichop_rare)
+test.adonis.Bow.trichop.rare #p = 0.015
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
+pairwise.adonis2(Bow_bray_trichop_rare ~ Site, data = metadata_Bow_trichop_rare)
 #Only COCH - GRVBR and CUSHBR - GRVBR were different from each other (not all upstream sites were different from GRVBR)
 
-bd_all_fam_Bow_trichop<-betadisper(Bow_bray_trichop, metadata_Bow_trichop$Site) 
-anova(bd_all_fam_Bow_trichop) #beta dispersion p = 0.034
+bd_all_fam_Bow_trichop_rare<-betadisper(Bow_bray_trichop_rare, metadata_Bow_trichop_rare$Site) 
+anova(bd_all_fam_Bow_trichop_rare) #beta dispersion p = 0.035
 
 ## Ephemeroptera (adult mayfly) ##
 
-ephem_Bow<-subset_samples(ps_Bow, Family=="Ephemeroptera")
-Bow_rel_abun_ephem = transform_sample_counts(ephem_Bow, function(x) x/sum(x)) 
-Bow_bray_ephem = phyloseq::distance(Bow_rel_abun_ephem, method="bray") 
+ephem_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Ephemeroptera")
+Bow_rel_abun_ephem_rare = transform_sample_counts(ephem_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_ephem_rare = phyloseq::distance(Bow_rel_abun_ephem_rare, method="bray") 
 
-metadata_Bow_ephem <- data.frame(sample_data(Bow_rel_abun_ephem))
+metadata_Bow_ephem_rare <- data.frame(sample_data(Bow_rel_abun_ephem_rare))
 
-test.adonis.Bow.ephem <- adonis2(Bow_bray_ephem ~ Site, data = metadata_Bow_ephem)
-test.adonis.Bow.ephem #p < 0.001 
+test.adonis.Bow.ephem.rare <- adonis2(Bow_bray_ephem_rare ~ Site, data = metadata_Bow_ephem_rare)
+test.adonis.Bow.ephem.rare #p < 0.001 
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_ephem ~ Site, data = metadata_Bow_ephem)
+pairwise.adonis2(Bow_bray_ephem_rare ~ Site, data = metadata_Bow_ephem_rare)
 #Sig diff btw sites include:
 #COCH - GRVBR
 #COCH - CUSHBR
@@ -6628,41 +6525,41 @@ pairwise.adonis2(Bow_bray_ephem ~ Site, data = metadata_Bow_ephem)
 #SUN - CUSHBR
 #CUSHBR - PMF
 
-bd_all_fam_Bow_ephem<-betadisper(Bow_bray_ephem, metadata_Bow_ephem$Site) 
-anova(bd_all_fam_Bow_ephem) #no beta dispersion p = 0.064
+bd_all_fam_Bow_ephem_rare<-betadisper(Bow_bray_ephem_rare, metadata_Bow_ephem_rare$Site) 
+anova(bd_all_fam_Bow_ephem_rare) #no beta dispersion p = 0.067
 
 
 ## Diptera (adult chironomidae) ##
-dip_Bow<-subset_samples(ps_Bow, Family=="Diptera")
-Bow_rel_abun_dip = transform_sample_counts(dip_Bow, function(x) x/sum(x)) 
-Bow_bray_dip = phyloseq::distance(Bow_rel_abun_dip, method="bray") 
+dip_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Diptera")
+Bow_rel_abun_dip_rare = transform_sample_counts(dip_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_dip_rare = phyloseq::distance(Bow_rel_abun_dip_rare, method="bray") 
 
-metadata_Bow_dip <- data.frame(sample_data(Bow_rel_abun_dip))
+metadata_Bow_dip_rare <- data.frame(sample_data(Bow_rel_abun_dip_rare))
 
-test.adonis.Bow.dip <- adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-test.adonis.Bow.dip #p = 0.122
+test.adonis.Bow.dip.rare <- adonis2(Bow_bray_dip_rare ~ Site, data = metadata_Bow_dip_rare)
+test.adonis.Bow.dip.rare #p = 0.157
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-#sig diff between COCH - CUSHBR
+pairwise.adonis2(Bow_bray_dip_rare ~ Site, data = metadata_Bow_dip_rare)
+#no diff. Slightly different from the non rarefied dataset
 
-bd_all_fam_Bow_dip<-betadisper(Bow_bray_dip, metadata_Bow_dip$Site) 
-anova(bd_all_fam_Bow_dip) #no beta dispersion p = 0.593
+bd_all_fam_Bow_dip_rare<-betadisper(Bow_bray_dip_rare, metadata_Bow_dip_rare$Site) 
+anova(bd_all_fam_Bow_dip_rare) #no beta dispersion p = 0.589
 
 
 ## Araneidae ##
 
-aran_Bow<-subset_samples(ps_Bow, Family=="Araneidae")
-Bow_rel_abun_aran = transform_sample_counts(aran_Bow, function(x) x/sum(x)) 
-Bow_bray_aran = phyloseq::distance(Bow_rel_abun_aran, method="bray") 
+aran_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Araneidae")
+Bow_rel_abun_aran_rare = transform_sample_counts(aran_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_aran_rare = phyloseq::distance(Bow_rel_abun_aran_rare, method="bray") 
 
-metadata_Bow_aran <- data.frame(sample_data(Bow_rel_abun_aran))
+metadata_Bow_aran_rare <- data.frame(sample_data(Bow_rel_abun_aran_rare))
 
-test.adonis.Bow.aran <- adonis2(Bow_bray_aran ~ Site, data = metadata_Bow_aran)
-test.adonis.Bow.aran #p < 0.001 
+test.adonis.Bow.aran.rare <- adonis2(Bow_bray_aran_rare ~ Site, data = metadata_Bow_aran_rare)
+test.adonis.Bow.aran.rare #p < 0.001 
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_aran ~ Site, data = metadata_Bow_aran)
+pairwise.adonis2(Bow_bray_aran_rare ~ Site, data = metadata_Bow_aran_rare)
 #Sig diff btw sites include:
 #COCH - SUN
 #COCH - PMF
@@ -6671,120 +6568,125 @@ pairwise.adonis2(Bow_bray_aran ~ Site, data = metadata_Bow_aran)
 #CUSHBR - SUN
 #CUSHBR - PMF
 
-bd_all_fam_Bow_aran<-betadisper(Bow_bray_aran, metadata_Bow_aran$Site) 
-anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.825
+bd_all_fam_Bow_aran_rare<-betadisper(Bow_bray_aran_rare, metadata_Bow_aran_rare$Site) 
+anova(bd_all_fam_Bow_aran_rare) #no beta dispersion p = 0.85
 
 ## Tetragnathidae ##
 
-tetra_Bow<-subset_samples(ps_Bow, Family=="Tetragnathidae")
-Bow_rel_abun_tetra = transform_sample_counts(tetra_Bow, function(x) x/sum(x)) 
-Bow_bray_tetra = phyloseq::distance(Bow_rel_abun_tetra, method="bray") 
+tetra_Bow_rare<-subset_samples(Bow_ps_rare, Family=="Tetragnathidae")
+Bow_rel_abun_tetra_rare = transform_sample_counts(tetra_Bow_rare, function(x) x/sum(x)) 
+Bow_bray_tetra_rare = phyloseq::distance(Bow_rel_abun_tetra_rare, method="bray") 
 
-metadata_Bow_tetra <- data.frame(sample_data(Bow_rel_abun_tetra))
+metadata_Bow_tetra_rare <- data.frame(sample_data(Bow_rel_abun_tetra_rare))
 
-test.adonis.Bow.tetra <- adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
-test.adonis.Bow.tetra #p = 0.541
+test.adonis.Bow.tetra.rare <- adonis2(Bow_bray_tetra_rare ~ Site, data = metadata_Bow_tetra_rare)
+test.adonis.Bow.tetra.rare #p = 0.55
 
 #Pairwise comparisons
-pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
+pairwise.adonis2(Bow_bray_tetra_rare ~ Site, data = metadata_Bow_tetra_rare)
 #No significant differences between any of the sites
 
 
-bd_all_fam_Bow_tetra<-betadisper(Bow_bray_tetra, metadata_Bow_tetra$Site) 
-anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.510
+bd_all_fam_Bow_tetra_rare<-betadisper(Bow_bray_tetra_rare, metadata_Bow_tetra_rare$Site) 
+anova(bd_all_fam_Bow_tetra_rare) #no beta dispersion p = 0.503
 
 ## Cochrane ##
 
-coch_Bow<-subset_samples(ps_Bow, Site=="Cochrane")
-coch_rel_abun = transform_sample_counts(coch_Bow, function(x) x/sum(x)) 
-coch_bray = phyloseq::distance(coch_rel_abun, method="bray") 
+coch_Bow_rare<-subset_samples(Bow_ps_rare, Site=="Cochrane")
+coch_rel_abun_rare = transform_sample_counts(coch_Bow_rare, function(x) x/sum(x)) 
+coch_bray_rare = phyloseq::distance(coch_rel_abun_rare, method="bray") 
 
-metadata_coch <- data.frame(sample_data(coch_rel_abun))
+metadata_coch_rare <- data.frame(sample_data(coch_rel_abun_rare))
 
-test.adonis.Bow.coch <- adonis2(coch_bray ~ Family, data = metadata_coch)
-test.adonis.Bow.coch #p < 0.001
+test.adonis.Bow.coch.rare <- adonis2(coch_bray_rare ~ Family, data = metadata_coch_rare)
+test.adonis.Bow.coch.rare #p < 0.001
 
 #Pairwise comparisons
-pairwise.adonis2(coch_bray ~ Family, data = metadata_coch)
-#Most inverts are diff. from each other
+pairwise.adonis2(coch_bray_rare ~ Family, data = metadata_coch_rare)
+#Diptera - Ephemeroptera
+#Diptera - Trichoptera
+#Ephemeroptera - Trichoptera
+#All not sig. diff. Similar to non rarefied
 
-bd_all_fam_Bow_coch<-betadisper(coch_bray, metadata_coch$Family) 
-anova(bd_all_fam_Bow_coch) #no beta dispersion p = 0.1559.
+bd_all_fam_Bow_coch_rare<-betadisper(coch_bray_rare, metadata_coch_rare$Family) 
+anova(bd_all_fam_Bow_coch_rare) #no beta dispersion p = 0.17.
 
 ## Sunalta ##
 
-sun_Bow<-subset_samples(ps_Bow, Site=="Sunalta")
-sun_rel_abun = transform_sample_counts(sun_Bow, function(x) x/sum(x)) 
-sun_bray = phyloseq::distance(sun_rel_abun, method="bray") 
+sun_Bow_rare<-subset_samples(Bow_ps_rare, Site=="Sunalta")
+sun_rel_abun_rare = transform_sample_counts(sun_Bow_rare, function(x) x/sum(x)) 
+sun_bray_rare = phyloseq::distance(sun_rel_abun_rare, method="bray") 
 
-metadata_sun <- data.frame(sample_data(sun_rel_abun))
+metadata_sun_rare <- data.frame(sample_data(sun_rel_abun_rare))
 
-test.adonis.Bow.sun <- adonis2(sun_bray ~ Family, data = metadata_sun)
-test.adonis.Bow.sun #p < 0.001
+test.adonis.Bow.sun.rare <- adonis2(sun_bray_rare ~ Family, data = metadata_sun_rare)
+test.adonis.Bow.sun.rare #p < 0.001
 
 #Pairwise comparisons
-pairwise.adonis2(sun_bray ~ Family, data = metadata_sun)
-#Most inverts are diff. from each other
+pairwise.adonis2(sun_bray_rare ~ Family, data = metadata_sun_rare)
+#Only Ephemeroptera - Trichoptera not diff from each other
 
-bd_all_fam_Bow_sun<-betadisper(sun_bray, metadata_sun$Family) 
-anova(bd_all_fam_Bow_sun) #yes beta dispersion p = 0.0057.
+bd_all_fam_Bow_sun_rare<-betadisper(sun_bray_rare, metadata_sun_rare$Family) 
+anova(bd_all_fam_Bow_sun_rare) #yes beta dispersion p = 0.0059.
 
 
 ## Cushing Bridge ##
 
-cush_Bow<-subset_samples(ps_Bow, Site=="Cushing Bridge")
-cush_rel_abun = transform_sample_counts(cush_Bow, function(x) x/sum(x)) 
-cush_bray = phyloseq::distance(cush_rel_abun, method="bray") 
+cush_Bow_rare<-subset_samples(Bow_ps_rare, Site=="Cushing Bridge")
+cush_rel_abun_rare = transform_sample_counts(cush_Bow_rare, function(x) x/sum(x)) 
+cush_bray_rare = phyloseq::distance(cush_rel_abun_rare, method="bray") 
 
-metadata_cush <- data.frame(sample_data(cush_rel_abun))
+metadata_cush_rare <- data.frame(sample_data(cush_rel_abun_rare))
 
-test.adonis.Bow.cush <- adonis2(cush_bray ~ Family, data = metadata_cush)
-test.adonis.Bow.cush #p < 0.001
+test.adonis.Bow.cush.rare <- adonis2(cush_bray_rare ~ Family, data = metadata_cush_rare)
+test.adonis.Bow.cush.rare #p < 0.001
 
 #Pairwise comparisons
-pairwise.adonis2(cush_bray ~ Family, data = metadata_cush)
-#Most inverts are diff. from each other
+pairwise.adonis2(cush_bray_rare ~ Family, data = metadata_cush_rare)
+#Only Trichoptera - Diptera not diff from each other
 
-bd_all_fam_Bow_cush<-betadisper(cush_bray, metadata_cush$Family) 
-anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.0068.
+bd_all_fam_Bow_cush_rare<-betadisper(cush_bray_rare, metadata_cush_rare$Family) 
+anova(bd_all_fam_Bow_cush_rare) #yes beta dispersion p = 0.0079.
 
 
 ## Graves Bridge ##
 
-grv_Bow<-subset_samples(ps_Bow, Site=="Graves Bridge")
-grv_rel_abun = transform_sample_counts(grv_Bow, function(x) x/sum(x)) 
-grv_bray = phyloseq::distance(grv_rel_abun, method="bray") 
+grv_Bow_rare<-subset_samples(Bow_ps_rare, Site=="Graves Bridge")
+grv_rel_abun_rare = transform_sample_counts(grv_Bow_rare, function(x) x/sum(x)) 
+grv_bray_rare = phyloseq::distance(grv_rel_abun_rare, method="bray") 
 
-metadata_grv <- data.frame(sample_data(grv_rel_abun))
+metadata_grv_rare <- data.frame(sample_data(grv_rel_abun_rare))
 
-test.adonis.Bow.grv <- adonis2(grv_bray ~ Family, data = metadata_grv)
-test.adonis.Bow.grv #p < 0.001
+test.adonis.Bow.grv.rare <- adonis2(grv_bray_rare ~ Family, data = metadata_grv_rare)
+test.adonis.Bow.grv.rare #p < 0.001
 
 #Pairwise comparisons
-pairwise.adonis2(grv_bray ~ Family, data = metadata_grv)
-#Most inverts are diff. from each other
+pairwise.adonis2(grv_bray_rare ~ Family, data = metadata_grv_rare)
+#Only Ephemeroptera - Trichoptera not diff from each other
 
-bd_all_fam_Bow_grv<-betadisper(grv_bray, metadata_grv$Family) 
-anova(bd_all_fam_Bow_grv) #no beta dispersion p = 0.335.
+bd_all_fam_Bow_grv_rare<-betadisper(grv_bray_rare, metadata_grv_rare$Family) 
+anova(bd_all_fam_Bow_grv_rare) #no beta dispersion p = 0.396.
 
 
 ## Policeman Flats ##
 
-pmf_Bow<-subset_samples(ps_Bow, Site=="Policeman Flats")
-pmf_rel_abun = transform_sample_counts(pmf_Bow, function(x) x/sum(x)) 
-pmf_bray = phyloseq::distance(pmf_rel_abun, method="bray") 
+pmf_Bow_rare<-subset_samples(Bow_ps_rare, Site=="Policeman Flats")
+pmf_rel_abun_rare = transform_sample_counts(pmf_Bow_rare, function(x) x/sum(x)) 
+pmf_bray_rare = phyloseq::distance(pmf_rel_abun_rare, method="bray") 
 
-metadata_pmf <- data.frame(sample_data(pmf_rel_abun))
+metadata_pmf_rare <- data.frame(sample_data(pmf_rel_abun_rare))
 
-test.adonis.Bow.pmf <- adonis2(pmf_bray ~ Family, data = metadata_pmf)
-test.adonis.Bow.pmf #p < 0.001
+test.adonis.Bow.pmf.rare <- adonis2(pmf_bray_rare ~ Family, data = metadata_pmf_rare)
+test.adonis.Bow.pmf.rare #p < 0.001
 
 #Pairwise comparisons
-pairwise.adonis2(pmf_bray ~ Family, data = metadata_pmf)
-#Most inverts are diff. from each other
+pairwise.adonis2(pmf_bray_rare ~ Family, data = metadata_pmf_rare)
+#Araneidae - Diptera, Araneidae - Ephemeroptera, and Diptera - Ephemeroptera not diff from each other
 
-bd_all_fam_Bow_pmf<-betadisper(pmf_bray, metadata_pmf$Family) 
-anova(bd_all_fam_Bow_pmf) #no beta dispersion p = 0.0797.
+bd_all_fam_Bow_pmf_rare<-betadisper(pmf_bray_rare, metadata_pmf_rare$Family) 
+anova(bd_all_fam_Bow_pmf_rare) #no beta dispersion p = 0.163.
+
+#A bit different from non rarefied data
 
 
 #### Water quality variables Bow ####
@@ -7055,179 +6957,89 @@ mm
 ```{r}
 #### ACWA streams ####
 
-ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
+ACWA_ps_rare<-subset_samples(ps_rare, Stream_Type=="ACWA Streams")
 
 #Transform to relative abundance to standardize data
-ACWA_rel_abun  = transform_sample_counts(ACWA_ps, function(x) x/sum(x)) #log transforming the data 
+ACWA_rel_abun_rare  = transform_sample_counts(ACWA_ps_rare, function(x) x/sum(x)) #log transforming the data 
 
 #Bray Curtis distance matrix
-ACWA_bray = phyloseq::distance(ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
+ACWA_bray_rare = phyloseq::distance(ACWA_rel_abun_rare, method="bray") #Bray Curtis distance matrix
 
-ord_ACWA = ordinate(ACWA_rel_abun, method="PCoA", distance="ACWA_bray")
+ord_ACWA_rare = ordinate(ACWA_rel_abun_rare, method="PCoA", distance="ACWA_bray_rare")
 
-#Scree plot of PCoA
-scree <- plot_scree(ord_ACWA)
-scree + theme(axis.text.x=element_text(size=8, color="black"), axis.text.y=element_text(size=18, color="black"), 
-        axis.text=element_text(size=18, color="black"), axis.title=element_text(size=18)) 
-#axis 1, 2, and 3 account for most variation explained (mostly axis 1 and 2)
-
-metadata_ACWA <- data.frame(sample_data(ACWA_rel_abun))
+metadata_ACWA_rare <- data.frame(sample_data(ACWA_rel_abun_rare))
 
 #All together
-plot_ordination(ACWA_rel_abun, ord_ACWA, color="Family", shape="Site") + #Plots the ordination
+plot_ordination(ACWA_rel_abun_rare, ord_ACWA_rare, color="Family", shape="Site") + #Plots the ordination
   theme_classic() +
   theme(strip.background = element_blank())+
-  xlab("PC1 [32.8%]")+
-  ylab("PC2 [17.9%]")
-
-#Faceted by family and stage (larvae, adults)
-plot_ordination(ACWA_rel_abun, ord_ACWA, color="Site", shape="Family") + #Plots the ordination
-  theme_bw() +
-  rremove("grid")+
-  facet_nested_wrap(~Stage+factor(Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera")), scale="free_x", nrow=1)+
-  xlab("PC1 [32.8%]")+
-  ylab("PC2 [17.9%]")+
-  stat_ellipse()
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/PCoA by site and invertebrate family faceted by life stage ACWA Streams.png", height = 7, width=8)
+  xlab("PC1 [31.5%]")+
+  ylab("PC2 [17.1%]")
 
 
 # NMDS 
 set.seed(1)
-ord_NMDS_ACWA = ordinate(ACWA_rel_abun, method="NMDS", distance=ACWA_bray)
-ord_NMDS_ACWA #Stress=0.111
-
-
-plot_ACWA<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", color="Family") + 
-  theme_bw() +
-  rremove("grid")+
-  geom_point(size=3)+
-  theme(legend.key.size = unit(0.5, 'cm'), 
-        legend.title = element_text(size=16), 
-        legend.text = element_text(size=16), 
-        legend.position = "right")+
-  labs(color="Family")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE, title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  ylim(-0.65, 0.45)+
-  xlim(-0.85, 0.95)
-  
-newtab3 = data.table(plot_ACWA$data)
-newtab3$Family <- ordered(newtab3$Family,
-levels = c("Hydropsychidae", "Baetidae", "Ephemeroptera"), labels=c("Larval Hydropsychidae", "Larval Baetidae", "Adult Baetidae"))
-plot_ACWA$data <- newtab3
-print(plot_ACWA)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites and taxa ACWA only.png", height=8, width=10)
-
-
-plot_ACWA_sites<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", color="Family") + 
-  theme_bw() +
-  rremove("grid")+
-  geom_point(size=3)+
-  theme(legend.key.size = unit(0.5, 'cm'), 
-        legend.title = element_text(size=16), 
-        legend.text = element_text(size=16), 
-        legend.position = "right")+
-  labs(color="Family")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE, title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  stat_ellipse(type="norm", alpha=1, aes(group=Site))+
-  ylim(-0.65, 0.45)+
-   xlim(-0.85, 0.95)
-  
-newtab3 = data.table(plot_ACWA_sites$data)
-newtab3$Family <- ordered(newtab3$Family,
-levels = c("Hydropsychidae", "Baetidae", "Ephemeroptera"), labels=c("Larval Hydropsychidae", "Larval Baetidae", "Adult Baetidae"))
-plot_ACWA_sites$data <- newtab3
-print(plot_ACWA_sites)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites ACWA only.png", height=8, width=10)
-
-plot_ACWA_taxa<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, color="Site") +
-  theme_bw() +
-  rremove("grid")+
-  facet_nested_wrap(~Stage+Family, scales="free_x")+
-  geom_point(size=3)+
-  theme(legend.key.size = unit(0.5, 'cm'), 
-        legend.title = element_text(size=16), 
-        legend.text = element_text(size=16), 
-        legend.position = "right")+
-  labs(color="Family")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE, title="ACWA Stream")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
- stat_ellipse(type="norm", alpha=1, aes(group=Site))
-
-plot_ACWA_taxa
-  
-
-newtab5 = data.table(plot_ACWA_taxa$data)
-newtab5$Site <- ordered(newtab5$Site,
-levels = c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
-newtab5$Family <- ordered(newtab5$Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
-plot_ACWA_taxa$data <- newtab5
-print(plot_ACWA_taxa)
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa and sites with ellipses ACWA only.png", height=8, width=10)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa ACWA only.png", height=8, width=10)
-
+ord_NMDS_ACWA_rare = ordinate(ACWA_rel_abun_rare, method="NMDS", distance=ACWA_bray_rare)
+ord_NMDS_ACWA_rare #Stress=0.11
 
 #PERMANOVA by Site and invertebrate taxa
-test.adonis.ACWA <- adonis2(ACWA_bray ~ Site*Family, data = metadata_ACWA)
-test.adonis.ACWA #p<0.001. Significant dissimilarity between sites and families but no significant interaction between the two (p=0.088).
+test.adonis.ACWA.rare <- adonis2(ACWA_bray_rare ~ Site*Family, data = metadata_ACWA_rare)
+test.adonis.ACWA.rare #p<0.001. Significant dissimilarity between sites and families but no significant interaction between the two (p=0.099).
 
 #Pairwise comparisons
-pairwise.adonis2(ACWA_bray ~ Family, data = metadata_ACWA) 
+pairwise.adonis2(ACWA_bray_rare ~ Family, data = metadata_ACWA_rare) 
 #All invertebrate types are different from one another when all sites are combined
 
-pairwise.adonis2(ACWA_bray ~ Site, data = metadata_ACWA)
+pairwise.adonis2(ACWA_bray_rare ~ Site, data = metadata_ACWA_rare)
 #PCR1 - PCR3 are not significantly different from each other but they are both different from BRR2 (control)
 
-bd_sites_ACWA<-betadisper(ACWA_bray, metadata_ACWA$Site)
-anova(bd_sites_ACWA) #p<0.001, F (2, 52) = 23.7
+bd_sites_ACWA_rare<-betadisper(ACWA_bray_rare, metadata_ACWA_rare$Site)
+anova(bd_sites_ACWA_rare) #p<0.001, F (2, 52) = 17.7
 
-bd_fam_ACWA<-betadisper(ACWA_bray, metadata_ACWA$Family)
-anova(bd_fam_ACWA) #p<0.001, F (2, 52) = 16.4
+bd_fam_ACWA_rare<-betadisper(ACWA_bray_rare, metadata_ACWA_rare$Family)
+anova(bd_fam_ACWA_rare) #p<0.001, F (2, 52) = 17.7
 
 
 # Hydropsychidae larvae 
 
-hydro_ACWA_ps<-subset_samples(ACWA_ps, Family=="Hydropsychidae")
-hydro_ACWA_rel_abun  = transform_sample_counts(hydro_ACWA_ps, function(x) x/sum(x)) 
-hydro_ACWA_bray = phyloseq::distance(hydro_ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
-metadata_hydro_ACWA <- data.frame(sample_data(hydro_ACWA_rel_abun))
+hydro_ACWA_ps_rare<-subset_samples(ACWA_ps_rare, Family=="Hydropsychidae")
+hydro_ACWA_rel_abun_rare  = transform_sample_counts(hydro_ACWA_ps_rare, function(x) x/sum(x)) 
+hydro_ACWA_bray_rare = phyloseq::distance(hydro_ACWA_rel_abun_rare, method="bray") #Bray Curtis distance matrix
+metadata_hydro_ACWA_rare <- data.frame(sample_data(hydro_ACWA_rel_abun_rare))
 
-hydro.sites.ACWA <- adonis2(hydro_ACWA_bray ~ Site, data = metadata_hydro_ACWA)
-hydro.sites.ACWA #F(2,21)=1.91, P<0.001
+hydro.sites.ACWA.rare <- adonis2(hydro_ACWA_bray_rare ~ Site, data = metadata_hydro_ACWA_rare)
+hydro.sites.ACWA.rare #F(2,21)=1.85, P<0.001
 
-pairwise.adonis2(hydro_ACWA_bray ~ Site, data = metadata_hydro_ACWA) 
+pairwise.adonis2(hydro_ACWA_bray_rare ~ Site, data = metadata_hydro_ACWA_rare) 
 #All streams are significantly different from each other
-bd_hydro_ACWA<-betadisper(hydro_ACWA_bray, metadata_hydro_ACWA$Site)
-anova(bd_hydro_ACWA) #p=0.035, F (2, 21) = 3.94
+bd_hydro_ACWA_rare<-betadisper(hydro_ACWA_bray_rare, metadata_hydro_ACWA_rare$Site)
+anova(bd_hydro_ACWA_rare) #p=0.020
 
 # Baetidae larvae 
 
-baetid_ACWA_ps<-subset_samples(ACWA_ps, Family=="Baetidae")
-baetid_ACWA_rel_abun  = transform_sample_counts(baetid_ACWA_ps, function(x) x/sum(x)) 
-baetid_ACWA_bray = phyloseq::distance(baetid_ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
-metadata_baetid_ACWA <- data.frame(sample_data(baetid_ACWA_rel_abun))
+baetid_ACWA_ps_rare<-subset_samples(ACWA_ps_rare, Family=="Baetidae")
+baetid_ACWA_rel_abun_rare  = transform_sample_counts(baetid_ACWA_ps_rare, function(x) x/sum(x)) 
+baetid_ACWA_bray_rare = phyloseq::distance(baetid_ACWA_rel_abun_rare, method="bray") #Bray Curtis distance matrix
+metadata_baetid_ACWA_rare <- data.frame(sample_data(baetid_ACWA_rel_abun_rare))
 
-pairwise.adonis2(baetid_ACWA_bray ~ Site, data = metadata_baetid_ACWA) 
+pairwise.adonis2(baetid_ACWA_bray_rare ~ Site, data = metadata_baetid_ACWA_rare) 
 #No differences
-bd_baetid_ACWA<-betadisper(baetid_ACWA_bray, metadata_baetid_ACWA$Site)
-anova(bd_baetid_ACWA) #p=0.98
+bd_baetid_ACWA_rare<-betadisper(baetid_ACWA_bray_rare, metadata_baetid_ACWA_rare$Site)
+anova(bd_baetid_ACWA_rare) #p=0.99
 
 #Ephemeroptera
 
-ephem_ACWA_ps<-subset_samples(ACWA_ps, Family=="Ephemeroptera")
-ephem_ACWA_rel_abun  = transform_sample_counts(ephem_ACWA_ps, function(x) x/sum(x)) 
-ephem_ACWA_bray = phyloseq::distance(ephem_ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
-metadata_ephem_ACWA <- data.frame(sample_data(ephem_ACWA_rel_abun))
+ephem_ACWA_ps_rare<-subset_samples(ACWA_ps_rare, Family=="Ephemeroptera")
+ephem_ACWA_rel_abun_rare  = transform_sample_counts(ephem_ACWA_ps_rare, function(x) x/sum(x)) 
+ephem_ACWA_bray_rare = phyloseq::distance(ephem_ACWA_rel_abun_rare, method="bray") #Bray Curtis distance matrix
+metadata_ephem_ACWA_rare <- data.frame(sample_data(ephem_ACWA_rel_abun_rare))
 
-pairwise.adonis2(ephem_ACWA_bray ~ Site, data = metadata_ephem_ACWA) 
+pairwise.adonis2(ephem_ACWA_bray_rare ~ Site, data = metadata_ephem_ACWA_rare) 
 #No differences
-bd_ephem_ACWA<-betadisper(ephem_ACWA_bray, metadata_ephem_ACWA$Site)
-anova(bd_ephem_ACWA) #p=0.07
+bd_ephem_ACWA_rare<-betadisper(ephem_ACWA_bray_rare, metadata_ephem_ACWA_rare$Site)
+anova(bd_ephem_ACWA_rare) #p=0.072
+
+#Same as non rarefied results
 
 
 #### Water quality variables ACWA ####
@@ -7461,192 +7273,6 @@ Most supported DA tests:
 ANCOM-BC (Lin & Peddada, 2020. Biofilms and Microbiomes.) (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microbiome.)
 
 ALDEX2 (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microbiome.)
-
-## Single site comparisons - Bow River (all inverts combined)
-```{r}
-#### Sunalta - Cochrane ####
-diff_abun_Coch_Sunal = subset_samples(sample_ps, Site %in% c("Cochrane", "Sunalta"))
-
-deseq_coch_sun <- phyloseq_to_deseq2(diff_abun_Coch_Sunal, ~ Site)
-deseq_coch_sun <- DESeq(deseq_coch_sun, test = "Wald", fitType = "parametric", sfType = "poscounts")  #The "poscounts" estimator deals with a gene with some zeros, by calculating a modified geometric mean by taking the n-th root of the product of the non-zero counts. 'Parametric' is used by default since it works with most data.
-
-
-#Getting results of diff abund. estimates
-res_deseq_coch_sun <- results(deseq_coch_sun, cooksCutoff = FALSE)
-res_deseq_coch_sun
-alpha = 0.001
-sigtab_coch_sun = res_deseq[which(res_deseq_coch_sun$padj < alpha), ] 
-sigtab_coch_sun = cbind(as(sigtab_coch_sun, "data.frame"), as(tax_table(sample_ps)[rownames(sigtab_coch_sun), ], "matrix")) 
-
-x_coch_sun = tapply(sigtab_coch_sun$log2FoldChange, sigtab_coch_sun$Phylum, function(x) max(x))
-x_coch_sun = sort(x_coch_sun, TRUE)
-sigtab_coch_sun$Phylum = factor(as.character(sigtab_coch_sun$Phylum), levels=sort(names(x_coch_sun)))
-# Genus order
-x_coch_sun = tapply(sigtab_coch_sun$log2FoldChange, sigtab_coch_sun$Genus, function(x) max(x))
-x_coch_sun = sort(x_coch_sun, TRUE)
-sigtab_coch_sun$Genus = factor(as.character(sigtab_coch_sun$Genus), levels=sort(names(x_coch_sun)))
-
-sun<-ggplot(sigtab_coch_sun, aes(x=Genus, y=log2FoldChange, color=Phylum)) + 
-  geom_point(size=6) + 
-  theme_bw()+
-  rremove("grid")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, face="italic")) + theme(axis.text=element_text(size=15, color="black"), axis.title=element_text(size=15)) +
-          theme(legend.text=element_text(size=15, color="black")) + 
-          theme(legend.title = element_text(size=15, color="black"))
-
-
-#### Cushing Bridge - Cochrane ####
-diff_abun_Coch_cushbr <- subset_samples(sample_ps, Site %in% c("Cochrane", "Cushing Bridge"))
-
-deseq_coch_cushbr <- phyloseq_to_deseq2(diff_abun_Coch_cushbr, ~ Site)
-deseq_coch_cushbr <- DESeq(deseq_coch_cushbr, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_coch_cushbr <- results(deseq_coch_cushbr, cooksCutoff = FALSE)
-res_deseq_coch_cushbr
-alpha = 0.001
-sigtab_coch_cushbr = res_deseq_coch_cushbr[which(res_deseq_coch_cushbr$padj < alpha), ]
-sigtab_coch_cushbr = cbind(as(sigtab_coch_cushbr, "data.frame"), as(tax_table(sample_ps)[rownames(sigtab_coch_cushbr), ], "matrix"))
-
-#write.csv(as.data.frame(sigtab_coch_cushbr), file="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_Coch_CushBr.csv")
-
-#Plotting the log2fold change in bacteria: Cushing Bridge vs Cochrane
-
-x_coch_cushbr = tapply(sigtab_coch_cushbr$log2FoldChange, sigtab_coch_cushbr$Phylum, function(x) max(x))
-x_coch_cushbr = sort(x_coch_cushbr, TRUE)
-sigtab_coch_cushbr$Phylum = factor(as.character(sigtab_coch_cushbr$Phylum), levels=sort(names(x_coch_cushbr)))
-# Genus order
-x_coch_cushbr = tapply(sigtab_coch_cushbr$log2FoldChange, sigtab_coch_cushbr$Genus, function(x) max(x))
-x_coch_cushbr = sort(x_coch_cushbr, TRUE)
-sigtab_coch_cushbr$Genus = factor(as.character(sigtab_coch_cushbr$Genus), levels=sort(names(x_coch_cushbr)))
-
-cushbr<-ggplot(sigtab_coch_cushbr, aes(x=Genus, y=log2FoldChange, color=Phylum)) + 
-  geom_point(size=6) + 
-  theme_bw()+
-  rremove("grid")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, face="italic")) + theme(axis.text=element_text(size=15, color="black"), axis.title=element_text(size=15)) +
-          theme(legend.text=element_text(size=15, color="black")) + 
-          theme(legend.title = element_text(size=15, color="black"))
-
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_Cushbr_Coch.png", height=14, width=10)
-
-
-#### Graves Bridge - Cochrane ####
-diff_abun_Coch_gravesbr = subset_samples(sample_ps, Site %in% c("Cochrane", "Graves Bridge"))
-
-deseq_coch_gravesbr <- phyloseq_to_deseq2(diff_abun_Coch_gravesbr, ~ Site)
-deseq_coch_gravesbr <- DESeq(deseq_coch_gravesbr, test = "Wald", fitType = "parametric", sfType = "poscounts")  
-
-#Getting results of diff abund. estimates
-res_deseq_coch_gravesbr <- results(deseq_coch_gravesbr, cooksCutoff = FALSE)
-alpha = 0.001
-sigtab_coch_gravesbr = res_deseq_coch_gravesbr[which(res_deseq_coch_gravesbr$padj < alpha), ]
-sigtab_coch_gravesbr = cbind(as(sigtab_coch_gravesbr, "data.frame"), as(tax_table(sample_ps)[rownames(sigtab_coch_gravesbr), ], "matrix"))
-
-#write.csv(as.data.frame(sigtab_coch_gravesbr), file="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_Coch_GrvBr.csv")
-
-#Plotting the log2fold change in bacteria: Graves Bridge vs Cochrane
-
-x_coch_gravesbr = tapply(sigtab_coch_gravesbr$log2FoldChange, sigtab_coch_gravesbr$Phylum, function(x) max(x))
-x_coch_gravesbr = sort(x_coch_gravesbr, TRUE)
-sigtab_coch_gravesbr$Phylum = factor(as.character(sigtab_coch_gravesbr$Phylum), levels=sort(names(x_coch_gravesbr)))
-# Genus order
-x_coch_gravesbr = tapply(sigtab_coch_gravesbr$log2FoldChange, sigtab_coch_gravesbr$Genus, function(x) max(x))
-x_coch_gravesbr = sort(x_coch_gravesbr, TRUE)
-sigtab_coch_gravesbr$Genus = factor(as.character(sigtab_coch_gravesbr$Genus), levels=sort(names(x_coch_gravesbr)))
-
-grvbr<-ggplot(sigtab_coch_gravesbr, aes(x=Genus, y=log2FoldChange, color=Phylum)) + 
-  geom_point(size=6) + 
-  theme_bw()+
-  rremove("grid")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, face="italic")) + theme(axis.text=element_text(size=15, color="black"), axis.title=element_text(size=15)) +
-          theme(legend.text=element_text(size=15, color="black")) + 
-          theme(legend.title = element_text(size=15, color="black"))
-
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_GrvBr_Coch.png", height=14, width=12)
-
-#### Policeman Flats - Cochrane ####
-diff_abun_Coch_pmf = subset_samples(sample_ps, Site %in% c("Cochrane", "Policeman Flats"))
-
-deseq_coch_pmf <- phyloseq_to_deseq2(diff_abun_Coch_pmf, ~ Site)
-deseq_coch_pmf <- DESeq(deseq_coch_pmf, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_coch_pmf <- results(deseq_coch_pmf, cooksCutoff = FALSE)
-res_deseq_coch_pmf
-alpha = 0.001
-sigtab_coch_pmf = res_deseq_coch_pmf[which(res_deseq_coch_pmf$padj < alpha), ]
-sigtab_coch_pmf = cbind(as(sigtab_coch_pmf, "data.frame"), as(tax_table(sample_ps)[rownames(sigtab_coch_pmf), ], "matrix"))
-
-#write.csv(as.data.frame(sigtab_coch_pmf), file="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_Coch_PMF.csv")
-
-#Plotting the log2fold change in bacteria: Policeman Flats vs Cochrane
-
-x_coch_pmf = tapply(sigtab_coch_pmf$log2FoldChange, sigtab_coch_pmf$Phylum, function(x) max(x))
-x_coch_pmf = sort(x_coch_pmf, TRUE)
-sigtab_coch_pmf$Phylum = factor(as.character(sigtab_coch_pmf$Phylum), levels=names(x_coch_pmf))
-# Genus order
-x_coch_pmf = tapply(sigtab_coch_pmf$log2FoldChange, sigtab_coch_pmf$Genus, function(x) max(x))
-x_coch_pmf = sort(x_coch_pmf, TRUE)
-sigtab_coch_pmf$Genus = factor(as.character(sigtab_coch_pmf$Genus), levels=sort(names(x_coch_pmf)))
-
-sigtab_coch_pmf$Phylum<-factor(sigtab_coch_pmf$Phylum, levels = c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
-
-pmf<-ggplot(sigtab_coch_pmf, aes(x=Genus, y=log2FoldChange, color=Phylum)) + 
-  geom_point(size=6) + 
-  theme_bw()+
-  rremove("grid")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, face="italic")) + theme(axis.text=element_text(size=15, color="black"), axis.title=element_text(size=15)) +
-          theme(legend.text=element_text(size=15, color="black")) + 
-          theme(legend.title = element_text(size=15, color="black"))
- 
-
-pmf
-
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_PMF_Coch.png", height=14, width=10)
-#### Combining all Cochrane graphs ####
-sun_2<-sun + theme(plot.title = element_blank(), axis.title.y = element_blank(), axis.title.x=element_blank()) + rremove("legend")
-cushbr_2<-cushbr + theme(plot.title = element_blank(), axis.title.y = element_blank(), axis.title.x=element_blank())
-grvbr_2<-grvbr + theme(plot.title = element_blank(), axis.title.y = element_blank(), axis.title.x=element_blank()) + rremove("legend")
-pmf_2<-pmf + theme(plot.title = element_blank(), axis.title.y = element_blank(), axis.title.x=element_blank()) + rremove("legend")
-
-
-bow_deseq<-ggarrange(sun_2, cushbr_2, grvbr_2, pmf_2, nrow=2, ncol=2, legend="right", align="v", labels=c("A", "B", "C", "D"), vjust=-0.5)+theme(plot.margin = margin(1,1,1,3.5, "cm")) 
-
-
-annotate_figure(bow_deseq, left = text_grob(bquote(""*~Log[2]~Fold~Difference*""), rot = 90, vjust = 2, size=23))
-
-
-#ggsave(filename="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_all_bow.png", height=20, width=18, bg="white")
-
-
-#### Sunalta - Graves Bridge ####
-diff_abun_grvbr_Sunal = subset_samples(sample_ps2, Site %in% c("Graves Bridge", "Sunalta"))
-
-deseq_grvbr_sun <- phyloseq_to_deseq2(diff_abun_grvbr_Sunal, ~ Site)
-deseq_grvbr_sun <- DESeq(deseq_grvbr_sun, test = "Wald", fitType = "parametric", sfType = "poscounts")  
-
-#Getting results of diff abund. estimates
-res_deseq_grvbr_sun <- results(deseq_grvbr_sun, cooksCutoff = FALSE)
-alpha = 0.001
-sigtab_grvbr_sun = res_deseq_grvbr_sun[which(res_deseq_grvbr_sun$padj < alpha), ] 
-sigtab_grvbr_sun = cbind(as(sigtab_grvbr_sun, "data.frame"), as(tax_table(sample_ps2)[rownames(sigtab_grvbr_sun), ], "matrix")) 
-
-#write.csv(as.data.frame(sigtab_grvbr_sun), file="Microbiome_ED/Final analysis/Differential Abundance Results/deseq_grvbr_Sunalta.csv")
-
-
-x = tapply(sigtab$log2FoldChange, sigtab$Phylum, function(x) max(x))
-x = sort(x, TRUE)
-sigtab$Phylum = factor(as.character(sigtab$Phylum), levels=names(x))
-# Genus order
-x = tapply(sigtab$log2FoldChange, sigtab$Genus, function(x) max(x))
-x = sort(x, TRUE)
-sigtab$Genus = factor(as.character(sigtab$Genus), levels=names(x))
-ggplot(sigtab, aes(x=Genus, y=log2FoldChange, color=Family)) + geom_point(size=6) + 
-  theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust=0.5)) + theme(axis.text=element_text(size=15), axis.title=element_text(size=15)) +
-          theme(legend.text=element_text(size=15, color="black")) + 
-          theme(legend.title = element_text(size=15, color="black"))
-
-#ggsave(filename="Differential Abundance Results/deseq_Sunalta_Coch.png", height=6.5, width=7.5)
-```
 
 ## Comparing un-exposed sites to exposed sites - Bow River (inverts separated)
 ```{r}
@@ -9290,10 +8916,11 @@ ggarrange(diff_abund_hydro_plot_1, diff_abund_hep_plot_1, diff_abund_chiro_plot_
 
 ```
 
-## Differential abundance in ACWA streams {.tabset}
+## Differential abundance in ACWA streams, separated by invert taxa {.tabset}
 
 ### REF vs EXP5 
 ```{r}
+#### DESeq2 ####
 diff_abun_BRR2_PCR1 = subset_samples(sample_ps, Stream_Type=="ACWA Streams")
 diff_abun_BRR2_PCR1 = subset_samples(diff_abun_BRR2_PCR1, Site != "PCR3")
 
@@ -9386,7 +9013,7 @@ sig_aldex2_BRR2_PCR1 <- aldex2_BRR2_PCR1 %>%
   filter(wi.eBH < 0.01) %>%
   arrange(effect, wi.eBH) %>%
   dplyr::select(Sequences, diff.btw, diff.win, effect, wi.ep, wi.eBH)
-sig_aldex2_BRR2_PCR1 <- inner_join(sig_aldex2_BRR2_PCR1, tax_names, by="Sequences")
+sig_aldex2_BRR2_PCR1 <- dplyr::inner_join(sig_aldex2_BRR2_PCR1, tax_names, by="Sequences")
 
 
 aldex_BRR2_PCR1 = tapply(sig_aldex2_BRR2_PCR1$effect, sig_aldex2_BRR2_PCR1$Phylum, function(x) max(x))
@@ -9411,30 +9038,8 @@ ggplot(sig_aldex2_BRR2_PCR1, aes(x=Genus, y=effect, color=Phylum))+
 
 #Finds different taxa that are differentially abundant
 
-
-subset<-subset_taxa(diff_abun_BRR2_PCR1, Genus=="Blastocatella" | Genus=="Emticicia" | Genus=="Flavobacterium")
-
-subset_df <- psmelt(subset)
-
-subset_df_agg <- aggregate(Abundance ~ Genus + Site, data = subset_df, FUN = mean) 
-
-ggplot(subset_df_agg, aes(x=Genus, y=Abundance, fill=Site)) + 
-  geom_bar(stat="identity", color="black") + 
-  xlab("Mean Absolute Abundance") +
-  theme_bw()+
-  theme(legend.position="bottom", legend.key.size = unit(1, "cm"),
-        legend.text=element_text(size=16), legend.title=element_text(size=16)) +
-  guides (fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=22),
-        axis.text.y=element_text(size=18, color="black"),
-        axis.text.x=element_text(size=18, color="black"),
-                        axis.title=element_text(size=22))+
-  scale_fill_manual(name="ACWA Stream", values=c('#edddd4', '#197278', '#283d3b'))+
-  coord_cartesian(xlim =c(1, 500000))+
-  rremove("grid")+
-  ylab("Metabolic Pathways")
-
-#ggsave(filename="Microbiome_ED/PICRUSt2 Data/Figures/Differentially abundant ACWA taxa absolute abundances.png", height=12, width=18)
+# Hydropsychidae #
+diff_abun_hydro_REF_EXP5 = subset_samples(diff_abun_BRR2_PCR1, Family == "Hydropsychidae")
 ```
 
 ### REF vs EXP15
@@ -9645,6 +9250,30 @@ ggplot(sigtab_ephem_EXP5_EXP15, aes(x=Genus, y=log2FoldChange, color=Phylum)) + 
   scale_color_manual(values=c("red", "#234F1E", "blue", "#fdb915", "purple"))+
   rremove("grid")
 #2 diff abund bacteria
+```
+
+### ANCOMBC (All ACWA streams run together) ###
+```{r}
+#### Hydropsychidae ####
+hydro_ACWA<-subset_samples(ACWA_ps, Family=="Hydropsychidae")
+nsamples(hydro_ACWA) #24
+
+# ancombc
+hydro_ancom_out <- ancombc(phyloseq = hydro_ACWA, formula = "Site",
+              p_adj_method = "holm", lib_cut = 1000, 
+              group = "Site", struc_zero = TRUE, neg_lb = TRUE, tol = 1e-5, 
+              max_iter = 100, conserve = TRUE, alpha = 0.01, global = TRUE)
+hydro_ancom_res <- hydro_ancom_out$res
+
+tab_lfc = hydro_ancom_res$lfc
+
+hydro_tax<-as.data.frame(tax_table(hydro_ACWA))
+hydro_tax<-rownames_to_column(hydro_tax, var="taxon")
+
+hydro_ancom_res_combined<-dplyr::inner_join(hydro_tax, tab_lfc, by="taxon")
+
+
+
 ```
 
 ### Putting all ACWA graphs together ###
