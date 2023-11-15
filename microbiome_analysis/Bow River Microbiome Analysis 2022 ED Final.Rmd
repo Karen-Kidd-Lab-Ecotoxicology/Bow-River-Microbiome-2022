@@ -4215,15 +4215,27 @@ ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 
 cyano_Bow<-subset_taxa(Bow_ps, Phylum=="Cyanobacteria")
 cyano_Bow<-prune_taxa(taxa_sums(cyano_Bow)>0, cyano_Bow)
-cyano_Bow
+cyano_Bow #248 taxa, 284 samples
 cyano_ACWA<-subset_taxa(ACWA_ps, Phylum=="Cyanobacteria")
 cyano_ACWA<-prune_taxa(taxa_sums(cyano_ACWA)>0, cyano_ACWA)
-cyano_ACWA
+cyano_ACWA #148 taxa, 55 samples
+
+## Filtering for the cyanotoxin producing genera (Gugger et al., 2023 ; Millar et al., 2020; Zanchett and Oliveira-Filho, 2013) ##
+
+cyanotox_Bow<-subset_taxa(Bow_ps, Genus=="Dolichospermum" | Genus=="Anabaena" | Genus=="Planktothrix NIVA-CYA 15" | Genus=="Synechocytis" | Genus=="Synechococcus" | Genus=="Microcystis PCC-7914" | Genus=="Aphanizomenon MDT14a" | Genus=="Schizothrix LEGE 07164" | Genus=="Chroococus" | Genus=="Hydrocoleum" | Genus=="Aphanizomenon flos-aquae" | Genus=="Aphanizomenon" | Genus=="Fischerella" | Genus=="Planktothrix" | Genus=="Nostoc" | Genus=="Anabaenopsis" | Genus=="Nodularia" | Genus=="Cylindrospermopsis raciborskii" | Genus=="Aphanizomenon ovalisporum" | Genus=="Aphanizomenon zflos-aquae" | Genus=="Alexandrium" | Genus=="Pyrodinium" | Genus=="Gymnodinium" | Genus=="Lyngbya wollei" | Genus=="Lyngbya")
+cyanotox_Bow<-prune_taxa(taxa_sums(cyanotox_Bow) > 0, cyanotox_Bow)
+cyanotox_Bow #2 taxa, 284 samples
+sort(table(tax_table(cyanotox_Bow)[,6])) #1 genera: Planktothrix NIVA-CYA 15
+
+cyanotox_ACWA<-subset_taxa(ACWA_ps, Genus=="Dolichospermum" | Genus=="Anabaena" | Genus=="Planktothrix NIVA-CYA 15" | Genus=="Synechocytis" | Genus=="Synechococcus" | Genus=="Microcystis PCC-7914" | Genus=="Aphanizomenon MDT14a" | Genus=="Schizothrix LEGE 07164" | Genus=="Chroococus" | Genus=="Hydrocoleum" | Genus=="Aphanizomenon flos-aquae" | Genus=="Aphanizomenon" | Genus=="Fischerella" | Genus=="Planktothrix" | Genus=="Nostoc" | Genus=="Anabaenopsis" | Genus=="Nodularia" | Genus=="Cylindrospermopsis raciborskii" | Genus=="Aphanizomenon ovalisporum" | Genus=="Aphanizomenon zflos-aquae" | Genus=="Alexandrium" | Genus=="Pyrodinium" | Genus=="Gymnodinium" | Genus=="Lyngbya wollei" | Genus=="Lyngbya")
+cyanotox_ACWA<-prune_taxa(taxa_sums(cyanotox_ACWA) > 0, cyanotox_ACWA)
+cyanotox_ACWA #3 taxa, 55 samples
+sort(table(tax_table(cyanotox_ACWA)[,6])) #1 genera: Planktothrix NIVA-CYA 15
 
 #### Bow River only ####
 
 cyano_genus_Bow <- tax_glom(cyano_Bow, taxrank = "Genus")
-cyano_genus_Bow
+cyano_genus_Bow #16 genera
 
 rel_abun_cyano_genus_Bow <- transform_sample_counts(cyano_genus_Bow, function(x){x / sum(x)})
 
@@ -4246,7 +4258,7 @@ ggplot(cyano_genus_Bow_agg, aes(x=Site_code, y=Abundance, fill=Genus)) +
   rremove("grid")+
   theme(strip.text = element_text(size = 22, color="black")) + 
   theme(legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+        legend.text=element_text(size=24, face="italic"), legend.title=element_text(size=24)) +
   guides (fill=guide_legend(nrow=24)) +
   theme(axis.title.y=element_text(size=26),
         axis.text.y=element_text(size=22, color="black"),
@@ -4257,11 +4269,17 @@ ggplot(cyano_genus_Bow_agg, aes(x=Site_code, y=Abundance, fill=Genus)) +
   xlab("Site")+
   rremove("grid")
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/cyanobacteria genera across taxa and sites.png", height=16, width=26)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria genera across taxa and sites.png", height=12, width=26)
+
+cyano_Bow_df = data.frame(Genus = tax_table(cyano_genus_Bow)[,"Genus"], Mean = rowMeans(otu_table(cyano_genus_Bow)), row.names = NULL)
+cyano_Bow_df = cyano_Bow_df[order(-cyano_Bow_df$Mean),]
+
+cyano_Bow_df$percentage <- (cyano_Bow_df$Mean/sum(cyano_Bow_df$Mean)*100)
 
 
 #### ACWA streams only ####
 cyano_genus_ACWA <- tax_glom(cyano_ACWA, taxrank = "Genus")
+cyano_genus_ACWA #12 genera
 rel_abun_cyano_genus_ACWA <- transform_sample_counts(cyano_genus_ACWA, function(x){x / sum(x)})
 
 cyano_genus_ACWA_df <- psmelt(rel_abun_cyano_genus_ACWA)
@@ -4283,7 +4301,7 @@ ggplot(cyano_genus_ACWA_agg, aes(x=Site_code, y=Abundance, fill=Genus)) +
   rremove("grid")+
   theme(strip.text = element_text(size = 22, color="black")) + 
   theme(legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+        legend.text=element_text(size=24, face="italic"), legend.title=element_text(size=24)) +
   guides (fill=guide_legend(nrow=24)) +
   theme(axis.title.y=element_text(size=26),
         axis.text.y=element_text(size=22, color="black"),
@@ -4294,8 +4312,12 @@ ggplot(cyano_genus_ACWA_agg, aes(x=Site_code, y=Abundance, fill=Genus)) +
   xlab("Site")+
   rremove("grid")
 
-#ggsave(filename="Microbiome_ED/Final analysis/Relative abundance/All samples/Cyanobacteria genera ACWA across taxa and sites.png", height=16, width=26)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria genera ACWA across taxa and sites.png", height=14, width=26)
 
+cyano_ACWA_df = data.frame(Genus = tax_table(cyano_genus_ACWA)[,"Genus"], Mean = rowMeans(otu_table(cyano_genus_ACWA)), row.names = NULL)
+cyano_ACWA_df = cyano_ACWA_df[order(-cyano_ACWA_df$Mean),]
+
+cyano_ACWA_df$percentage <- (cyano_ACWA_df$Mean/sum(cyano_ACWA_df$Mean)*100)
 ```
 
 # Rarefying the data
@@ -10093,7 +10115,7 @@ sum(sample_sums(endo_Bow))/sum(sample_sums(Bow_ps))*100
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
 Bow_genus <- tax_glom(Bow_ps, taxrank = "Genus")
-comp_Bow_genus <- microbiome::transform(Bow_genus, "compositional")
+comp_Bow_genus <- transform_sample_counts(Bow_genus, function(x) x/sum(x))
 
 Bow_genus_df <- psmelt(comp_Bow_genus)
 
@@ -10162,7 +10184,7 @@ sum(sample_sums(endo_ACWA))/sum(sample_sums(ACWA_ps))*100
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 
 ACWA_genus <- tax_glom(ACWA_ps, taxrank = "Genus")
-comp_ACWA_genus <- microbiome::transform(ACWA_genus, "compositional")
+comp_ACWA_genus <- transform_sample_counts(ACWA_genus, function(x) x/sum(x))
 
 ACWA_genus_df <- psmelt(comp_ACWA_genus)
 
@@ -10546,7 +10568,7 @@ ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus)) 
 
 ```
 
-```{r Statistically testing the difference in endosymbiont relative abudnance}
+```{r Statistically testing the difference in endosymbiont relative abundance}
 
 #First transform the endosymbiont phyloseq data to a dataframe as we did with all the rel. abund. data
 
@@ -10625,164 +10647,105 @@ Genus_endo_Bow_graphing_df
 
 ```
 
-# Wastewater associated bacteria and Cyanobacteria
+# Wastewater associated bacteria 
 
-```{r Filtering for wastewater derived bacteria/pathogens}
-#### Cyanotoxin producing Cyanobacteria ####
-#Type of cyanobacteria that produce cyanotoxins 
-
-cyano<-subset_taxa(sample_ps, Phylum=="Cyanobacteria")
-cyano<-prune_taxa(taxa_sums(cyano) > 0, cyano)
-sort(table(tax_table(cyano)[,5])) #Family. 10 families (not counting the unknown one)
-sort(table(tax_table(cyano)[,6])) #Genus. 17 genera
-
-
-##Bow River 
-
-cyano_Bow<-subset_samples(cyano, Stream_Type=="Bow River")
-
-cyanogenus_Bow<-speedyseq::tax_glom(cyano_Bow, taxrank = "Genus")
-cyano_rel_abun_Bow <- transform_sample_counts(cyanogenus_Bow, function(x) x/sum(x))
-prune_taxa()
-cyano_df_Bow <- psmelt(cyano_rel_abun_Bow)
-sample.df.agg.cyano.Bow <- aggregate(Abundance ~ Site  + Genus + sample_Family +Stage, data = cyano_df_Bow, FUN = mean)
-
-sample.df.agg.cyano.Bow$sample_Family<-factor(sample.df.agg.cyano.Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
-
-ggplot(sample.df.agg.cyano.Bow, aes(x=Site, y=Abundance, fill=Genus)) + 
-  geom_bar(stat="identity", color="black") + 
-  ylab("Mean Relative Abundance") +
-  theme_bw()+
-  rremove("grid")+
-  facet_nested_wrap(~Stage+sample_Family, nrow=1, scales="free_x")+
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="right", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=17)) +
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=16, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
-  scale_y_continuous(label = scales::percent)
-
-#Calothrix KVSF5 increases downstream of wastewater and present in ACWA streams
-#Planktothrix NIVA-CYA 15 high at Graves Bridge and in ACWA streams. Potentially dissipates further downstream at Policeman Flats?
-
-#ggsave(filename="Microbiome_ED/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria in the Bow River across invertebrate taxa.png", height=8, width=20)
-
-## ACWA 
-
-cyano_ACWA<-subset_samples(cyano, Stream_Type!="Bow River")
-
-cyanogenus_ACWA<-speedyseq::tax_glom(cyano_ACWA, taxrank = "Genus")
-cyano_rel_abun_ACWA <- transform_sample_counts(cyanogenus_ACWA, function(x) x/sum(x))
-cyano_df_ACWA <- psmelt(cyano_rel_abun_ACWA)
-sample.df.agg.cyano.ACWA <- aggregate(Abundance ~ Site  + Genus + sample_Family +Stage, data = cyano_df_ACWA, FUN = mean)
-
-sample.df.agg.cyano.ACWA$sample_Family<-factor(sample.df.agg.cyano.ACWA$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
-
-ggplot(sample.df.agg.cyano.ACWA, aes(x=Site, y=Abundance, fill=Genus)) + 
-  geom_bar(stat="identity", color="black") + 
-  ylab("Mean Relative Abundance") +
-  theme_bw()+
-  rremove("grid")+
-  facet_nested_wrap(~Stage+sample_Family, nrow=1, scales="free_x")+
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="right", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=17)) +
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=16, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
-  scale_y_continuous(label = scales::percent)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria in ACWA across invertebrate taxa.png", height=8, width=20)
-
-
-## Filtering for the cyanotoxin producing genera (Gugger et al., 2023 ; Millar et al., 2020; Zanchett and Oliveira-Filho, 2013) ##
-
-cyanotox<-subset_taxa(cyano, Genus=="Dolichospermum" | Genus=="Anabaena" | Genus=="Planktothrix NIVA-CYA 15" | Genus=="Synechocytis" | Genus=="Synechococcus" | Genus=="Microcystis PCC-7914" | Genus=="Aphanizomenon MDT14a" | Genus=="Schizothrix LEGE 07164" | Genus=="Chroococus" | Genus=="Hydrocoleum" | Genus=="Aphanizomenon flos-aquae" | Genus=="Aphanizomenon" | Genus=="Fischerella" | Genus=="Planktothrix" | Genus=="Nostoc" | Genus=="Anabaenopsis" | Genus=="Nodularia" | Genus=="Cylindrospermopsis raciborskii" | Genus=="Aphanizomenon ovalisporum" | Genus=="Aphanizomenon zflos-aquae" | Genus=="Alexandrium" | Genus=="Pyrodinium" | Genus=="Gymnodinium" | Genus=="Lyngbya wollei" | Genus=="Lyngbya")
-cyanotox<-prune_taxa(taxa_sums(cyanotox) > 0, cyanotox)
-cyanotox #3 taxa
-sort(table(tax_table(cyanotox)[,6])) #1 genera: Planktothrix NIVA-CYA 15
-
-cyano_tox_coch<-subset_samples(cyanotox, Site=="Cochrane")
-cyano_tox_coch<-prune_taxa(taxa_sums(cyano_tox_coch) > 0, cyano_tox_coch)
-ntaxa(cyano_tox_coch) #1
-
-cyano_tox_sun<-subset_samples(cyanotox, Site=="Sunalta")
-cyano_tox_sun<-prune_taxa(taxa_sums(cyano_tox_sun) > 0, cyano_tox_sun)#0
-
-cyano_tox_cush<-subset_samples(cyanotox, Site=="Cushing Bridge")
-cyano_tox_cush<-prune_taxa(taxa_sums(cyano_tox_cush) > 0, cyano_tox_cush)
-ntaxa(cyano_tox_cush) #1
-
-cyano_tox_grv<-subset_samples(cyanotox, Site=="Graves Bridge")
-cyano_tox_grv<-prune_taxa(taxa_sums(cyano_tox_grv) > 0, cyano_tox_grv)
-ntaxa(cyano_tox_grv) #2
-
-cyano_tox_pmf<-subset_samples(cyanotox, Site=="Policeman Flats")
-cyano_tox_pmf<-prune_taxa(taxa_sums(cyano_tox_pmf) > 0, cyano_tox_pmf) #0
-
-cyano_tox_BRR2<-subset_samples(cyanotox, Site=="BRR2")
-cyano_tox_BRR2<-prune_taxa(taxa_sums(cyano_tox_BRR2) > 0, cyano_tox_BRR2) #0
-ntaxa(cyano_tox_BRR2) #2
-
-cyano_tox_PCR1<-subset_samples(cyanotox, Site=="PCR1")
-cyano_tox_PCR1<-prune_taxa(taxa_sums(cyano_tox_PCR1) > 0, cyano_tox_PCR1) #0
-ntaxa(cyano_tox_PCR1) #3
-
-cyano_tox_PCR3<-subset_samples(cyanotox, Site=="PCR3")
-cyano_tox_PCR3<-prune_taxa(taxa_sums(cyano_tox_PCR3) > 0, cyano_tox_PCR3) #0
-ntaxa(cyano_tox_PCR3) #3
-
-#Not due to wastewater exposure since they are present in upstream not impacted sites and only one impacted downstream site. 
-
-#Planktothrix NIVA-CYA 15
-plank<-subset_taxa(sample_ps, Genus=="Planktothrix NIVA-CYA 15")
-plank_rel_abun<-microbiome::transform(plank, "compositional")
-plank_df <- psmelt(plank_rel_abun)
-
-sample.df.agg.plank <- aggregate(Abundance ~ Site  + sample_Family, data = plank_df, FUN = mean) 
-
-##Relative Abundance Plot - Phylum Level
-rel_abun_plot_phylum_plank <- ggplot(sample.df.agg.plank, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Relative Abundance >5%") +
-  facet_wrap(.~sample_Family, scale="free_x", nrow=1) + 
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=16),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_fill_manual(name="Bacterial Phylum", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))
-rel_abun_plot_phylum_plank
-
-#Not found in spiders or at Sunalta. Increased at Graves Bridge but low/not present at other sites. Much higher in the ACWA streams. Could be due to high effluent exposure?
-
-
+```{r}
 #### Filtering for wastewater effluent-associated bacteria and potential pathogens ####
 
-#Wastewater effluent bacteria/pathogens based on several papers:
-#(Cyprowski et al., 2018; Kristensen et al., 2020; Leight et al., 2018; Millar et al., 2022)
+#First aggregate by genus and see how many we have. 
+genus_all <- tax_glom(sample_ps, taxrank = "Genus")
+genus_all #493 genera
 
+rel_abun_genus_all <- transform_sample_counts(genus_all, function(x) x/sum(x))
 
-effluent_bac<-subset_taxa(sample_ps, Genus=="Bifidobacterium" | Genus=="Clostridium" | Genus=="Propionibacterium" | Genus=="Peptostreptococcus" | Genus=="Actinomyces" | Genus=="Arcobacter" | Genus=="Ruminococcus" | Genus=="Escherichia coli" | Genus=="Campylobacter" | Genus=="Salmonella" | Genus=="Shigella" | Genus=="Trichococcus" | Genus=="Streptococcus" | Genus=="Blautia" | Genus=="Enterococcus" | Genus=="Vibrio vulnificus" | Genus=="Aeromonas" | Genus=="Legionella" | Genus=="Fusibacter" | Genus=="Romboutsia" | Genus=="Cloacibacterium" | Genus=="Pseudomonas" | Genus=="Acetoanaerobium" | Genus=="Acidaminococcus" | Genus=="Aquimonas" | Genus=="AUTHM297" | Genus=="Bact-08" | Genus == "BD1-7 clade" | Genus=="C1-B045" | Genus=="Candidatus Cloacimonas" | Genus=="Candidatus Paenicardinium" | Genus=="Candidatus Protochlamydia" | Genus=="Chiayiivirga" | Genus=="Desulfobacter" | Genus=="Flavitalea" | Genus=="Lelliottia" | Genus=="Leptotrichia" | Genus=="Mesotoga" | Genus=="Neochlamydia" | Genus=="Ottowia" | Genus=="Planctopirus" | Genus=="Prevotellaceae UCG-004" | Genus=="Proteiniclasticum" | Genus=="SC103" | Genus=="Steroidobacter" | Genus=="Succinivibrio" | Genus=="SWB02" | Genus=="Thermovirga" | Genus=="Turneriella" | Genus=="U29-B03" | Genus=="XBB1006" | Genus=="Shewanella" | Genus=="Sphingobacterium" | Genus=="Vibrio" | Genus=="Ochrobactrum" | Genus=="Zoogloea" | Genus=="Sediminibacterium"| Genus=="Terrimonas"| Genus=="Portibacter"|Genus=="Haliangium"|Genus=="Kofleria" | Genus=="Parasphingorhabdus" |Genus=="Sphingomonas"|Genus=="Mitsuaria"| Genus=="Deinococcus"| Genus=="Chryseolina" | Genus=="Runella"| Genus=="Malikia")
+genus_df_all <- psmelt(rel_abun_genus_all)
+
+agg_all <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = genus_df_all, FUN = mean) #aggregate to Phylum level, take the mean
+
+#Sort abundance of each genus by mean at each site
+sort_genus_all <- agg_all %>%
+    group_by(Genus, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+sort_genus_all
+
+# Researched all genera on Google Scholar to see if they were wastewater associated #
+# Achromobacter - Jin et al., (2015). Int. J. Environ. Res. Public Health. Kundu et al., (2011). Bioprocess and Biosystems Engineering. 
+# Acidovorax - Wang et al., (2009). Water Science and Technology. Heylen et al., (2008). Int. J. Sys. Evol. Biology. 
+# Acinetobacter - Higgins et al., (2018). Water Research. Liu et al., (2017). Bioresource Technology. 
+# Aeromonas - Harnisz and Korzeniewska, (2018). Sci. Total Environ. Figueira et al., (2011). Water Research. 
+# Afipia - Zhang et al., (2009). FEMS Microbiology. Kim et al., (2014). J. Microbiol. Biotechnol.
+# Ahniella - Tang et al., (2023). Environ. Research. 
+# Alcaligenes (faecalis or aquatilis) - Joo et al., (2006). Water Research. Cao et al., (2022). Bioresource Technol. 
+# Amaricoccus - Maszenan et al., (2000). J Appl. Microbiology. Maszenan et al., (1997). INT. J. SYST. BACTERIology.
+#Anaerocella - Yan et al., (2021). Environ. Science and Pollution Research. Abe et al., (2012). J Gen. Appl. Microbiol.
+#Anaerovorax - Zhu et al., (2018). Biochem Engineering J. Chu et al., (2021). Environ. Science and Pollut. research. 
+#	Arenimonas - Liu et al., (2018). Int J Microbiol. Research. Feng et al., (2022). J Water Process eng.
+#Arthrobacter - Roh et al., (2008). J Microbiol. Agunbiade et al., (2017). BMC Biotechn. 
+#Bacillus - Ertugrul et al., (2007). J Hazardous Mater. Deng et al., (2003). App. Microbiol. and biotech.
+#Bacteroides - Srinivasan et al., (2011). Water Research. Niestępski et al., (2020). J Hazardous Mat. 
+# Barnesiella - Morotomi et al., (2008). Int J Microbol. Research.
+#Blastocatella - Ouyang et al., (2017). Environ. Technol. Huang et al., (2017). Bioresource Technol.
+#	Blautia - Cai & Zhang (2014). Appl. Microbiol. and biotechnol.
+#Bordetella - Sanuth et al., (2013). Indian J Microbiol. Awad et al., (2022). Sci total environ.
+#Bosea - Lee et al., (2017). Kor. J. Fisheries. Aquat. Sci.
+#Brevundimonas - Ryu et al., (2007). Int. J. Sys. Evol. Biology. Sforza et al., (2018). Bioresource Technol. 
+#Candidatus Accumulibacter - He & McMahon, 2011. Microbial biotechnology. 
+#Candidatus Competibacter - Rubio-Rincon et al., (2017). Water Research.
+#Candidatus Contendobacter - Zhou et al., (2023). Int. Biodeterioration and biodegredation.
+#Candidatus Microthrix - Blackall et al., (1996). Int J Sys Evol Microbiology
+#Candidatus Nitrotoga - Zheng et al., (2021). Environ Sci Tech
+#Cetobacterium - Wang et al., 2022. Ecotox.  Environ. safety
+#Chitinivorax - Begmatov et al., (2022). Scientific reports. 
+#Chryseobacterium - Kundu et al., (2014). Biomed research. Kamper et al., (2003). Int. J Sys. Evol Microbiology
+#Chthoniobacter - Feng et al., (2020). Bioresource technol.
+#Citrobacter - Owoseni and Okoh, (2017). Environ monitroing assessment. 
+#	Cloacibacterium - Allen et al., (2006). Int J Sys Evol Microbiology
+#Clostridium sensu stricto 1 - Wang et al., (2003). J Biotechnol. 
+#	Clostridium sensu stricto 13 - Yin et al., (2021). Int J Hydro Energy
+#Comamonas - Gumaelius et al., (2001). Int J Sys Evol biology
+#Corynebacterium - Liu et al., (2023). Front. Bioengineer. biotechnol. 
+#Curtobacterium - Li et al., (2021). Sci total environ.
+#Curvibacter - Zielinska et al., 2016. Environ. technol.
+#	Cytophaga - Manz et al., 1994. Water research.
+#Dechloromonas - Mcllroy et al., (2016). Environ. Microbiology
+#Defluviicoccus - Maszenan et al., (2022). Water Research. Burow et al., (2007). Microbiology research.
+#Delftia - Shigematsu et al., (2003). Int. J Sys. Evol. Microbiology
+#Desulfatirhabdium - Balk et al., (2008). Int. J Sys. Evol. Micro
+#Desulfobacca - oude Elferink et al., (1999). Int. J Sys. Evol. Micro
+#Desulfobulbus - Houari et al., (2017). Int. J Sys. Evol. Micro
+#Desulfoprunum - Junghare et al., (2015). Int. J Sys. Evol. Micro
+#Desulfosporosinus - Houari et al., (2020). Processes
+#Ellin6067 - Feng et al., (2022). J Water Process engineering
+#Enterococcus - Taučer-Kapteijn et al., (2017). Delft University of Technology.
+#Erysipelothrix - Ma et al., (2023). J. Environ. Manage.
+#	Escherichia-Shigella - Yang et al., (2021). J Cleaner Product.
+#Faecalibacterium - Wery et al., (2010). Water research.
+#Ferruginibacter - Wijaya et al., (2023). Environ. Research. 
+#Flavobacterium sasangense - Yoon et al., (2009).  Int. J Sys. Evol. Micro.
+#Flavobacterium anseonense - Chen et al., (2019). Water.
+#Fusicatenibacter - Takada et al., (2013). Int. J. Sys. Evol. Micro.
+#Haliangium - Mcllroy et al., (2016). Environ. Micro.
+#Haliscomenobacter - Van Veen et al., (1973). Antonie van Leeuwenhoek
+#Halomonas - Li et al., (2023). Environ. Sci. Pollut.
+#Hydrogenophaga - Kampfer et al., (2005). Int. J. Sys. Evol. Micro
+#Hyphomicrobium - Leyton et al., (2000). Appl. Environ. Microbiology
+#Ideonella - Kraigher et al., (2008). Water Research
+#Inhella - Zeng et al., (2019). Environ. Engin. research
+#Intestinibacter - Major et al., (2022). Waste Management. 
+
+effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Species=="sasangense" | Species=="anseonense" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter")
 effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
-effluent_bac #93 taxa 305 samples
+effluent_bac #95 taxa 305 samples
 
-sort(table(tax_table(effluent_bac)[,6])) #17 Genera
-sort(table(tax_table(effluent_bac)[,7])) #28 species
+sort(table(tax_table(effluent_bac)[,6])) #18 Genera
+X<-subset_taxa(sample_ps, Genus=="Hyphomicrobium")
+sort(table(tax_table(X)[,7])) #28 species
 
 #Cochrane
 effluent_coch<-subset_samples(effluent_bac, Site=="Cochrane")
 effluent_coch<-prune_taxa(taxa_sums(effluent_coch) > 0, effluent_coch) 
-effluent_coch #57 taxa, 61 samples / 67 
+effluent_coch #57 taxa, 61 samples 
 
 sort((table(tax_table(effluent_coch)[,6]))/ntaxa(effluent_coch))*100
 #Sphingomonas (17.5%), Blautia (17.5%), Streptococcus (12.3%)
@@ -11646,6 +11609,74 @@ top5effbacplot <- ggplot(top5effbac, aes(x=Site, y=Abundance, fill=Genus)) + geo
 top5effbacplot
 
 #Graves Bridge looks like it's the Bow River site with the most amount of change in the common effluent-associated bacteria (increase in Bacillus). However, the Bow River sites do not have much of the same bacteria as the ACWA streams (less Romboutsia, Aeromonas, and Enterococcus but more Bacillus). 
+#### Plotting eff-assoc. bac. relative to non eff-assoc. bac. across sites + taxa ####
+
+#Bow River 
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+
+
+effluent_Bow<-subset_samples(effluent_bac, Stream_Type=="Bow River")
+effluent_Bow<-prune_taxa(taxa_sums(effluent_Bow) > 0, effluent_Bow) 
+sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #17 genera
+#Sphingomonas (14.3%), Terrimonas (11.0%), Blautia (11.0%)
+sum(sample_sums(effluent_Bow))/sum(sample_sums(Bow_ps))*100
+#Effluent bacteria comprises 1.01% of the total microbiome in the Bow River (across all invertebrate types). Very small amount.
+
+## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
+
+Bow_genus <- tax_glom(Bow_ps, taxrank = "Genus")
+Bow_genus #493 genera
+comp_Bow_genus <- microbiome::transform(Bow_genus, "compositional")
+
+Bow_genus_df <- psmelt(comp_Bow_genus)
+
+Bow_agg <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = Bow_genus_df, FUN = mean) #aggregate to Phylum level, take the mean
+
+#Sort abundance of each genus by mean at each site
+sort_genus_Bow <- Bow_agg %>%
+    group_by(Genus, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+sort_genus_Bow
+
+effluents_Bow <- sort_genus_Bow$Genus[c(81:85, 276:280, 561:565, 686:690, 806:810, 1021:1025, 1736:1740, 1771:1775, 1791:1795, 1906:1910, 1966:1970, 1971:1975, 2016:2020, 2021:2025, 2051:2055, 2116:2120, 2201:2205, 2231:2235, 2381:2385)]
+  
+eff_df_Bow <- Bow_agg %>%
+    mutate(Genus = fct_other(Genus, effluents_Bow))
+
+eff_agg_df_Bow<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_Bow, FUN = sum)
+
+#endo_agg_df_Bow$Genus<-factor(endo_agg_df_Bow$Genus, levels=c("Other", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"), labels=c( "Non-endosymbionts", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"))
+
+eff_agg_df_Bow$Site_code <- factor(eff_agg_df_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+eff_agg_df_Bow$sample_Family<-factor(eff_agg_df_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.8, "cm"),
+        legend.text=element_text(size=28, face="italic"), legend.title=element_text(size=28), legend.position = "right") +
+  guides(fill=guide_legend(nrow=25)) +
+  theme(axis.title.y=element_text(size=30),
+        axis.text.y=element_text(size=24, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
+                        axis.title.x=element_text(size=30))+
+  #scale_fill_manual(name="Genus", values=c("honeydew4", "tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+eff_plot_Bow
+
+
+#ggsave(eff_plot_Bow, filename="Microbiome_ED/Final analysis/Relative abundance/Effluent /Endosymbiont composition across sites and taxa Bow only.png", height=12, width=22)
+
 ```
 
 # Picrust2
