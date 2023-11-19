@@ -10794,114 +10794,112 @@ effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax
 effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
 effluent_bac #971 taxa 326 samples
 
-sort(table(tax_table(effluent_bac)[,6])) #18 Genera
-X<-subset_taxa(sample_ps, Genus=="Yersinia")
-sort(table(tax_table(X)[,7])) #28 species
+sort(table(tax_table(effluent_bac)[,6])) #116 Genera
+sort(table(tax_table(effluent_bac)[,7])) #971 species/unique taxa
 
 #Cochrane
 effluent_coch<-subset_samples(effluent_bac, Site=="Cochrane")
 effluent_coch<-prune_taxa(taxa_sums(effluent_coch) > 0, effluent_coch) 
-effluent_coch #57 taxa, 61 samples 
+effluent_coch #566 taxa, 64 samples /67 = 95.5%
 
 sort((table(tax_table(effluent_coch)[,6]))/ntaxa(effluent_coch))*100
-#Sphingomonas (17.5%), Blautia (17.5%), Streptococcus (12.3%)
+#Rhodoferax (12.9%), Pseudorhodobacter (6.18%), Ferruginibacter (5.12%)
 
 #Hydropsychidae larvae
-
-nsamples(hydro_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Hydropsychidae")) #8
+nsamples(hydro_coch<-subset_samples(sample_ps, Site=="Cpchrane" & Family=="Hydropsychidae")) #8 samples
 
 eff_hydro_coch<-subset_samples(effluent_coch, Family=="Hydropsychidae")
 eff_hydro_coch<-prune_taxa(taxa_sums(eff_hydro_coch) > 0, eff_hydro_coch) 
-eff_hydro_coch #10 taxa, 8/8 samples = 100% prevalence
+eff_hydro_coch #123 taxa, 8/8 samples = 100% prevalence
 
 sample_sums(eff_hydro_coch) #Present in all 8 samples (100% prevalence)
 
 sort((table(tax_table(eff_hydro_coch)[,6]))/ntaxa(eff_hydro_coch))*100
-#Terrimonas (30%), Runella (20%), Sphingomonas (10%)
+#Rhodoferax (21.1%), Pseudorhodobacter (13.0%), Hyphomicrobium (11.4%)
 
 #Heptageniidae larvae
 nsamples(hep_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Heptageniidae")) #8
 
 eff_hep_coch<-subset_samples(effluent_coch, Family=="Heptageniidae")
 eff_hep_coch<-prune_taxa(taxa_sums(eff_hep_coch) > 0, eff_hep_coch) 
-eff_hep_coch #18 taxa, 8/8 samples = 100% prevalence
+eff_hep_coch #276 taxa, 8/8 samples = 100% prevalence
 
 sample_sums(eff_hep_coch) #Present in all 8 samples (100% prevalence)
 
 sort((table(tax_table(eff_hep_coch)[,6]))/ntaxa(eff_hep_coch))*100
-#Sphingomonas (27.8%), Runella (16.7%), Terrimonas (11.1%)
+#Rhodoferax (18.8%), Pseudorhodobacter (6.88%), Ferruginibacter (6.16%)
 
 #Chironomidae larvae 
 nsamples(chiro_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Chironomidae")) #5
 
 eff_chiro_coch<-subset_samples(effluent_coch, Family=="Chironomidae")
 eff_chiro_coch<-prune_taxa(taxa_sums(eff_chiro_coch) > 0, eff_chiro_coch) 
-eff_chiro_coch #6 taxa, 5/5 samples = 100% prevalence
+eff_chiro_coch #90 taxa, 5/5 samples = 100% prevalence
 
 sample_sums(eff_chiro_coch) #Present in all 5 samples (100% prevalence)
 
 sort((table(tax_table(eff_chiro_coch)[,6]))/ntaxa(eff_chiro_coch))*100
-#Sphingomonas (33.3%), Romboutsia (33.3%), Terrimonas (16.7%)
+#Rhodoferax (11.1%), Ferruginibacter (10.0%), Roseomonas (5.56%)
 
 #Perlidae larvae 
 nsamples(hydro_perl<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Perlidae")) #8
 
 eff_perl_coch<-subset_samples(effluent_coch, Family=="Perlidae")
 eff_perl_coch<-prune_taxa(taxa_sums(eff_perl_coch) > 0, eff_perl_coch) 
-eff_perl_coch #10 taxa, 8 samples
+eff_perl_coch #150 taxa, 8 samples
 
 sample_sums(eff_perl_coch) #Present in all 8 samples (100% prevalence)
 
 sort((table(tax_table(eff_perl_coch)[,6]))/ntaxa(eff_perl_coch))*100
-#Runella (50), Sphingomonas (20), Romboutsia (10)
+#Rhodoferax (15.3%), Pseudorhodobacter (12.7%), Methylotenera (12.0%)
 
 #Trichoptera
 nsamples(trichop_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Trichoptera")) #8
 
 eff_trichop_coch<-subset_samples(effluent_coch, Family=="Trichoptera")
 eff_trichop_coch<-prune_taxa(taxa_sums(eff_trichop_coch) > 0, eff_trichop_coch) 
-eff_trichop_coch #13 taxa, 6 samples = 75 %
+eff_trichop_coch #169 taxa, 7 samples = 87.5 %
 
-sample_sums(eff_trichop_coch) #Present in all 6 samples (100% prevalence)
+sample_sums(eff_trichop_coch) #Present in all 7 samples 
 
 sort((table(tax_table(eff_trichop_coch)[,6]))/ntaxa(eff_trichop_coch))*100
-#Sphingomonas (53.8%), Terrimonas (15.4%), Streptococcus (7.69%)
+#Rhodoferax (13.0%), Massilia (11.8%), Brevundimonas (7.69%)
 
 #Ephemeroptera 
 nsamples(ephem_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Ephemeroptera")) #8
 
 eff_ephem_coch<-subset_samples(effluent_coch, Family=="Ephemeroptera")
 eff_ephem_coch<-prune_taxa(taxa_sums(eff_ephem_coch) > 0, eff_ephem_coch) 
-eff_ephem_coch #14 taxa, 8 samples
+eff_ephem_coch #74 taxa, 8 samples
 
 sample_sums(eff_ephem_coch) #Present in all 8 samples (100% prevalence)
 
 sort((table(tax_table(eff_ephem_coch)[,6]))/ntaxa(eff_ephem_coch))*100
-#Streptococcus (28.6), Sphingomonas (21.4%), Ruminococcus (14.3)
+#Staphylococcus (12.2%), Corynebacterium (8.11%), Brevundimonas (8.11%)
 
 #Diptera
 nsamples(dip_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Diptera")) #8
 
 eff_dip_coch<-subset_samples(effluent_coch, Family=="Diptera")
 eff_dip_coch<-prune_taxa(taxa_sums(eff_dip_coch) > 0, eff_dip_coch) 
-eff_dip_coch #19 taxa, 6 samples= 75%
+eff_dip_coch #60 taxa, 6 samples
 
 sample_sums(eff_dip_coch) #Present in all 6 samples (100% prevalence)
 
 sort((table(tax_table(eff_dip_coch)[,6]))/ntaxa(eff_dip_coch))*100
-#Blautia (42.1%), Ruminococcus (15.8%), Streptococcus (10.5%)
+#Blautia (13.3%), Staphylococcus (8.33%), Faecalibacterium (8.33%)
 
 #Araneidae
 nsamples(aran_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Araneidae")) #8
 
 eff_aran_coch<-subset_samples(effluent_coch, Family=="Araneidae")
 eff_aran_coch<-prune_taxa(taxa_sums(eff_aran_coch) > 0, eff_aran_coch) 
-eff_aran_coch #22 taxa, 8 samples
+eff_aran_coch #69 taxa, 8 samples
 
 sample_sums(eff_aran_coch) #Present in all 8 samples (100% prevalence)
 
 sort((table(tax_table(eff_aran_coch)[,6]))/ntaxa(eff_aran_coch))*100
-#Blautia (45.5%), Streptococcus (18.2%), Sphingomonas (13.6%)
+#Blautia (14.5%), Faecalibacterium (8.70%), Staphylococcus (7.25%)
 
 
 #Tetragnathidae
@@ -10909,21 +10907,22 @@ nsamples(tetra_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Tetra
 
 eff_tetra_coch<-subset_samples(effluent_coch, Family=="Tetragnathidae")
 eff_tetra_coch<-prune_taxa(taxa_sums(eff_tetra_coch) > 0, eff_tetra_coch) 
-eff_tetra_coch #14 taxa, 4 samples
+eff_tetra_coch #53 taxa, 6 samples
 
-sample_sums(eff_tetra_coch) #Present in all 8 samples (100% prevalence)
+sample_sums(eff_tetra_coch) #Present in 6 samples = 75% prevalence
 
 sort((table(tax_table(eff_tetra_coch)[,6]))/ntaxa(eff_tetra_coch))*100
-#Blautia (35.7%), Streptococcus (21.4%), Ruminococcus (14.3)
+#Massilia (9.43%), Blautia (9.43%%), Staphylococcus (5.66%)
 
 
 ## Sunalta ## 
 
 effluent_sun<-subset_samples(effluent_bac, Site=="Sunalta")
 effluent_sun<-prune_taxa(taxa_sums(effluent_sun) > 0, effluent_sun) 
-effluent_sun #50 taxa, 39 samples/47 = 83.0 %
+effluent_sun #521 taxa, 44 samples/47 = 93.6 %
 
 sort((table(tax_table(effluent_sun)[,6]))/sum(ntaxa(effluent_sun))*100)
+#Rhodoferax (12.7%), Massilia (6.33%), Pseudorhodobacter (6.14%)
 
 #Hydropsychidae larvae
 
@@ -10931,12 +10930,12 @@ nsamples(hydro_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Hydrops
 
 eff_hydro_sun<-subset_samples(effluent_sun, Family=="Hydropsychidae")
 eff_hydro_sun<-prune_taxa(taxa_sums(eff_hydro_sun) > 0, eff_hydro_sun) 
-eff_hydro_sun #5 taxa, 7 samples = 100% prevalence
+eff_hydro_sun #124 taxa, 7 samples = 100% prevalence
 
 sample_sums(eff_hydro_sun) #Present in all 7 samples (100% prevalence)
 
 sort((table(tax_table(eff_hydro_sun)[,6]))/ntaxa(eff_hydro_sun))*100
-#Runella (60), Romboutsia (20), Haliangium (20)
+#Rhodoferax (21.8%), Pseudorhodobacter (14.5%), Rhizorhapis (9.68%)
 
 #Heptageniidae larvae
 nsamples(hep_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Heptageniidae")) #8
@@ -11323,7 +11322,7 @@ ggplot(sample.df.agg.effluent.genus.Bow, aes(x=Site, y=Abundance, fill=Genus)) +
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
                         axis.title=element_text(size=18))+
-  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  #scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
   scale_y_continuous(label = scales::percent)
 
 
@@ -11342,12 +11341,12 @@ ggplot(sample.df.agg.effluent.genus.Bow.invert, aes(x=Site, y=Abundance, fill=Ge
   theme(strip.text = element_text(size = 16, color="black")) + 
   theme(legend.position="right", legend.key.size = unit(0.5, "cm"),
         legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=17)) +
+  guides (fill=guide_legend(nrow=50)) +
   theme(axis.title.y=element_text(size=16),
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
                         axis.title=element_text(size=18))+
-  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  #scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
   scale_y_continuous(label = scales::percent)
 
 ## ACWA ##
@@ -11370,301 +11369,14 @@ ggplot(sample.df.agg.effluent.genus.ACWA, aes(x=Site, y=Abundance, fill=Genus)) 
   theme(strip.text = element_text(size = 16, color="black")) + 
   theme(legend.position="right", legend.key.size = unit(0.5, "cm"),
         legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=17)) +
+  guides (fill=guide_legend(nrow=50)) +
   theme(axis.title.y=element_text(size=16),
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
                         axis.title=element_text(size=18))+
-  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  #scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
   scale_y_continuous(label = scales::percent)
 
-
-
-
-#The following graphs will be the mean total abundance (instead of sum) of each individual effluent-bacteria/pathogen to control for the sample size.
-
-#Trichococcus
-#Total abundance
-tricho<-subset_taxa(sample_ps, Genus=="Trichococcus")
-tricho_df <- psmelt(tricho)
-tricho_agg <- aggregate(Abundance ~ Site, data = tricho_df, FUN = mean)
-
-ggplot(tricho_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ggtitle("Trichococcus")
-
-#Highest mean total abundance at PCR3 then Cushing Bridge. None at BRR2 or PCR1
-
-ps_rare<-rarefy_even_depth(sample_ps)
-head(sample_sums(ps_rare))
-
-#Aeromonas
-aero<-subset_taxa(ps_rare, Genus=="Aeromonas")
-sort(table(tax_table(aero)[,7])) #Sobria and veronii are potential human pathogens causing nausea, vomiting, diarrhea 
-aero_df <- psmelt(aero)
-aero_agg <- aggregate(Abundance ~ Site, data = aero_df, FUN = sum)
-
-ggplot(aero_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ggtitle("Aeromonas")
-#High in Policeman Flats and Cushing Bridge. Low everywhere else. Not found in PCR3 effluent stream... possibly not due to wastewater effluent exposure.
-
-#Ruminococcus
-rumino<-subset_taxa(ps_rare, Genus=="Ruminococcus")
-rumino_df <- psmelt(rumino)
-rumino_agg <- aggregate(Abundance ~ Site, data = rumino_df, FUN = sum)
-
-ggplot(rumino_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Ruminococcus")
-
-#Ruminococcus decreased slightly with wastewater exposure (why would it be highest at Cochrane? Maybe agricultural runoff/ cabin septic tanks?)
-
-
-#Enterococcus
-entero<-subset_taxa(ps_rare, Genus=="Enterococcus")
-entero_df <- psmelt(entero)
-entero_agg <- aggregate(Abundance ~ Site, data = entero_df, FUN = sum)
-
-ggplot(entero_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Enterococcus")
-
-#Highest mean total abundance at Cochrane
-
-#Blautia
-blaut<-subset_taxa(ps_rare, Genus=="Blautia")
-blaut_df <- psmelt(blaut)
-blaut_agg <- aggregate(Abundance ~ Site, data = blaut_df, FUN = sum)
-
-ggplot(blaut_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Blautia")
-
-#Highest mean total abundance at Cochrane 
-
-#Streptococcus
-strep<-subset_taxa(ps_rare, Genus=="Streptococcus")
-strep_df <- psmelt(strep)
-strep_agg <- aggregate(Abundance ~ Site , data = strep_df, FUN = sum)
-
-ggplot(strep_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid") + ggtitle("Streptococcus")
-#Much lower at Graves Bridge and ACWA streams
-
-
-#Streptococcus gallolyticus
-strep_gallo<-subset_taxa(sample_ps, Species=="gallolyticus")
-sgallo <- psmelt(strep_gallo)
-agg_gallo <- aggregate(Abundance ~ Site, data = sgallo, FUN = mean)
-
-ggplot(agg_gallo, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid") + ggtitle("Streptococcus gallolyticus")
-
-#Highest at PCR1 in ACWA streams and Cochrane at Bow River sites
-
-#Cloacibacterium
-cloac<-subset_taxa(sample_ps, Genus=="Cloacibacterium")
-cloac_df <- psmelt(cloac)
-cloac_agg <- aggregate(Abundance ~ Site, data = cloac_df, FUN = mean)
-
-ggplot(cloac_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Cloacibacterium")
-
-#Highest at Policeman Flats
-
-#Romboutsia
-romb<-subset_taxa(sample_ps, Genus=="Romboutsia")
-romb_df <- psmelt(romb)
-romb_agg <- aggregate(Abundance ~ Site, data = romb_df, FUN = mean)
-
-ggplot(romb_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Romboutsia")
-#Higher at PCR1 and PCR3 in ACWA. A bit higher at Sunalta and Graves Bridge (doesn't seem to be wastewater exposure driving that in the Bow)
-
-#Bacillus
-bacillus<-subset_taxa(sample_ps, Genus=="Bacillus")
-bacillus_df <- psmelt(bacillus)
-bacillus_agg <- aggregate(Abundance ~ Site, data = bacillus_df, FUN = mean)
-
-ggplot(bacillus_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Total Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Bacillus")
-
-#Highest at Graves Bridge
-
-#Pseudomonas
-pseudo<-subset_taxa(sample_ps, Genus=="Pseudomonas")
-pseudo_df <- psmelt(pseudo)
-pseudo_agg <- aggregate(Abundance ~ Site, data = pseudo_df, FUN = mean)
-
-ggplot(pseudo_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Relative Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Pseudomonas")
-
-#Highest at Cushing Bridge then Policeman Flats
-
-aeru<-subset_taxa(effluent_bac, Species=="aeruginosa")
-
-aeru_df <- psmelt(aeru)
-aeru_agg <- aggregate(Abundance ~ Site, data = aeru_df, FUN = mean)
-
-ggplot(aeru_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Relative Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Pseudomonas")
-
-#Yersinia pestis (plague causing bacteria in mammals)
-pestis<-subset_taxa(sample_ps, Species=="pestis")
-pestis<-prune_taxa(taxa_sums(pestis) > 0, pestis)
-sample_sums(pestis)
-
-pestis_df <- psmelt(pestis)
-pestis_agg <- aggregate(Abundance ~ Site, data = pestis_df, FUN = mean)
-
-ggplot(pestis_agg, aes(x=Site, y=Abundance)) + geom_bar(stat="identity") + 
-  ylab("Mean Relative Abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=10),
-        axis.text.y=element_text(size=6),
-        axis.text.x=element_text(angle=45, hjust=1, size=6, color="black"),
-                        axis.title=element_text(size=10))+
-  rremove("grid")+ ggtitle("Yersinia pestis")
-#Found at Cochrane mostly and a bit at Policeman Flats. Only found in stonefly. None found at Cushing Bridge.
-
-
-#Top 5 effluent derived bacteria
-top_eff_bac <- sample.df.agg.effluentbac.genus %>%
-    group_by(Site, Genus) %>%
-    summarise(Mean = mean(Abundance)) %>%
-    arrange(-Mean)
-top_eff_bac
-top5effbac <- top_eff_bac$Genus[1:10]
-top5effbac<- sample.df.agg.effluentbac.genus %>%
-    mutate(Genus = fct_other(Genus, top5effbac))
-
-
-top5effbac$Genus <- factor(top5effbac$Genus, levels=c("Bacillus", "Enterococcus", "Aeromonas", "Streptococcus", "Other", "Romboutsia")) #labels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Other", "Proteobacteria"))
-
-top5effbacplot <- ggplot(top5effbac, aes(x=Site, y=Abundance, fill=Genus)) + geom_bar(stat="identity") +
-  ylab("Mean Relative Abundance") +
-  #facet_grid(.~Taxa, scale="free_x", space = "free_x") + 
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=6)) +
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=16),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_fill_manual(name="Bacterial Genus", values = c(brewer.pal(4, "Paired"), "#43464B", "lightcoral"))+
-  scale_y_continuous(label = scales::percent) + rremove("grid")
-
-top5effbacplot
-
-#Graves Bridge looks like it's the Bow River site with the most amount of change in the common effluent-associated bacteria (increase in Bacillus). However, the Bow River sites do not have much of the same bacteria as the ACWA streams (less Romboutsia, Aeromonas, and Enterococcus but more Bacillus). 
 
 #### Plotting eff-assoc. bac. relative to non eff-assoc. bac. across sites + taxa ####
 
@@ -11672,20 +11384,18 @@ top5effbacplot
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 
-
-
 effluent_Bow<-subset_samples(effluent_bac, Stream_Type=="Bow River")
 effluent_Bow<-prune_taxa(taxa_sums(effluent_Bow) > 0, effluent_Bow) 
-sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #17 genera
-#Sphingomonas (14.3%), Terrimonas (11.0%), Blautia (11.0%)
+sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #116 genera
+#Rhodoferax (10.4%), Pseudorhodobacter (6.39%), Hyphomicrobium (4.33%)
 sum(sample_sums(effluent_Bow))/sum(sample_sums(Bow_ps))*100
-#Effluent bacteria comprises 1.01% of the total microbiome in the Bow River (across all invertebrate types). Very small amount.
+#Effluent bacteria comprises 9.16% of the total microbiome in the Bow River (across all invertebrate types). Decently small amount.
 
 ## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
 
 Bow_genus <- tax_glom(Bow_ps, taxrank = "Genus")
 Bow_genus #493 genera
-comp_Bow_genus <- microbiome::transform(Bow_genus, "compositional")
+comp_Bow_genus <- transform_sample_counts(Bow_genus, function(x) x/sum(x))
 
 Bow_genus_df <- psmelt(comp_Bow_genus)
 
@@ -11698,18 +11408,29 @@ sort_genus_Bow <- Bow_agg %>%
     arrange()
 sort_genus_Bow
 
-effluents_Bow <- sort_genus_Bow$Genus[c(81:85, 276:280, 561:565, 686:690, 806:810, 1021:1025, 1736:1740, 1771:1775, 1791:1795, 1906:1910, 1966:1970, 1971:1975, 2016:2020, 2021:2025, 2051:2055, 2116:2120, 2201:2205, 2231:2235, 2381:2385)]
+#effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Youngiibacter" | Genus=="Zoogloea")
+
+effluents_Bow <- sort_genus_Bow$Genus[c(31:35, 46:50, 51:56, 81:85, 101:105, 111:115, 146:150, 156:160, 166:170, 191:195, 201:205, 241:245, 251:255, 256:260, 276:280, 281:285, 286:290, 301:305, 361:365, 396:400, 401:405, 426:430, 436:440, 506:510, 521:525, 536:540, 541:545, 551:556, 561:565, 566:580, 606:610, 626:630, 631:635, 646:650, 666:670, 676:680, 691:695, 701:705, 706:710, 711:715, 716:720, 721:725, 781:785, 806:810, 816:820, 831:835, 841:845, 866:870, 941:945, 1021:1025, 1026:1030, 1031:1035, 1041:1045, 1051:1055, 1081:1085, 1101:1110, 1156:1160, 1206:1210, 1241:1245, 1266:1270, 1271:1275, 1321:1325, 1336:1340, 1346:1350, 1361:1365, 1366:1370, 1386:1395, 1411:1415, 1466:1485, 1496:1510, 1521:1525, 1541:1545, 1566:1570, 1596:1605, 1641:1645, 1656:1665, 1691:1695, 1706:1715, 1746:1750, 1771:1775, 1791:1795, 1801:1805, 1811:1815, 1826:1830, 1861:1870, 1876:1880, 1921:1925, 1936:1940, 1951:1955, 1966:1975, 2001:2005, 2016:2025, 2046:2050, 2096:2100, 2106:2110, 2141:2145, 2161:2165, 2231:2235, 2366:2370, 2381:2385)]
   
 eff_df_Bow <- Bow_agg %>%
     mutate(Genus = fct_other(Genus, effluents_Bow))
 
 eff_agg_df_Bow<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_Bow, FUN = sum)
 
-#endo_agg_df_Bow$Genus<-factor(endo_agg_df_Bow$Genus, levels=c("Other", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"), labels=c( "Non-endosymbionts", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"))
-
 eff_agg_df_Bow$Site_code <- factor(eff_agg_df_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 eff_agg_df_Bow$sample_Family<-factor(eff_agg_df_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+top_eff_bow <- eff_agg_df_Bow %>%
+    group_by(Genus) %>%
+    summarise(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+View(top_eff_bow)
+top_eff_bow_30 <- top_eff_bow$Genus[1:31]
+eff_bow <- eff_agg_df_Bow %>%
+    mutate(Genus = fct_other(Genus, top_eff_bow_30))
+df0_bow
+df0_bow<-aggregate(Abundance~Phylum + Site_code + sample_Family+Stage, data=df0_bow, FUN="sum")
 
 eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)) +
   geom_bar(stat="identity", color="black") + 
@@ -11719,21 +11440,22 @@ eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)
   rremove("grid")+
   theme(strip.text = element_text(size = 22, color="black")) + 
   theme(legend.key.size = unit(0.8, "cm"),
-        legend.text=element_text(size=28, face="italic"), legend.title=element_text(size=28), legend.position = "right") +
-  guides(fill=guide_legend(nrow=25)) +
+        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=12), legend.position = "right") +
+  guides(fill=guide_legend(nrow=40, ncol=3)) +
   theme(axis.title.y=element_text(size=30),
         axis.text.y=element_text(size=24, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
                         axis.title.x=element_text(size=30))+
-  #scale_fill_manual(name="Genus", values=c("honeydew4", "tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
+  scale_fill_manual(name="Genus", values=c("honeydew4"))+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
 eff_plot_Bow
 
 
-#ggsave(eff_plot_Bow, filename="Microbiome_ED/Final analysis/Relative abundance/Effluent /Endosymbiont composition across sites and taxa Bow only.png", height=12, width=22)
+#ggsave(eff_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria Bow river.png", height=14, width=28)
 
+#Too many colours... try top 30 most abundant...
 ```
 
 # Picrust2
