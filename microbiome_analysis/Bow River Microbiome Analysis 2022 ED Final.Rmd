@@ -10790,23 +10790,21 @@ sort_genus_all
 #Youngiibacter - Shi et al., (2023). Fuel
 #Zoogloea - Lajoie, et al., (2000). Water environ. research
 
-effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Species=="sasangense" | Species=="anseonense" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Youngiibacter" | Genus=="Zoogloea")
+effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Species=="sasangense" | Species=="anseonense" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Thermomonas" | Genus=="Youngiibacter" | Genus=="Zoogloea")
 effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
-effluent_bac #971 taxa 326 samples
+effluent_bac #974 taxa 326 samples
 
-sort(table(tax_table(effluent_bac)[,6])) #116 Genera
-sort(table(tax_table(effluent_bac)[,7])) #971 species/unique taxa
 
 #Cochrane
 effluent_coch<-subset_samples(effluent_bac, Site=="Cochrane")
 effluent_coch<-prune_taxa(taxa_sums(effluent_coch) > 0, effluent_coch) 
-effluent_coch #566 taxa, 64 samples /67 = 95.5%
+effluent_coch #567 taxa, 64 samples /67 = 95.5%
 
 sort((table(tax_table(effluent_coch)[,6]))/ntaxa(effluent_coch))*100
-#Rhodoferax (12.9%), Pseudorhodobacter (6.18%), Ferruginibacter (5.12%)
+#Rhodoferax (12.9%), Pseudorhodobacter (6.17%), Ferruginibacter (5.11%)
 
 #Hydropsychidae larvae
-nsamples(hydro_coch<-subset_samples(sample_ps, Site=="Cpchrane" & Family=="Hydropsychidae")) #8 samples
+nsamples(hydro_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Hydropsychidae")) #8 samples
 
 eff_hydro_coch<-subset_samples(effluent_coch, Family=="Hydropsychidae")
 eff_hydro_coch<-prune_taxa(taxa_sums(eff_hydro_coch) > 0, eff_hydro_coch) 
@@ -10822,12 +10820,12 @@ nsamples(hep_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Heptage
 
 eff_hep_coch<-subset_samples(effluent_coch, Family=="Heptageniidae")
 eff_hep_coch<-prune_taxa(taxa_sums(eff_hep_coch) > 0, eff_hep_coch) 
-eff_hep_coch #276 taxa, 8/8 samples = 100% prevalence
+eff_hep_coch #277 taxa, 8/8 samples = 100% prevalence
 
 sample_sums(eff_hep_coch) #Present in all 8 samples (100% prevalence)
 
 sort((table(tax_table(eff_hep_coch)[,6]))/ntaxa(eff_hep_coch))*100
-#Rhodoferax (18.8%), Pseudorhodobacter (6.88%), Ferruginibacter (6.16%)
+#Rhodoferax (18.8%), Pseudorhodobacter (6.86%), Ferruginibacter (6.14%)
 
 #Chironomidae larvae 
 nsamples(chiro_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Chironomidae")) #5
@@ -10884,7 +10882,7 @@ eff_dip_coch<-subset_samples(effluent_coch, Family=="Diptera")
 eff_dip_coch<-prune_taxa(taxa_sums(eff_dip_coch) > 0, eff_dip_coch) 
 eff_dip_coch #60 taxa, 6 samples
 
-sample_sums(eff_dip_coch) #Present in all 6 samples (100% prevalence)
+sample_sums(eff_dip_coch) #Present in all 6 samples (75% prevalence)
 
 sort((table(tax_table(eff_dip_coch)[,6]))/ntaxa(eff_dip_coch))*100
 #Blautia (13.3%), Staphylococcus (8.33%), Faecalibacterium (8.33%)
@@ -10919,10 +10917,10 @@ sort((table(tax_table(eff_tetra_coch)[,6]))/ntaxa(eff_tetra_coch))*100
 
 effluent_sun<-subset_samples(effluent_bac, Site=="Sunalta")
 effluent_sun<-prune_taxa(taxa_sums(effluent_sun) > 0, effluent_sun) 
-effluent_sun #521 taxa, 44 samples/47 = 93.6 %
+effluent_sun #522 taxa, 44 samples/47 = 93.6 %
 
 sort((table(tax_table(effluent_sun)[,6]))/sum(ntaxa(effluent_sun))*100)
-#Rhodoferax (12.7%), Massilia (6.33%), Pseudorhodobacter (6.14%)
+#Rhodoferax (12.6%), Massilia (6.32%), Pseudorhodobacter (6.13%)
 
 #Hydropsychidae larvae
 
@@ -10943,10 +10941,10 @@ nsamples(hep_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Heptageni
 
 eff_hep_sun<-subset_samples(effluent_sun, Family=="Heptageniidae")
 eff_hep_sun<-prune_taxa(taxa_sums(eff_hep_sun) > 0, eff_hep_sun) 
-eff_hep_sun #21 taxa, 7 samples 
+eff_hep_sun #333 taxa, 8 samples 
 
 sort((table(tax_table(eff_hep_sun)[,6]))/ntaxa(eff_hep_sun))*100
-#Blautia (28.6), Runella (19.0), Streptococcus (9.52)
+#Rhodoferax (15.9), Pseudorhodobacter (8.41), Hyphomicrobium (6.01)
 
 #Trichoptera
 nsamples(trichop_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Trichoptera")) #8
@@ -10954,12 +10952,11 @@ nsamples(trichop_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Trich
 
 eff_trichop_sun<-subset_samples(effluent_sun, Family=="Trichoptera")
 eff_trichop_sun<-prune_taxa(taxa_sums(eff_trichop_sun) > 0, eff_trichop_coch) 
-eff_trichop_sun #50 taxa, 7 samples
+eff_trichop_sun #522 taxa, 7 samples = 87.5%
 
-sample_sums(eff_trichop_coch) #Present in all 6 samples (100% prevalence)
 
 sort((table(tax_table(eff_trichop_sun)[,6]))/ntaxa(eff_trichop_sun))*100
-#Sphingomonas (18%), Blautia (18), Streptococcus (14%)
+#Rhodoferax (12.6%), Massilia (6.32), Pseudorhodobacter (6.13%)
 
 #Ephemeroptera 
 nsamples(ephem_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Ephemeroptera")) #8
@@ -10967,12 +10964,10 @@ nsamples(ephem_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Ephemer
 
 eff_ephem_sun<-subset_samples(effluent_sun, Family=="Ephemeroptera")
 eff_ephem_sun<-prune_taxa(taxa_sums(eff_ephem_sun) > 0, eff_ephem_sun) 
-eff_ephem_sun #17 taxa, 7 samples
-
-sample_sums(eff_ephem_coch) #Present in all 8 samples (100% prevalence)
+eff_ephem_sun #98 taxa, 8 samples
 
 sort((table(tax_table(eff_ephem_sun)[,6]))/ntaxa(eff_ephem_sun))*100
-#Streptococcus (23.5), Sphingomonas (11.8), Sediminibacterium (11.8)
+#Massilia (16.3%), Staphylococcus (11.2%), Corynebacterium (7.14%)
 
 #Araneidae
 nsamples(aran_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Araneidae")) #8
@@ -10980,12 +10975,10 @@ nsamples(aran_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Araneida
 
 eff_aran_sun<-subset_samples(effluent_sun, Family=="Araneidae")
 eff_aran_sun<-prune_taxa(taxa_sums(eff_aran_sun) > 0, eff_aran_sun) 
-eff_aran_sun #27 taxa, 8 samples
-
-sample_sums(eff_aran_sun) #Present in all 8 samples (100% prevalence)
+eff_aran_sun #109 taxa, 8 samples
 
 sort((table(tax_table(eff_aran_sun)[,6]))/ntaxa(eff_aran_sun))*100
-#Blautia (29.6%), Sphingomonas (25.9%), Streptococcus (14.8)
+#Massilia (24.8), Blautia (7.34), Arthtobacter (6.42)
 
 
 #Tetragnathidae
@@ -10994,16 +10987,16 @@ nsamples(tetra_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Tetragn
 
 eff_tetra_sun<-subset_samples(effluent_sun, Family=="Tetragnathidae")
 eff_tetra_sun<-prune_taxa(taxa_sums(eff_tetra_sun) > 0, eff_tetra_sun) 
-eff_tetra_sun #4 taxa, 3 samples
+eff_tetra_sun #14 taxa, 6 samples = 75
 
 sort((table(tax_table(eff_tetra_sun)[,6]))/ntaxa(eff_tetra_sun))*100
-#Blautia (50%), Ruminococcus (25%), Romboutsia (25)
+#Massilia (35.7), Clostridium sensu stricto 1 (14.3), Blautia (14.3)
 
 
 ## Cushing Bridge ##
 effluent_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge")
 effluent_cush<-prune_taxa(taxa_sums(effluent_cush) > 0, effluent_cush) 
-effluent_cush #67 taxa, 52 samples/63 = 84.1 %
+effluent_cush #669 taxa, 59 samples/63 = 93.7 %
 
 sort((table(tax_table(effluent_cush)[,6]))/sum(ntaxa(effluent_cush))*100)
 
@@ -11013,10 +11006,10 @@ nsamples(hydro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family==
 
 eff_hydro_cush<-subset_samples(effluent_cush, Family=="Hydropsychidae")
 eff_hydro_cush<-prune_taxa(taxa_sums(eff_hydro_cush) > 0, eff_hydro_cush) 
-eff_hydro_cush #5 taxa, 5 samples = 100% prevalence
+eff_hydro_cush #124 taxa, 5 samples = 100% prevalence
 
 sort((table(tax_table(eff_hydro_cush)[,6]))/ntaxa(eff_hydro_cush))*100
-#Terrimonas (20%), Runella (40%), Haliangium (20%)
+#Rhodoferax (19.4), Pseudorhodobacter (17.7), Hyphomicrobium (9.68)
 
 #Heptageniidae larvae
 nsamples(hep_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Heptageniidae")) #8
@@ -11024,10 +11017,10 @@ nsamples(hep_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="H
 
 eff_hep_cush<-subset_samples(effluent_cush, Family=="Heptageniidae")
 eff_hep_cush<-prune_taxa(taxa_sums(eff_hep_cush) > 0, eff_hep_cush) 
-eff_hep_cush #14 taxa, 7 samples 
+eff_hep_cush #295 taxa, 8 samples 
 
 sort((table(tax_table(eff_hep_cush)[,6]))/ntaxa(eff_hep_cush))*100
-#Sphingomonas (14.3%), Runella (14.3%), Romboutsia (14.3%)
+#Rhodoferax (16.9), Pseudorhodobacter (7.80), Arenimonas (5.76)
 
 #Chironomidae larvae 
 nsamples(chiro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Chironomidae")) #6
@@ -11035,10 +11028,10 @@ nsamples(chiro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family==
 
 eff_chiro_cush<-subset_samples(effluent_cush, Family=="Chironomidae")
 eff_chiro_cush<-prune_taxa(taxa_sums(eff_chiro_cush) > 0, eff_chiro_cush) 
-eff_chiro_cush #7 taxa, 4 samples
+eff_chiro_cush #131 taxa, 6 samples
 
 sort((table(tax_table(eff_chiro_cush)[,6]))/ntaxa(eff_chiro_cush))*100
-#Streptococcus (28.6), Zoogloea (14.3), Terrimonas (14.3). 
+#Rhodoferax (9.92), Rhodobacter (7.63), Roseomonas (5.34)
 
 #Perlidae larvae 
 nsamples(perl_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Perlidae")) #5
@@ -11046,11 +11039,11 @@ nsamples(perl_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="
 
 eff_perl_cush<-subset_samples(effluent_cush, Family=="Perlidae")
 eff_perl_cush<-prune_taxa(taxa_sums(eff_perl_cush) > 0, eff_perl_cush) 
-eff_perl_cush #14 taxa, 5 samples
+eff_perl_cush #301 taxa, 5 samples, 100%
 
 
 sort((table(tax_table(eff_perl_cush)[,6]))/ntaxa(eff_perl_cush))*100
-#Runella (35.7), Sphingomonas (28.6), Trichococcus (7.14)
+#Rhodoferax (13.3), Pseudorhodobacter (9.97), Leptothrix (5.98)
 
 #Trichoptera
 nsamples(trichop_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Trichoptera")) #8
@@ -11058,11 +11051,11 @@ nsamples(trichop_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family
 
 eff_trichop_cush<-subset_samples(effluent_cush, Family=="Trichoptera")
 eff_trichop_cush<-prune_taxa(taxa_sums(eff_trichop_cush) > 0, eff_trichop_cush) 
-eff_trichop_cush #26 taxa, 6 samples
+eff_trichop_cush #181 taxa, 7 samples = 87.5%
 
 
 sort((table(tax_table(eff_trichop_cush)[,6]))/ntaxa(eff_trichop_cush))*100
-#Spingomonas (34.6), streptococcus (15.4), Pseudomonas (15.4)
+#Pseudorhodobacter (9.94), Massilia (9.94), Rhodoferax (7.18)
 
 #Ephemeroptera 
 nsamples(ephem_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Ephemeroptera")) #8
@@ -11070,10 +11063,10 @@ nsamples(ephem_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family==
 
 eff_ephem_cush<-subset_samples(effluent_cush, Family=="Ephemeroptera")
 eff_ephem_cush<-prune_taxa(taxa_sums(eff_ephem_cush) > 0, eff_ephem_cush) 
-eff_ephem_cush #13 taxa, 3 samples
+eff_ephem_cush #65 taxa, 5 samples = 62.5
 
 sort((table(tax_table(eff_ephem_cush)[,6]))/ntaxa(eff_ephem_cush))*100
-#Streptococcus (23.1), Sphingomonas (23.1), Pseudomonas (23.1)
+#Staphylococcus (20.0), Nocardioides (9.23), Arthrobacter (7.69)
 
 #Diptera
 nsamples(dip_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Diptera")) #8
@@ -11081,21 +11074,20 @@ nsamples(dip_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="D
 
 eff_dip_cush<-subset_samples(effluent_cush, Family=="Diptera")
 eff_dip_cush<-prune_taxa(taxa_sums(eff_dip_cush) > 0, eff_dip_cush) 
-eff_dip_cush #16 taxa, 8 samples
+eff_dip_cush #79 taxa, 8 samples =100%
 
 sort((table(tax_table(eff_dip_cush)[,6]))/ntaxa(eff_dip_cush))*100
-#Pseudomonas (31.3), Blautia (25.0), Sphingomonas (18.8)
+#Staphylococcus (19.0), Massilia (10.1), Corynebacterium (8.86)
 
 #Araneidae
 nsamples(aran_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Araneidae")) #7
 
-
 eff_aran_cush<-subset_samples(effluent_cush, Family=="Araneidae")
 eff_aran_cush<-prune_taxa(taxa_sums(eff_aran_cush) > 0, eff_aran_cush) 
-eff_aran_cush #26 taxa, 7 samples
+eff_aran_cush #84 taxa, 7 samples =100%
 
 sort((table(tax_table(eff_aran_cush)[,6]))/ntaxa(eff_aran_cush))*100
-#Blautia (30.8%), Streptococcus (19.2%), Sphingomonas (15.4%)
+#Massilia (25.0), Blautia (9.52), Faecalibacterium (7.14)
 
 
 #Tetragnathidae
@@ -11104,10 +11096,10 @@ nsamples(tetra_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family==
 
 eff_tetra_cush<-subset_samples(effluent_cush, Family=="Tetragnathidae")
 eff_tetra_cush<-prune_taxa(taxa_sums(eff_tetra_cush) > 0, eff_tetra_cush) 
-eff_tetra_cush #21 taxa, 7 samples
+eff_tetra_cush #89 taxa, 8 samples=100%
 
 sort((table(tax_table(eff_tetra_cush)[,6]))/ntaxa(eff_tetra_cush))*100
-#Sphingomonas (33.3), Blautia (33.3), Ruminococcus (14.3)
+#Massilia (10.1), Blautia (7.87), Rubellimicrobium (6.74). 
 
 ## Graves Bridge ##
 
@@ -11123,10 +11115,10 @@ nsamples(hydro_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="H
 
 eff_hydro_grv<-subset_samples(effluent_grv, Family=="Hydropsychidae")
 eff_hydro_grv<-prune_taxa(taxa_sums(eff_hydro_grv) > 0, eff_hydro_grv) 
-eff_hydro_grv #10 taxa, 8 samples =100% prev
+eff_hydro_grv #212 taxa, 8 samples =100% prev
 
 sort((table(tax_table(eff_hydro_grv)[,6]))/ntaxa(eff_hydro_grv))*100
-#Terrimonas (50%), Runella (20%), Sphingomonas (10%)
+#Rhodoferax (17.9), Pseudorhodobacter (13.7), Hyphomicrobium (8.49)
 
 #Heptageniidae larvae
 nsamples(hep_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Heptageniidae")) #8
@@ -11134,10 +11126,10 @@ nsamples(hep_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Hep
 
 eff_hep_grv<-subset_samples(effluent_grv, Family=="Heptageniidae")
 eff_hep_grv<-prune_taxa(taxa_sums(eff_hep_grv) > 0, eff_hep_grv) 
-eff_hep_grv #18 taxa, 8 samples 
+eff_hep_grv #342 taxa, 8 samples 
 
 sort((table(tax_table(eff_hep_grv)[,6]))/ntaxa(eff_hep_grv))*100
-#Sphingomonas (16.7%), Sediminibacterium (16.7), Trichococcus (11.1)
+#Rhodoferax (18.1), Pseudorhodobacter (8.19), Hyphomicrobium (5.85)
 
 #Trichoptera
 nsamples(trichop_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Trichoptera")) #7
@@ -11145,11 +11137,11 @@ nsamples(trichop_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family==
 
 eff_trichop_grv<-subset_samples(effluent_grv, Family=="Trichoptera")
 eff_trichop_grv<-prune_taxa(taxa_sums(eff_trichop_grv) > 0, eff_trichop_grv) 
-eff_trichop_grv #21 taxa, 7 samples
+eff_trichop_grv #141 taxa, 7 samples
 
 
 sort((table(tax_table(eff_trichop_grv)[,6]))/ntaxa(eff_trichop_grv))*100
-#Streptococcus (23.8), Sphingomonas (23.8), Blautia (14.3)
+#Brevundimonas (8.51), Massilia (7.80), Staphylococcus (5.67)
 
 #Ephemeroptera 
 nsamples(ephem_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Ephemeroptera")) #8
@@ -11157,10 +11149,10 @@ nsamples(ephem_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="E
 
 eff_ephem_grv<-subset_samples(effluent_grv, Family=="Ephemeroptera")
 eff_ephem_grv<-prune_taxa(taxa_sums(eff_ephem_grv) > 0, eff_ephem_grv) 
-eff_ephem_grv #8 taxa, 5 samples
+eff_ephem_grv #54 taxa, 8 samples
 
 sort((table(tax_table(eff_ephem_grv)[,6]))/ntaxa(eff_ephem_grv))*100
-#Streptococcus (23.1), Sphingomonas (23.1), Pseudomonas (23.1)
+#Staphylococcus (18.5), Corynebacterium (7.41), Nocardioides (5.56)
 
 #Araneidae
 nsamples(aran_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Araneidae")) #8
@@ -11168,10 +11160,10 @@ nsamples(aran_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Ar
 
 eff_aran_grv<-subset_samples(effluent_grv, Family=="Araneidae")
 eff_aran_grv<-prune_taxa(taxa_sums(eff_aran_grv) > 0, eff_aran_grv) 
-eff_aran_grv #21 taxa, 8 samples
+eff_aran_grv #98 taxa, 8 samples=100%
 
 sort((table(tax_table(eff_aran_grv)[,6]))/ntaxa(eff_aran_grv))*100
-#Blautia (28.6%), Sphingomonas (23.8%), Ruminococcus (19.0)
+#Massilia (21.4), Blautia (6.12), Arthrobacter (6.12)
 
 
 #Tetragnathidae
@@ -11180,16 +11172,16 @@ nsamples(tetra_grv<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="T
 
 eff_tetra_grv<-subset_samples(effluent_grv, Family=="Tetragnathidae")
 eff_tetra_grv<-prune_taxa(taxa_sums(eff_tetra_grv) > 0, eff_tetra_grv) 
-eff_tetra_grv #7 taxa, 4 samples
+eff_tetra_grv #26 taxa, 6 samples = 62.5
 
 sort((table(tax_table(eff_tetra_grv)[,6]))/ntaxa(eff_tetra_grv))*100
-#Ruminococcus (28.6), Blautia (28.6), Streptococcus (14.3)
+#Faecalibacterium (11.5), Ruminococcus (7.69), Corynebacterium (7.69)
 
 ## Policeman Flats ##
 
 effluent_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats")
 effluent_pmf<-prune_taxa(taxa_sums(effluent_pmf) > 0, effluent_pmf) 
-effluent_pmf #70 taxa, 58 samples/60 
+effluent_pmf #708 taxa, 59 samples/60 
 
 sort((table(tax_table(effluent_pmf)[,6]))/sum(ntaxa(effluent_pmf))*100)
 
@@ -11199,71 +11191,71 @@ nsamples(hydro_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family==
 
 eff_hydro_pmf<-subset_samples(effluent_pmf, Family=="Hydropsychidae")
 eff_hydro_pmf<-prune_taxa(taxa_sums(eff_hydro_pmf) > 0, eff_hydro_pmf) 
-eff_hydro_pmf #13 taxa, 8 samples = 100% prevalence
+eff_hydro_pmf #197 taxa, 8 samples = 100% prevalence
 
 sort((table(tax_table(eff_hydro_pmf)[,6]))/ntaxa(eff_hydro_pmf))*100
-#Terrimonas (30.8%), Runella (23.1%), Haliangium (23.1%)
+#Rhodoferax (14.2), Pseudorhodobacter (10.7), Rhizorhapis (5.58)
 
 #Heptageniidae larvae
 nsamples(hep_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Heptageniidae")) #8
 
 eff_hep_pmf<-subset_samples(effluent_pmf, Family=="Heptageniidae")
 eff_hep_pmf<-prune_taxa(taxa_sums(eff_hep_pmf) > 0, eff_hep_pmf) 
-eff_hep_pmf #23 taxa, 8 samples 
+eff_hep_pmf #392 taxa, 8 samples 
 
 sort((table(tax_table(eff_hep_pmf)[,6]))/ntaxa(eff_hep_pmf))*100
-#Terrimonas (21.7), Runella (17.4), Streptococcus (13.0)
+#Rhodoferax (13.3), Pseudorhodobacter (11.2), Hyphomicrobium (7.65)
 
 #Chironomidae larvae 
 nsamples(chiro_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Chironomidae")) #5
 
 eff_chiro_pmf<-subset_samples(effluent_pmf, Family=="Chironomidae")
 eff_chiro_pmf<-prune_taxa(taxa_sums(eff_chiro_pmf) > 0, eff_chiro_pmf) 
-eff_chiro_pmf #13 taxa, 5 samples
+eff_chiro_pmf #168 taxa, 5 samples
 
 sort((table(tax_table(eff_chiro_pmf)[,6]))/ntaxa(eff_chiro_pmf))*100
-#Romboutsia (30.8), Terrimonas (15.4), Haliangium (15.4) 
+#Rhodoferax (12.5), Pseudorhodobacter (8.93), Leptothrix (5.95)
 
 #Perlidae larvae 
 nsamples(perl_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Perlidae")) #8
 
 eff_perl_pmf<-subset_samples(effluent_pmf, Family=="Perlidae")
 eff_perl_pmf<-prune_taxa(taxa_sums(eff_perl_pmf) > 0, eff_perl_pmf) 
-eff_perl_pmf #13 taxa, 8 samples
+eff_perl_pmf #192 taxa, 8 samples
 
 
 sort((table(tax_table(eff_perl_pmf)[,6]))/ntaxa(eff_perl_pmf))*100
-#Haliangium (23.1), Terrimonas (15.4), Runella (15.4) 
+#Methylotenera (10.9), Rhodoferax (9.38), Pseudorhodobacter (9.38)
 
 #Ephemeroptera 
 nsamples(ephem_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Ephemeroptera")) #8
 
 eff_ephem_pmf<-subset_samples(effluent_pmf, Family=="Ephemeroptera")
 eff_ephem_pmf<-prune_taxa(taxa_sums(eff_ephem_pmf) > 0, eff_ephem_pmf) 
-eff_ephem_pmf #22 taxa, 7 samples
+eff_ephem_pmf #119 taxa, 7 samples = 87.5
 
 sort((table(tax_table(eff_ephem_pmf)[,6]))/ntaxa(eff_ephem_pmf))*100
-#Sphingomonas (22.7), Streptococcus (18.2), Pseudomonas (18.2)
+#Staphylococcus (7.56), Massilia (7.56), Pseudorhodobacter (6.72)
 
 #Diptera
 nsamples(dip_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Diptera")) #8
 
 eff_dip_pmf<-subset_samples(effluent_pmf, Family=="Diptera")
 eff_dip_pmf<-prune_taxa(taxa_sums(eff_dip_pmf) > 0, eff_dip_pmf) 
-eff_dip_pmf #15 taxa, 8 samples
+eff_dip_pmf #66 taxa, 8 samples
 
 sort((table(tax_table(eff_dip_pmf)[,6]))/ntaxa(eff_dip_pmf))*100
-#Sphingomonas (26.7), Streptococcus (20.0), Pseudomonas (20.0)
+#Staphylococcus (15.2), Serratia (6.06), Halomonas (6.06)
 
 #Araneidae
 nsamples(aran_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Araneidae")) #7
 
 eff_aran_pmf<-subset_samples(effluent_pmf, Family=="Araneidae")
 eff_aran_pmf<-prune_taxa(taxa_sums(eff_aran_pmf) > 0, eff_aran_pmf) 
-eff_aran_pmf #16 taxa, 7 samples
+eff_aran_pmf #114 taxa, 7 samples
 
 sort((table(tax_table(eff_aran_pmf)[,6]))/ntaxa(eff_aran_pmf))*100
-#Blautia (37.5%), Sphingomonas (18.8%), Ruminococcus (12.5)
+#Massilia (20.2), Brevundimonas (10.5), Rubellimicrobium (5.26)
 
 
 #Tetragnathidae
@@ -11271,16 +11263,16 @@ nsamples(tetra_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family==
 
 eff_tetra_pmf<-subset_samples(effluent_pmf, Family=="Tetragnathidae")
 eff_tetra_pmf<-prune_taxa(taxa_sums(eff_tetra_pmf) > 0, eff_tetra_pmf) 
-eff_tetra_pmf #19 taxa, 7 samples
+eff_tetra_pmf #82 taxa, 8 samples
 
 sort((table(tax_table(eff_tetra_pmf)[,6]))/ntaxa(eff_tetra_pmf))*100
-#Blautia (42.1), Ruminococcus (15.8), Streptococcus (10.5)
+#Blautia (9.76), Brevundimonas (8.54), Massilia (7.32)
 
 ## REF ACWA Stream ##
 
 effluent_BRR2<-subset_samples(effluent_bac, Site=="BRR2")
 effluent_BRR2<-prune_taxa(taxa_sums(effluent_BRR2) > 0, effluent_BRR2) 
-effluent_BRR2 #19 taxa, 8 samples/8=100%
+effluent_BRR2 #212 taxa, 8 samples/8=100%
 
 sort((table(tax_table(effluent_BRR2)[,6]))/sum(ntaxa(effluent_BRR2))*100)
 
@@ -11380,26 +11372,33 @@ ggplot(sample.df.agg.effluent.genus.ACWA, aes(x=Site, y=Abundance, fill=Genus)) 
 
 #### Plotting eff-assoc. bac. relative to non eff-assoc. bac. across sites + taxa ####
 
+
+effluents_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Thermomonas" | Genus=="Youngiibacter" | Genus=="Zoogloea")
+
+
 #Bow River 
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps) 
+Bow_ps #4194 taxa, 284 samples
 
 effluent_Bow<-subset_samples(effluent_bac, Stream_Type=="Bow River")
 effluent_Bow<-prune_taxa(taxa_sums(effluent_Bow) > 0, effluent_Bow) 
-sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #116 genera
+sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #117 genera
 #Rhodoferax (10.4%), Pseudorhodobacter (6.39%), Hyphomicrobium (4.33%)
 sum(sample_sums(effluent_Bow))/sum(sample_sums(Bow_ps))*100
-#Effluent bacteria comprises 9.16% of the total microbiome in the Bow River (across all invertebrate types). Decently small amount.
+#Effluent bacteria comprises 9.17% of the total microbiome in the Bow River (across all invertebrate types). Decently small amount.
 
 ## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
 
 Bow_genus <- tax_glom(Bow_ps, taxrank = "Genus")
-Bow_genus #493 genera
+Bow_genus<-prune_taxa(taxa_sums(Bow_genus) > 0, Bow_genus) 
+Bow_genus #481 genera, 284 samples
 comp_Bow_genus <- transform_sample_counts(Bow_genus, function(x) x/sum(x))
 
 Bow_genus_df <- psmelt(comp_Bow_genus)
 
-Bow_agg <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = Bow_genus_df, FUN = mean) #aggregate to Phylum level, take the mean
+Bow_agg <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = Bow_genus_df, FUN = mean) #aggregate to Genus level, take the mean
 
 #Sort abundance of each genus by mean at each site
 sort_genus_Bow <- Bow_agg %>%
@@ -11408,9 +11407,7 @@ sort_genus_Bow <- Bow_agg %>%
     arrange()
 sort_genus_Bow
 
-#effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Youngiibacter" | Genus=="Zoogloea")
-
-effluents_Bow <- sort_genus_Bow$Genus[c(31:35, 46:50, 51:56, 81:85, 101:105, 111:115, 146:150, 156:160, 166:170, 191:195, 201:205, 241:245, 251:255, 256:260, 276:280, 281:285, 286:290, 301:305, 361:365, 396:400, 401:405, 426:430, 436:440, 506:510, 521:525, 536:540, 541:545, 551:556, 561:565, 566:580, 606:610, 626:630, 631:635, 646:650, 666:670, 676:680, 691:695, 701:705, 706:710, 711:715, 716:720, 721:725, 781:785, 806:810, 816:820, 831:835, 841:845, 866:870, 941:945, 1021:1025, 1026:1030, 1031:1035, 1041:1045, 1051:1055, 1081:1085, 1101:1110, 1156:1160, 1206:1210, 1241:1245, 1266:1270, 1271:1275, 1321:1325, 1336:1340, 1346:1350, 1361:1365, 1366:1370, 1386:1395, 1411:1415, 1466:1485, 1496:1510, 1521:1525, 1541:1545, 1566:1570, 1596:1605, 1641:1645, 1656:1665, 1691:1695, 1706:1715, 1746:1750, 1771:1775, 1791:1795, 1801:1805, 1811:1815, 1826:1830, 1861:1870, 1876:1880, 1921:1925, 1936:1940, 1951:1955, 1966:1975, 2001:2005, 2016:2025, 2046:2050, 2096:2100, 2106:2110, 2141:2145, 2161:2165, 2231:2235, 2366:2370, 2381:2385)]
+effluents_Bow <- sort_genus_Bow$Genus[c(31:35, 46:55, 81:85, 101:105, 111:115, 146:150, 156:160, 166:170, 191:195, 201:205, 241:260, 276:290, 301:305, 361:365, 396:405, 426:430, 436:440, 501:505, 516:520, 531:540, 546:550, 556:575, 601:605, 616:625, 636:640, 656:660, 666:670, 681:685, 691:715, 771:775, 796:800, 806:810, 821:825, 831:835, 856:860, 931:935, 1006:1020, 1026:1030, 1036:1040, 1066:1070, 1086:1095, 1141:1145, 1191:1195, 1226:1230, 1246:1255, 1296:1300, 1306:1310, 1326:1335, 1351:1360, 1376:1380, 1431:1450, 1461:1475, 1486:1490, 1506:1510, 1531:1535, 1561:1570, 1606:1610, 1621:1625, 1636:1640, 1656:1660, 1671:1680, 1711:1715, 1736:1740, 1756:1760, 1766:1770, 1776:1780, 1791:1795, 1826:1835, 1841:1845, 1881:1885, 1896:1900, 1911:1915, 1926:1935, 1961:1965, 1976:1985, 2006:2010, 2056:2060, 2071:2075, 2101:2105, 2121:2125, 2161:2165, 2176:2180, 2306:2310, 2321:2325)] 
   
 eff_df_Bow <- Bow_agg %>%
     mutate(Genus = fct_other(Genus, effluents_Bow))
@@ -11421,16 +11418,8 @@ eff_agg_df_Bow$Site_code <- factor(eff_agg_df_Bow$Site_code, levels=c("COCH", "S
 
 eff_agg_df_Bow$sample_Family<-factor(eff_agg_df_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
-top_eff_bow <- eff_agg_df_Bow %>%
-    group_by(Genus) %>%
-    summarise(Mean = mean(Abundance)) %>%
-    arrange(-Mean)
-View(top_eff_bow)
-top_eff_bow_30 <- top_eff_bow$Genus[1:31]
-eff_bow <- eff_agg_df_Bow %>%
-    mutate(Genus = fct_other(Genus, top_eff_bow_30))
-df0_bow
-df0_bow<-aggregate(Abundance~Phylum + Site_code + sample_Family+Stage, data=df0_bow, FUN="sum")
+pal <- gg_color_hue(117)
+pal[117] <- "#43464B"
 
 eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)) +
   geom_bar(stat="identity", color="black") + 
@@ -11440,22 +11429,93 @@ eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)
   rremove("grid")+
   theme(strip.text = element_text(size = 22, color="black")) + 
   theme(legend.key.size = unit(0.8, "cm"),
-        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=12), legend.position = "right") +
-  guides(fill=guide_legend(nrow=40, ncol=3)) +
+        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=16), legend.position = "right") +
+  guides(fill=guide_legend(nrow=39, ncol=3)) +
   theme(axis.title.y=element_text(size=30),
         axis.text.y=element_text(size=24, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
                         axis.title.x=element_text(size=30))+
-  scale_fill_manual(name="Genus", values=c("honeydew4"))+
+  scale_fill_manual(name="Genus", values=pal)+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
 eff_plot_Bow
 
+#ggsave(eff_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria Bow river.png", height=14, width=30)
 
-#ggsave(eff_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria Bow river.png", height=14, width=28)
+#Can't differentiate between colors but it gives an idea of the total relative abundance of effluent associated bacteria across invertebrates (are there certain ones that accumulate more than others) nad across sites (do organisms from downstream exposed sites have more of these bacteria than upstream sites?)
 
-#Too many colours... try top 30 most abundant...
+
+# ACWA Streams
+
+ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
+
+effluent_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River")
+effluent_ACWA<-prune_taxa(taxa_sums(effluent_ACWA) > 0, effluent_ACWA) 
+sort((table(tax_table(effluent_ACWA)[,6]))/sum(ntaxa(effluent_ACWA))*100) #96 genera
+#Pseudorhodobacter (8.58%), Rhodoferax (7.78%), Rhodobacter (5.59%)
+sum(sample_sums(effluent_ACWA))/sum(sample_sums(ACWA_ps))*100
+#Effluent bacteria comprises 18.3% of the total microbiome in the ACWA streams (across all invertebrate types). Much larger than Bow River.
+
+## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
+
+ACWA_genus <- tax_glom(ACWA_ps, taxrank = "Genus")
+ACWA_genus<-prune_taxa(taxa_sums(ACWA_genus) > 0, ACWA_genus) 
+ACWA_genus #338 genera, 55 samples
+
+comp_ACWA_genus <- transform_sample_counts(ACWA_genus, function(x) x/sum(x))
+
+ACWA_genus_df <- psmelt(comp_ACWA_genus)
+
+ACWA_agg <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = ACWA_genus_df, FUN = mean) 
+
+#Sort abundance of each genus by mean at each site
+sort_genus_ACWA <- ACWA_agg %>%
+    group_by(Genus, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+sort_genus_ACWA
+
+#effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Thermomonas" | Genus=="Youngiibacter" | Genus=="Zoogloea")
+
+effluents_ACWA <- sort_genus_ACWA$Genus[c(7:9, 13:18, 31:33, 37:42, 61:63, 67:72, 82:84, 88:90, 106:108, 112:120, 124:129, 133:135, 163:165, 178:183, 190:192, 196:198, 229:231, 238:252, 256:258, 265:270, 277:279, 286:288, 292:294, 298:300, 304:318, 340:342, 352:357, 361:366, 433:441, 445:447, 451:453, 463:465, 472:477, 493:495, 514:516, 526:528, 535:540, 559:561, 565:567, 571:579, 583:588, 595:597, 607:618, 622:630, 637:639, 646:648, 655:657, 667:672, 685:687, 694:696, 718:720, 748:750, 757:759, 769:774, 778:780, 799:801, 817:822, 835:837, 865:867, 871:873, 886:888, 898:900, 925:927, 931:933)]
+
+  
+eff_df_ACWA <- ACWA_agg %>%
+    mutate(Genus = fct_other(Genus, effluents_ACWA))
+
+eff_agg_df_ACWA<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_ACWA, FUN = sum)
+
+eff_agg_df_ACWA$Site_code <- factor(eff_agg_df_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
+
+eff_agg_df_ACWA$sample_Family<-factor(eff_agg_df_ACWA$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
+
+pal_ACWA <- gg_color_hue(98)
+pal_ACWA[98] <- "#43464B"
+
+eff_plot_ACWA <- ggplot(eff_agg_df_ACWA, aes(x=Site_code, y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.8, "cm"),
+        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=16), legend.position = "right") +
+  guides(fill=guide_legend(nrow=33, ncol=3)) +
+  theme(axis.title.y=element_text(size=30),
+        axis.text.y=element_text(size=24, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
+                        axis.title.x=element_text(size=30))+
+  scale_fill_manual(name="Genus", values=pal_ACWA)+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+eff_plot_ACWA
+
+
+#ggsave(eff_plot_ACWA, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria ACWA.png", height=14, width=30)
+
 ```
 
 # Picrust2
