@@ -8,7 +8,7 @@ editor_options:
 ---
 # Introduction {.tabset}
 
-This data comes from a study done in 2022 across 5 sites on the Bow River, Calgary AB and 3 microcosm streams from Pine Creek wastewater treatment plant with varying municipal wastewater effluent exposures (mesocosm streams: 0, 5, or 15% effluent additions). The objective of this study is to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian Spiders with increased exposure to wastewater as well as any differences across taxa or whether the microbiome is retained across metamorphosis. 
+This data comes from a study done in 2022 across 5 sites on the Bow River, Calgary AB and 3 experimental streams from Advancing Candian Water Assets (ACWA) at the Pine Creek wastewater treatment plant with varying municipal wastewater effluent exposures (stream additions: 0, 5, or 15% effluent). The objective of this study was to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian spiders with exposure to wastewater effluents as well as any differences across taxa and across metamorphosis/life stage. 
 
 ## Setup
 ```{r setup, include=FALSE}
@@ -819,157 +819,121 @@ blank_genus_plot
 
 ### Relative abundance at different taxonomic levels (all samples combined)
 ```{r}
+#### Bow River ####
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps)
+Bow_ps #4194 taxa, 284 samples
+
+#Number of larval samples
+lar_Bow<-subset_samples(Bow_ps, Stage=="Larvae")
+nsamples(lar_Bow) #113
+#Number of adult samples
+ad_Bow<-subset_samples(Bow_ps, Stage=="Adults")
+nsamples(ad_Bow) #93
+#Number of spider samples
+spider_Bow<-subset_samples(Bow_ps, Stage=="Spiders")
+nsamples(spider_Bow) #78
+
 #Total number of reads
-print(sum(sample_sums(sample_ps))) #13,078,305 
+print(sum(sample_sums(Bow_ps))) #10,857,965 
 #Average # of reads per sample
-mean(sample_sums(sample_ps)) #38,579 average reads/sample
-sort(sample_sums(sample_ps)) # reads/sample ranges from 2283 - 222,956 counts
+mean(sample_sums(Bow_ps)) #38,232 average reads/sample
+sort(sample_sums(Bow_ps)) #reads/sample ranges from 2283 - 222,956 counts
+ntaxa(Bow_ps) #4194
 
 #All phyla combined
-sort((table(tax_table(sample_ps)[,2]))/sum(ntaxa(sample_ps))*100)
-#Top 5 abundant phyla are Proteobacteria (37.4 %), Bacteroidota (31.0 %), Firmicutes (10.4 %), Cyanobacteria (6.03 %), Actinobacteria (5.41 %)
-sort((table(tax_table(sample_ps)[,5])/sum(ntaxa(sample_ps))*100))
-#Top 5 families are Comamonadaceae (7.89 %), Saprospiraceae (6.57 %), Flavobacteriaceae (4.76 %), Rhodobacteraceae (4.23 %), and Sphingomonadaceae (3.51 %)
-sort((table(tax_table(sample_ps)[,6])/ntaxa(sample_ps)*100))
-#top 5 genera: Flavobacterium (4.51 %), Rhodoferax (2.19 %), Tyzzerella (1.47 %), Pseudorhodobacter (1.34), Limnohabitans (1.21 %)
+sort((table(tax_table(Bow_ps)[,2]))/sum(ntaxa(Bow_ps))*100)
+#Top 5 abundant phyla are Proteobacteria (37.6 %), Bacteroidota (30.7 %), Firmicutes (11.2 %), Cyanobacteria (5.91 %), Actinobacteria (5.65 %)
+sort((table(tax_table(Bow_ps)[,5])/sum(ntaxa(Bow_ps))*100))
+#Top 5 families are Comamonadaceae (7.82 %), Saprospiraceae (6.27 %), Flavobacteriaceae (4.58 %), Rhodobacteraceae (4.29 %), and Sphingomonadaceae (3.79 %)
+sort((table(tax_table(Bow_ps)[,6])/ntaxa(Bow_ps)*100))
+#top 5 genera: Flavobacterium (4.34 %), Rhodoferax (2.29 %), Tyzzerella (1.50 %), Pseudorhodobacter (1.41), Limnohabitans (1.10 %)
 
 #Sort by proteobacteria
-proteo <- subset_taxa(sample_ps, Phylum=="Proteobacteria")
-ntaxa(proteo) #1705
-(sort(table(tax_table(proteo)[,3])/ntaxa(proteo)*100)) #class. Only 2 classes. Alphaproteobacteria (48.7%) and Gammaproteobacteria (51.1%)
-(sort(table(tax_table(proteo)[,5])/ntaxa(proteo)*100)) #family Top 3: Comamonadaceae (21.1 %), Rhodobacteraceae (11.3 %), Sphingomonadaceae (9.4 %) 
-(sort(table(tax_table(proteo)[,6])/ntaxa(proteo)*100)) #genera Top 3: Rhodoferax (5.9 %), Pseudorhodobacter (3.6 %), Limnohabitans (3.2 %)
+proteo_Bow <- subset_taxa(Bow_ps, Phylum=="Proteobacteria")
+ntaxa(proteo_Bow) #1578
+(sort(table(tax_table(proteo_Bow)[,3])/ntaxa(proteo_Bow)*100)) #class. Only 2 classes. Alphaproteobacteria (49.7%) and Gammaproteobacteria (50.3%)
+(sort(table(tax_table(proteo_Bow)[,5])/ntaxa(proteo_Bow)*100)) #family Top 3: Comamonadaceae (20.8 %), Rhodobacteraceae (11.4 %), Sphingomonadaceae (10.1 %) 
+(sort(table(tax_table(proteo_Bow)[,6])/ntaxa(proteo_Bow)*100)) #genera Top 3: Rhodoferax (6.08 %), Pseudorhodobacter (3.74 %), Limnohabitans (2.92 %)
 
 #Sort by Bacteroidota
-bactero <- subset_taxa(sample_ps, Phylum=="Bacteroidota")
-ntaxa(bactero) #1417
-(sort(table(tax_table(bactero)[,3])/ntaxa(bactero)*100)) #class. Top class: Bacteroidia (97.5 %)
-(sort(table(tax_table(bactero)[,5])/ntaxa(bactero)*100)) #family Top 3: Saprospiraceae (21.2 %), Flavobacteriaceae (15.3 %), Chitinophagaceae (10.5 %)  
-(sort(table(tax_table(bactero)[,6])/ntaxa(bactero)*100)) #genera Top 3: Flavobacterium (14.5 %), Hymenobacter (2.8 %), Ferruginibacter (2.8 %)
+bactero_Bow <- subset_taxa(Bow_ps, Phylum=="Bacteroidota")
+ntaxa(bactero_Bow) #1288
+(sort(table(tax_table(bactero_Bow)[,3])/ntaxa(bactero_Bow)*100)) #class. Top class: Bacteroidia (97.4 %)
+(sort(table(tax_table(bactero_Bow)[,5])/ntaxa(bactero_Bow)*100)) #family Top 3: Saprospiraceae (20.4 %), Flavobacteriaceae (14.9 %), Chitinophagaceae (10.8 %)  
+(sort(table(tax_table(bactero_Bow)[,6])/ntaxa(bactero_Bow)*100)) #genera Top 3: Flavobacterium (14.1 %), Hymenobacter (3.11 %), Ferruginibacter (2.87 %)
 
 #Sort by Firmicutes
-firm <- subset_taxa(sample_ps, Phylum=="Firmicutes")
-ntaxa(firm) #476
-(sort(table(tax_table(firm)[,3])/ntaxa(firm)*100)) #class. Top 2: Clostridia (67.9 %), Bacilli (29.4 %) 
-(sort(table(tax_table(firm)[,5])/ntaxa(firm)*100)) #family Top 2: Lachnospiraceae (29.0 %), Ruminococcaceae (15.1 %) 
-(sort(table(tax_table(firm)[,6])/ntaxa(firm)*100)) #genera Top 3: Tyzzerella (14.1 %), Candidatus Soleaferrea (4.0 %), Staphylococcus (3.6 %)
+firm_Bow <- subset_taxa(Bow_ps, Phylum=="Firmicutes")
+ntaxa(firm_Bow) #468
+(sort(table(tax_table(firm_Bow)[,3])/ntaxa(firm_Bow)*100)) #class. Top 2: Clostridia (67.5 %), Bacilli (29.7 %) 
+(sort(table(tax_table(firm_Bow)[,5])/ntaxa(firm_Bow)*100)) #family Top 2: Lachnospiraceae (28.6 %), Ruminococcaceae (15.4 %) 
+(sort(table(tax_table(firm_Bow)[,6])/ntaxa(firm_Bow)*100)) #genera Top 3: Tyzzerella (13.5 %), Candidatus Soleaferrea (4.06 %), Staphylococcus (3.63 %)
 
 
 ##Get total numbers of ASVs at each level
-get_taxa_unique(sample_ps, "Phylum") #32 phyla total
-get_taxa_unique(sample_ps, "Class") #70 Classes total
-get_taxa_unique(sample_ps, "Order") #171 orders total
-get_taxa_unique(sample_ps, "Family") #243 families total
-get_taxa_unique(sample_ps, "Genus") #493 genera total
-```
-
-### Number of ASVs per invertebrate taxa
-
-```{r}
-#Bow River sample breakdown
-#Hydropsychidae larvae
-hydro_lar_Bow<-subset_samples(sample_ps, Stage=="Larvae" & Family=="Hydropsychidae" & Stream_Type=="Bow River")
-nsamples(hydro_lar_Bow) #36
-
-#Heptageniidae larvae
-hep_lar_Bow<-subset_samples(sample_ps, Stage=="Larvae" & Family=="Heptageniidae" & Stream_Type=="Bow River")
-nsamples(hep_lar_Bow) #40
-
-#Perlidae larvae
-perl_Bow<-subset_samples(sample_ps, Stage=="Larvae" & Family=="Perlidae" & Stream_Type=="Bow River")
-nsamples(perl_Bow) #21
-
-#Chironomidae larvae
-chiro_lar_Bow<-subset_samples(sample_ps, Stage=="Larvae" & Family=="Chironomidae" & Stream_Type=="Bow River")
-nsamples(chiro_lar_Bow) #16
-
-#Araneidae 
-araneid_Bow<-subset_samples(sample_ps, Family=="Araneidae")
-nsamples(araneid_Bow) #38
-
-#Tetragnathidae
-tetra_Bow<-subset_samples(sample_ps, Family=="Tetragnathidae")
-nsamples(tetra_Bow) #40
-
-#Adult caddisfly
-ad_caddis_Bow<-subset_samples(sample_ps, Stage=="Adults" & Order=="Trichoptera" & Stream_Type=="Bow River")
-nsamples(ad_caddis_Bow) #31
-
-#Adult mayfly
-mayfly_ad_Bow<-subset_samples(sample_ps, Stage=="Adults" & Order=="Ephemeroptera" & Stream_Type=="Bow River")
-nsamples(mayfly_ad_Bow) #40
-
-#Adult Chironomidae 
-chiro_ad_Bow<-subset_samples(sample_ps, Stage=="Adults" & Order=="Diptera" & Stream_Type=="Bow River")
-nsamples(chiro_ad_Bow) #22
+get_taxa_unique(Bow_ps, "Phylum") #32 phyla total
+get_taxa_unique(Bow_ps, "Class") #69 Classes total
+get_taxa_unique(Bow_ps, "Order") #167 orders total
+get_taxa_unique(Bow_ps, "Family") #238 families total
+get_taxa_unique(Bow_ps, "Genus") #481 genera total
 
 
-#Hydropsychidae
-hydro<-subset_samples(sample_ps, Family=="Hydropsychidae")
-hydro<-prune_taxa(taxa_sums(hydro) > 0, hydro)
-ntaxa(hydro) #2553
-nsamples(hydro) #60
+#### ACWA ####
 
-#Heptageniidae
-hep<-subset_samples(sample_ps, Family=="Heptageniidae")
-hep<-prune_taxa(taxa_sums(hep) > 0, hep)
-ntaxa(hep) #2644
-nsamples(hep) #40
+ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
+ACWA_ps<-prune_taxa(taxa_sums(ACWA_ps) > 0, ACWA_ps)
+ACWA_ps #2605 taxa, 55 samples
 
-#Baetidae
-baetid<-subset_samples(sample_ps, Family=="Baetidae")
-baetid<-prune_taxa(taxa_sums(baetid) > 0, baetid)
-ntaxa(baetid) #1451
-nsamples(baetid) #15
+lar_ACWA<-subset_samples(ACWA_ps, Stage=="Larvae")
+nsamples(lar_ACWA) #39
+ad_ACWA<-subset_samples(ACWA_ps, Stage=="Adults")
+nsamples(ad_ACWA) #16
 
-#Perlidae
-perlid<-subset_samples(sample_ps, Family=="Perlidae")
-perlid<-prune_taxa(taxa_sums(perlid) > 0, perlid)
-ntaxa(perlid) #1714
-nsamples(perlid) #21
+#Total number of reads
+print(sum(sample_sums(ACWA_ps))) #2,220,340
+#Average # of reads per sample
+mean(sample_sums(ACWA_ps)) #40,369 average reads/sample
+sort(sample_sums(ACWA_ps)) #reads/sample ranges from 9154 - 91,209 counts
+ntaxa(ACWA_ps) #2605
 
-#Chironomidae
-chiro<-subset_samples(sample_ps, Family=="Chironomidae")
-chiro<-prune_taxa(taxa_sums(chiro) > 0, chiro)
-ntaxa(chiro) #1180
-nsamples(chiro) #16
+#All phyla combined
+sort((table(tax_table(ACWA_ps)[,2]))/sum(ntaxa(ACWA_ps))*100)
+#Top 5 abundant phyla are Proteobacteria (35.8 %), Bacteroidota (31.6 %), Firmicutes (10.2 %), Cyanobacteria (5.68 %), Actinobacteria (3.76 %)
+sort((table(tax_table(ACWA_ps)[,5])/sum(ntaxa(ACWA_ps))*100))
+#Top 5 families are Comamonadaceae (7.52 %), Saprospiraceae (6.99 %), Rhodobacteraceae (5.07 %), Flavobacteriaceae (3.99 %), and Spirosomaceae (3.30 %)
+sort((table(tax_table(ACWA_ps)[,6])/ntaxa(ACWA_ps)*100))
+#top 5 genera: Flavobacterium (3.88 %), Tyzzerella (2.23 %), Pseudorhodobacter (1.65), Rhodoferax (1.50), Mucinivorans (1.19 %)
 
-#Araneidae
-aran<-subset_samples(sample_ps, Family=="Araneidae")
-aran<-prune_taxa(taxa_sums(aran) > 0, aran)
-ntaxa(aran) #689
-nsamples(aran) #38
+#Sort by proteobacteria
+proteo_ACWA <- subset_taxa(ACWA_ps, Phylum=="Proteobacteria")
+ntaxa(proteo_ACWA) #933
+(sort(table(tax_table(proteo_ACWA)[,3])/ntaxa(proteo_ACWA)*100)) #class. Only 2 classes. Alphaproteobacteria (49.2%) and Gammaproteobacteria (50.6%)
+(sort(table(tax_table(proteo_ACWA)[,5])/ntaxa(proteo_ACWA)*100)) #family Top 3: Comamonadaceae (21.0 %), Rhodobacteraceae (14.1 %), Sphingomonadaceae (8.57 %) 
+(sort(table(tax_table(proteo_ACWA)[,6])/ntaxa(proteo_ACWA)*100)) #genera Top 3: Pseudorhodobacter (4.61), Rhodoferax (4.18 %), Limnohabitans (3.32 %)
 
-#Tetragnathidae
-tetra<-subset_samples(sample_ps, Family=="Tetragnathidae")
-tetra<-prune_taxa(taxa_sums(tetra) > 0, tetra)
-ntaxa(tetra) #572
-nsamples(tetra) #40
+#Sort by Bacteroidota
+bactero_ACWA <- subset_taxa(ACWA_ps, Phylum=="Bacteroidota")
+ntaxa(bactero_ACWA) #824
+(sort(table(tax_table(bactero_ACWA)[,3])/ntaxa(bactero_ACWA)*100)) #class. Top class: Bacteroidia (97.1 %)
+(sort(table(tax_table(bactero_ACWA)[,5])/ntaxa(bactero_ACWA)*100)) #family Top 3: Saprospiraceae (22.1 %), Flavobacteriaceae (12.6 %), Spirosomaceae (10.4 %)  
+(sort(table(tax_table(bactero_ACWA)[,6])/ntaxa(bactero_ACWA)*100)) #genera Top 3: Flavobacterium (12.3 %), Mucinivorans (3.76 %), Emticicia (2.67 %)
 
-#Ephemeroptera
-ephem<-subset_samples(sample_ps, Order=="Ephemeroptera")
-ephem<-prune_taxa(taxa_sums(ephem) > 0, ephem)
-ntaxa(ephem) #3502
-nsamples(ephem) #111
-
-#Trichoptera
-tricop<-subset_samples(sample_ps, Order=="Trichoptera")
-tricop<-prune_taxa(taxa_sums(tricop) > 0, tricop)
-ntaxa(tricop) #3408
-nsamples(tricop) #91
+#Sort by Firmicutes
+firm_ACWA <- subset_taxa(ACWA_ps, Phylum=="Firmicutes")
+ntaxa(firm_ACWA) #265
+(sort(table(tax_table(firm_ACWA)[,3])/ntaxa(firm_ACWA)*100)) #class. Top 2: Clostridia (76.2 %), Bacilli (20.8 %) 
+(sort(table(tax_table(firm_ACWA)[,5])/ntaxa(firm_ACWA)*100)) #family Top 2: Lachnospiraceae (29.8 %), Ruminococcaceae (20.0 %) 
+(sort(table(tax_table(firm_ACWA)[,6])/ntaxa(firm_ACWA)*100)) #genera Top 3: Tyzzerella (21.9 %), Candidatus Soleaferrea (5.66 %), Christensenellaceae R-7 group (3.40 %)
 
 
-#Plecoptera
-plec<-subset_samples(sample_ps, Order=="Plecoptera")
-plec<-prune_taxa(taxa_sums(plec) > 0, plec)
-ntaxa(plec) #1714
-nsamples(plec) #21
-
-#Araneae
-Spiders<-subset_samples(sample_ps, Order=="Araneae")
-Spiders<-prune_taxa(taxa_sums(Spiders) > 0, Spiders)
-ntaxa(Spiders) #818
-nsamples(Spiders) #78
+##Get total numbers of ASVs at each level
+get_taxa_unique(ACWA_ps, "Phylum") #27 phyla total
+get_taxa_unique(ACWA_ps, "Class") #61 Classes total
+get_taxa_unique(ACWA_ps, "Order") #145 orders total
+get_taxa_unique(ACWA_ps, "Family") #197 families total
+get_taxa_unique(ACWA_ps, "Genus") #339 genera total
 ```
 
 ### Total ASVs per site and invertebrate taxa 
@@ -979,79 +943,131 @@ nsamples(Spiders) #78
 nsamples(sample_ps) #339
 ntaxa(sample_ps) #4,564
 
-#Cochrane, n = 65
-coch<-subset_samples(sample_ps, Site=="Cochrane")
+#### Bow River ####
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+#Cochrane, n = 67
+coch<-subset_samples(Bow_ps, Site=="Cochrane")
 coch<-prune_taxa(taxa_sums(coch) > 0, coch)
 nsamples(coch) #67
 ntaxa(coch) #2480
 
 get_taxa_unique(coch, "Phylum") #25 phyla total
-get_taxa_unique(coch, "Class") #54 Classes total
-get_taxa_unique(coch, "Order") #129 orders total
-get_taxa_unique(coch, "Family") #188 families total
-get_taxa_unique(coch, "Genus") #364 genera total
+get_taxa_unique(coch, "Class") #51 Classes total
+get_taxa_unique(coch, "Order") #127 orders total
+get_taxa_unique(coch, "Family") #187 families total
+get_taxa_unique(coch, "Genus") #363 genera total
 
 sort((table(tax_table(coch)[,2]))/ntaxa(coch)*100)
+#Proteobacteria (38.8%), Bacteroidota (30.8%), Firmicutes (13.5%).
 
-#Trichoptera at Cochrane
-tricoch<-subset_samples(coch, Order=="Trichoptera")
-tricoch<-prune_taxa(taxa_sums(tricoch)>0, tricoch)
-ntaxa(tricoch) #1250
-nsamples(tricoch) #16
+#Hydropsychidae
+hydro_coch<-subset_samples(coch, Family=="Hydropsychidae")
+hydro_coch<-prune_taxa(taxa_sums(hydro_coch)>0, hydro_coch)
+ntaxa(hydro_coch) #709
+nsamples(hydro_coch) #8
 
-get_taxa_unique(tricoch, "Phylum") #19 phyla total
-get_taxa_unique(tricoch, "Class") #38 Classes total
-get_taxa_unique(tricoch, "Order") #90 orders total
-get_taxa_unique(tricoch, "Family") #130 families total
-get_taxa_unique(tricoch, "Genus") #214 genera total
+get_taxa_unique(hydro_coch, "Phylum") #16 phyla total
+get_taxa_unique(hydro_coch, "Class") #29 Classes total
+get_taxa_unique(hydro_coch, "Order") #59 orders total
+get_taxa_unique(hydro_coch, "Family") #80 families total
+get_taxa_unique(hydro_coch, "Genus") #99 genera total
 
-#ephemeroptera at Cochrane
-ephcoch<-subset_samples(coch, Order=="Ephemeroptera")
-ephcoch<-prune_taxa(taxa_sums(ephcoch)>0, ephcoch)
-ntaxa(ephcoch) #1278
-nsamples(ephcoch) #16
+#Heptageniidae
+hep_coch<-subset_samples(coch, Family=="Heptageniidae")
+hep_coch<-prune_taxa(taxa_sums(hep_coch)>0, hep_coch)
+ntaxa(hep_coch) #1109
+nsamples(hep_coch) #8
 
-get_taxa_unique(ephcoch, "Phylum") #19 phyla total
-get_taxa_unique(ephcoch, "Class") #41 Classes total
-get_taxa_unique(ephcoch, "Order") #91 orders total
-get_taxa_unique(ephcoch, "Family") #150 families total
-get_taxa_unique(ephcoch, "Genus") #244 genera total
+get_taxa_unique(hep_coch, "Phylum") #19 phyla total
+get_taxa_unique(hep_coch, "Class") #41 Classes total
+get_taxa_unique(hep_coch, "Order") #86 orders total
+get_taxa_unique(hep_coch, "Family") #126 families total
+get_taxa_unique(hep_coch, "Genus") #199 genera total
 
-#Diptera at Cochrane
-dipcoch<-subset_samples(coch, Order=="Diptera")
-dipcoch<-prune_taxa(taxa_sums(dipcoch)>0, dipcoch)
-ntaxa(dipcoch) #555
-nsamples(dipcoch) #11
+#Chironomidae
+chiro_coch<-subset_samples(coch, Family=="Chironomidae")
+chiro_coch<-prune_taxa(taxa_sums(chiro_coch)>0, chiro_coch)
+ntaxa(chiro_coch) #380
+nsamples(chiro_coch) #5
 
-get_taxa_unique(dipcoch, "Phylum") #12 phyla total
-get_taxa_unique(dipcoch, "Class") #28 Classes total
-get_taxa_unique(dipcoch, "Order") #81 orders total
-get_taxa_unique(dipcoch, "Family") #113 families total
-get_taxa_unique(dipcoch, "Genus") #185 genera total
+get_taxa_unique(chiro_coch, "Phylum") #11 phyla total
+get_taxa_unique(chiro_coch, "Class") #26 Classes total
+get_taxa_unique(chiro_coch, "Order") #70 orders total
+get_taxa_unique(chiro_coch, "Family") #94 families total
+get_taxa_unique(chiro_coch, "Genus") #124 genera total
 
-#Plecoptera at Cochrane
-pleccoch<-subset_samples(coch, Order=="Plecoptera")
-pleccoch<-prune_taxa(taxa_sums(pleccoch)>0, pleccoch)
-ntaxa(pleccoch) #571
-nsamples(pleccoch) #8
+#Perlidae
+perl_coch<-subset_samples(coch, Family=="Perlidae")
+perl_coch<-prune_taxa(taxa_sums(perl_coch)>0, perl_coch)
+ntaxa(perl_coch) #571
+nsamples(perl_coch) #8
 
-get_taxa_unique(pleccoch, "Phylum") #12 phyla total
-get_taxa_unique(pleccoch, "Class") #21 Classes total
-get_taxa_unique(pleccoch, "Order") #50 orders total
-get_taxa_unique(pleccoch, "Family") #80 families total
-get_taxa_unique(pleccoch, "Genus") #108 genera total
+get_taxa_unique(perl_coch, "Phylum") #12 phyla total
+get_taxa_unique(perl_coch, "Class") #20 Classes total
+get_taxa_unique(perl_coch, "Order") #49 orders total
+get_taxa_unique(perl_coch, "Family") #79 families total
+get_taxa_unique(perl_coch, "Genus") #107 genera total
 
-#Spiders at Cochrane
-arancoch<-subset_samples(coch, Order=="Araneae")
-arancoch<-prune_taxa(taxa_sums(arancoch)>0, arancoch)
-ntaxa(arancoch) #341
-nsamples(arancoch) #16
+#Trichoptera 
+trichop_coch<-subset_samples(coch, Family=="Trichoptera")
+trichop_coch<-prune_taxa(taxa_sums(trichop_coch)>0, trichop_coch)
+ntaxa(trichop_coch) #646
+nsamples(trichop_coch) #8
 
-get_taxa_unique(arancoch, "Phylum") #9 phyla total
-get_taxa_unique(arancoch, "Class") #14 Classes total
-get_taxa_unique(arancoch, "Order") #49 orders total
-get_taxa_unique(arancoch, "Family") #77 families total
-get_taxa_unique(arancoch, "Genus") #136 genera total
+get_taxa_unique(trichop_coch, "Phylum") #13 phyla total
+get_taxa_unique(trichop_coch, "Class") #23 Classes total
+get_taxa_unique(trichop_coch, "Order") #60 orders total
+get_taxa_unique(trichop_coch, "Family") #93 families total
+get_taxa_unique(trichop_coch, "Genus") #168 genera total
+
+#Ephemeroptera 
+ephem_coch<-subset_samples(coch, Family=="Ephemeroptera")
+ephem_coch<-prune_taxa(taxa_sums(ephem_coch)>0, ephem_coch)
+ntaxa(ephem_coch) #231
+nsamples(ephem_coch) #8
+
+get_taxa_unique(ephem_coch, "Phylum") #10 phyla total
+get_taxa_unique(ephem_coch, "Class") #15 Classes total
+get_taxa_unique(ephem_coch, "Order") #50 orders total
+get_taxa_unique(ephem_coch, "Family") #80 families total
+get_taxa_unique(ephem_coch, "Genus") #107 genera total
+
+#Diptera 
+dip_coch<-subset_samples(coch, Family=="Diptera")
+dip_coch<-prune_taxa(taxa_sums(dip_coch)>0, dip_coch)
+ntaxa(dip_coch) #199
+nsamples(dip_coch) #6
+
+get_taxa_unique(dip_coch, "Phylum") #6 phyla total
+get_taxa_unique(dip_coch, "Class") #10 Classes total
+get_taxa_unique(dip_coch, "Order") #38 orders total
+get_taxa_unique(dip_coch, "Family") #55 families total
+get_taxa_unique(dip_coch, "Genus") #89 genera total
+
+#Araneidae
+aran_coch<-subset_samples(coch, Family=="Araneidae")
+aran_coch<-prune_taxa(taxa_sums(aran_coch)>0, aran_coch)
+ntaxa(aran_coch) #267
+nsamples(aran_coch) #8
+
+get_taxa_unique(aran_coch, "Phylum") #8 phyla total
+get_taxa_unique(aran_coch, "Class") #12 Classes total
+get_taxa_unique(aran_coch, "Order") #41 orders total
+get_taxa_unique(aran_coch, "Family") #66 families total
+get_taxa_unique(aran_coch, "Genus") #109 genera total
+
+#Tetragnathidae 
+tetra_coch<-subset_samples(coch, Family=="Tetragnathidae")
+tetra_coch<-prune_taxa(taxa_sums(tetra_coch)>0, tetra_coch)
+ntaxa(tetra_coch) #175
+nsamples(tetra_coch) #8
+
+get_taxa_unique(tetra_coch, "Phylum") #7 phyla total
+get_taxa_unique(tetra_coch, "Class") #11 Classes total
+get_taxa_unique(tetra_coch, "Order") #37 orders total
+get_taxa_unique(tetra_coch, "Family") #61 families total
+get_taxa_unique(tetra_coch, "Genus") #92 genera total
 
 #Sunalta, n = 47
 sun<-subset_samples(sample_ps, Site=="Sunalta")
@@ -1060,48 +1076,85 @@ ntaxa(sun) #2174
 nsamples(sun) #47
 
 get_taxa_unique(sun, "Phylum") #25 phyla total
-get_taxa_unique(sun, "Class") #55 Classes total
-get_taxa_unique(sun, "Order") #121 orders total
-get_taxa_unique(sun, "Family") #179 families total
-get_taxa_unique(sun, "Genus") #332 genera total
+get_taxa_unique(sun, "Class") #54 Classes total
+get_taxa_unique(sun, "Order") #120 orders total
+get_taxa_unique(sun, "Family") #178 families total
+get_taxa_unique(sun, "Genus") #331 genera total
 
 sort((table(tax_table(sun)[,2]))/ntaxa(sun)*100)
+#Proteobacteria (38.1%), Bacteroidota (30.1%), Firmicutes (13.5%)
 
-#Trichoptera at sunalta
-trisun<-subset_samples(sun, Order=="Trichoptera")
-trisun<-prune_taxa(taxa_sums(trisun) > 0, trisun)
-ntaxa(trisun) #997
-nsamples(trisun) #15
+#Hydropsychidae 
+hydro_sun<-subset_samples(sun, Family=="Hydropsychidae")
+hydro_sun<-prune_taxa(taxa_sums(hydro_sun) > 0, hydro_sun)
+ntaxa(hydro_sun) #604
+nsamples(hydro_sun) #7
 
-get_taxa_unique(trisun, "Phylum") #20 phyla total
-get_taxa_unique(trisun, "Class") #33 Classes total
-get_taxa_unique(trisun, "Order") #76 orders total
-get_taxa_unique(trisun, "Family") #122 families total
-get_taxa_unique(trisun, "Genus") #199 genera total
+get_taxa_unique(hydro_sun, "Phylum") #17 phyla total
+get_taxa_unique(hydro_sun, "Class") #26 Classes total
+get_taxa_unique(hydro_sun, "Order") #48 orders total
+get_taxa_unique(hydro_sun, "Family") #61 families total
+get_taxa_unique(hydro_sun, "Genus") #79 genera total
 
-#Ephem in sunalta
-ephsun<-subset_samples(sun, Order=="Ephemeroptera")
-ephsun<-prune_taxa(taxa_sums(ephsun) > 0, ephsun)
-ntaxa(ephsun) #1481
-nsamples(ephsun) #16
+#Heptageniidae 
+hep_sun<-subset_samples(sun, Family=="Heptageniidae")
+hep_sun<-prune_taxa(taxa_sums(hep_sun) > 0, hep_sun)
+ntaxa(hep_sun) #1246
+nsamples(hep_sun) #8
 
-get_taxa_unique(ephsun, "Phylum") #19 phyla total
-get_taxa_unique(ephsun, "Class") #44 Classes total
-get_taxa_unique(ephsun, "Order") #100 orders total
-get_taxa_unique(ephsun, "Family") #149 families total
-get_taxa_unique(ephsun, "Genus") #260 genera total
+get_taxa_unique(hep_sun, "Phylum") #19 phyla total
+get_taxa_unique(hep_sun, "Class") #42 Classes total
+get_taxa_unique(hep_sun, "Order") #94 orders total
+get_taxa_unique(hep_sun, "Family") #128 families total
+get_taxa_unique(hep_sun, "Genus") #207 genera total
 
-#Araneae in sunalta
-aransun<-subset_samples(sun, Order=="Araneae")
-aransun<-prune_taxa(taxa_sums(aransun) > 0, aransun)
-ntaxa(aransun) #363
-nsamples(aransun) #16
+#Trichoptera 
+trichop_sun<-subset_samples(sun, Family=="Trichoptera")
+trichop_sun<-prune_taxa(taxa_sums(trichop_sun) > 0, trichop_sun)
+ntaxa(trichop_sun) #428
+nsamples(trichop_sun) #8
 
-get_taxa_unique(aransun, "Phylum") #8 phyla total
-get_taxa_unique(aransun, "Class") #15 Classes total
-get_taxa_unique(aransun, "Order") #50 orders total
-get_taxa_unique(aransun, "Family") #74 families total
-get_taxa_unique(aransun, "Genus") #133 genera total
+get_taxa_unique(trichop_sun, "Phylum") #11 phyla total
+get_taxa_unique(trichop_sun, "Class") #18 Classes total
+get_taxa_unique(trichop_sun, "Order") #53 orders total
+get_taxa_unique(trichop_sun, "Family") #95 families total
+get_taxa_unique(trichop_sun, "Genus") #152 genera total
+
+#Ephemeroptera 
+ephem_sun<-subset_samples(sun, Family=="Ephemeroptera")
+ephem_sun<-prune_taxa(taxa_sums(ephem_sun) > 0, ephem_sun)
+ntaxa(ephem_sun) #340
+nsamples(ephem_sun) #8
+
+get_taxa_unique(ephem_sun, "Phylum") #8 phyla total
+get_taxa_unique(ephem_sun, "Class") #15 Classes total
+get_taxa_unique(ephem_sun, "Order") #43 orders total
+get_taxa_unique(ephem_sun, "Family") #87 families total
+get_taxa_unique(ephem_sun, "Genus") #126 genera total
+
+#Araneidae
+aran_sun<-subset_samples(sun, Family=="Araneidae")
+aran_sun<-prune_taxa(taxa_sums(aran_sun) > 0, aran_sun)
+ntaxa(aran_sun) #342
+nsamples(aran_sun) #8
+
+get_taxa_unique(aran_sun, "Phylum") #8 phyla total
+get_taxa_unique(aran_sun, "Class") #15 Classes total
+get_taxa_unique(aran_sun, "Order") #49 orders total
+get_taxa_unique(aran_sun, "Family") #72 families total
+get_taxa_unique(aran_sun, "Genus") #131 genera total
+
+#Tetragnathidae
+tetra_sun<-subset_samples(sun, Family=="Tetragnathidae")
+tetra_sun<-prune_taxa(taxa_sums(tetra_sun) > 0, tetra_sun)
+ntaxa(tetra_sun) #58
+nsamples(tetra_sun) #8
+
+get_taxa_unique(tetra_sun, "Phylum") #5 phyla total
+get_taxa_unique(tetra_sun, "Class") #7 Classes total
+get_taxa_unique(tetra_sun, "Order") #18 orders total
+get_taxa_unique(tetra_sun, "Family") #23 families total
+get_taxa_unique(tetra_sun, "Genus") #25 genera total
 
 #Cushing Bridge, n = 63
 cushbr<-subset_samples(sample_ps, Site=="Cushing Bridge")
@@ -1110,72 +1163,121 @@ ntaxa(cushbr) #2762
 nsamples(cushbr) #63
 
 get_taxa_unique(cushbr, "Phylum") #29 phyla total
-get_taxa_unique(cushbr, "Class") #58 Classes total
-get_taxa_unique(cushbr, "Order") #140 orders total
-get_taxa_unique(cushbr, "Family") #203 families total
-get_taxa_unique(cushbr, "Genus") #400 genera total
+get_taxa_unique(cushbr, "Class") #57 Classes total
+get_taxa_unique(cushbr, "Order") #139 orders total
+get_taxa_unique(cushbr, "Family") #202 families total
+get_taxa_unique(cushbr, "Genus") #399 genera total
 
 sort((table(tax_table(cushbr)[,2]))/ntaxa(cushbr)*100)
+#Proteobacteria (40.5%), Bacteroidota (28.6%), Firmicutes (11.5%)
 
-#Trichoptera in cushing bridge
-tricush<-subset_samples(cushbr, Order=="Trichoptera")
-tricush<-prune_taxa(taxa_sums(tricush) > 0, tricush)
-ntaxa(tricush) #1100
-nsamples(tricush) #13
+#Hydropsychidae
+hydro_cush<-subset_samples(cushbr, Family=="Hydropsychidae")
+hydro_cush<-prune_taxa(taxa_sums(hydro_cush) > 0, hydro_cush)
+ntaxa(hydro_cush) #593
+nsamples(hydro_cush) #5
 
-get_taxa_unique(tricush, "Phylum") #20 phyla total
-get_taxa_unique(tricush, "Class") #34 Classes total
-get_taxa_unique(tricush, "Order") #80 orders total
-get_taxa_unique(tricush, "Family") #132 families total
-get_taxa_unique(tricush, "Genus") #218 genera total
+get_taxa_unique(hydro_cush, "Phylum") #16 phyla total
+get_taxa_unique(hydro_cush, "Class") #25 Classes total
+get_taxa_unique(hydro_cush, "Order") #53 orders total
+get_taxa_unique(hydro_cush, "Family") #69 families total
+get_taxa_unique(hydro_cush, "Genus") #93 genera total
 
-#Ephemeroptera in cushing bridge
-ephcush<-subset_samples(cushbr, Order=="Ephemeroptera")
-ephcush<-prune_taxa(taxa_sums(ephcush) > 0, ephcush)
-ntaxa(ephcush) #1277
-nsamples(ephcush) #16
+#Heptageniidae
+hep_cush<-subset_samples(cushbr, Family=="Heptageniidae")
+hep_cush<-prune_taxa(taxa_sums(hep_cush) > 0, hep_cush)
+ntaxa(hep_cush) #1168
+nsamples(hep_cush) #8
 
-get_taxa_unique(ephcush, "Phylum") #20 phyla total
-get_taxa_unique(ephcush, "Class") #42 Classes total
-get_taxa_unique(ephcush, "Order") #102 orders total
-get_taxa_unique(ephcush, "Family") #148 families total
-get_taxa_unique(ephcush, "Genus") #256 genera total
+get_taxa_unique(hep_cush, "Phylum") #20 phyla total
+get_taxa_unique(hep_cush, "Class") #41 Classes total
+get_taxa_unique(hep_cush, "Order") #97 orders total
+get_taxa_unique(hep_cush, "Family") #130 families total
+get_taxa_unique(hep_cush, "Genus") #217 genera total
 
-#Diptera in cushbr
-dipcush<-subset_samples(cushbr, Order=="Diptera")
-dipcush<-prune_taxa(taxa_sums(dipcush) > 0, dipcush)
-ntaxa(dipcush) #688
-nsamples(dipcush) #14
+#Chironomidae
+chiro_cush<-subset_samples(cushbr, Family=="Chironomidae")
+chiro_cush<-prune_taxa(taxa_sums(chiro_cush) > 0, chiro_cush)
+ntaxa(chiro_cush) #512
+nsamples(chiro_cush) #6
 
-get_taxa_unique(dipcush, "Phylum") #16 phyla total
-get_taxa_unique(dipcush, "Class") #32 Classes total
-get_taxa_unique(dipcush, "Order") #81 orders total
-get_taxa_unique(dipcush, "Family") #129 families total
-get_taxa_unique(dipcush, "Genus") #183 genera total
+get_taxa_unique(chiro_cush, "Phylum") #15 phyla total
+get_taxa_unique(chiro_cush, "Class") #30 Classes total
+get_taxa_unique(chiro_cush, "Order") #71 orders total
+get_taxa_unique(chiro_cush, "Family") #101 families total
+get_taxa_unique(chiro_cush, "Genus") #131 genera total
 
-#plecoptera in cush br
-pleccush<-subset_samples(cushbr, Order=="Plecoptera")
-pleccush<-prune_taxa(taxa_sums(pleccush) > 0, pleccush)
-ntaxa(pleccush) #1191
-nsamples(pleccush) #5
+#Perlidae
+perl_cush<-subset_samples(cushbr, Family=="Perlidae")
+perl_cush<-prune_taxa(taxa_sums(perl_cush) > 0, perl_cush)
+ntaxa(perl_cush) #1191
+nsamples(perl_cush) #5
 
-get_taxa_unique(pleccush, "Phylum") #20 phyla total
-get_taxa_unique(pleccush, "Class") #39 Classes total
-get_taxa_unique(pleccush, "Order") #90 orders total
-get_taxa_unique(pleccush, "Family") #125 families total
-get_taxa_unique(pleccush, "Genus") #202 genera total
+get_taxa_unique(perl_cush, "Phylum") #20 phyla total
+get_taxa_unique(perl_cush, "Class") #38 Classes total
+get_taxa_unique(perl_cush, "Order") #89 orders total
+get_taxa_unique(perl_cush, "Family") #124 families total
+get_taxa_unique(perl_cush, "Genus") #201 genera total
 
-#araneae in cush br
-arancush<-subset_samples(cushbr, Order=="Araneae")
-arancush<-prune_taxa(taxa_sums(arancush) > 0, arancush)
-ntaxa(arancush) #469
-nsamples(arancush) #15
+#Trichoptera
+trichop_cush<-subset_samples(cushbr, Family=="Trichoptera")
+trichop_cush<-prune_taxa(taxa_sums(trichop_cush) > 0, trichop_cush)
+ntaxa(trichop_cush) #612
+nsamples(trichop_cush) #8
 
-get_taxa_unique(arancush, "Phylum") #12 phyla total
-get_taxa_unique(arancush, "Class") #23 Classes total
-get_taxa_unique(arancush, "Order") #68 orders total
-get_taxa_unique(arancush, "Family") #96 families total
-get_taxa_unique(arancush, "Genus") #172 genera total
+get_taxa_unique(trichop_cush, "Phylum") #14 phyla total
+get_taxa_unique(trichop_cush, "Class") #21 Classes total
+get_taxa_unique(trichop_cush, "Order") #55 orders total
+get_taxa_unique(trichop_cush, "Family") #105 families total
+get_taxa_unique(trichop_cush, "Genus") #175 genera total
+
+#Ephemeroptera 
+ephem_cush<-subset_samples(cushbr, Family=="Ephemeroptera")
+ephem_cush<-prune_taxa(taxa_sums(ephem_cush) > 0, ephem_cush)
+ntaxa(ephem_cush) #152
+nsamples(ephem_cush) #8
+
+get_taxa_unique(ephem_cush, "Phylum") #5 phyla total
+get_taxa_unique(ephem_cush, "Class") #10 Classes total
+get_taxa_unique(ephem_cush, "Order") #37 orders total
+get_taxa_unique(ephem_cush, "Family") #56 families total
+get_taxa_unique(ephem_cush, "Genus") #76 genera total
+
+#Diptera 
+dip_cush<-subset_samples(cushbr, Family=="Diptera")
+dip_cush<-prune_taxa(taxa_sums(dip_cush) > 0, dip_cush)
+ntaxa(dip_cush) #207
+nsamples(dip_cush) #8
+
+get_taxa_unique(dip_cush, "Phylum") #8 phyla total
+get_taxa_unique(dip_cush, "Class") #11 Classes total
+get_taxa_unique(dip_cush, "Order") #36 orders total
+get_taxa_unique(dip_cush, "Family") #67 families total
+get_taxa_unique(dip_cush, "Genus") #86 genera total
+
+#Araneidae
+aran_cush<-subset_samples(cushbr, Family=="Araneidae")
+aran_cush<-prune_taxa(taxa_sums(aran_cush) > 0, aran_cush)
+ntaxa(aran_cush) #302
+nsamples(aran_cush) #7
+
+get_taxa_unique(aran_cush, "Phylum") #8 phyla total
+get_taxa_unique(aran_cush, "Class") #14 Classes total
+get_taxa_unique(aran_cush, "Order") #52 orders total
+get_taxa_unique(aran_cush, "Family") #69 families total
+get_taxa_unique(aran_cush, "Genus") #120 genera total
+
+#Tetragnathidae
+tetra_cush<-subset_samples(cushbr, Family=="Tetragnathidae")
+tetra_cush<-prune_taxa(taxa_sums(tetra_cush) > 0, tetra_cush)
+ntaxa(tetra_cush) #318
+nsamples(tetra_cush) #8
+
+get_taxa_unique(tetra_cush, "Phylum") #12 phyla total
+get_taxa_unique(tetra_cush, "Class") #21 Classes total
+get_taxa_unique(tetra_cush, "Order") #58 orders total
+get_taxa_unique(tetra_cush, "Family") #83 families total
+get_taxa_unique(tetra_cush, "Genus") #138 genera total
 
 #Graves Bridge, n = 47
 grvbr<-subset_samples(sample_ps, Site=="Graves Bridge")
@@ -1184,12 +1286,25 @@ ntaxa(grvbr) #2663
 nsamples(grvbr) #47
 
 get_taxa_unique(grvbr, "Phylum") #25 phyla total
-get_taxa_unique(grvbr, "Class") #54 Classes total
-get_taxa_unique(grvbr, "Order") #136 orders total
-get_taxa_unique(grvbr, "Family") #199 families total
-get_taxa_unique(grvbr, "Genus") #379 genera total
+get_taxa_unique(grvbr, "Class") #53 Classes total
+get_taxa_unique(grvbr, "Order") #135 orders total
+get_taxa_unique(grvbr, "Family") #198 families total
+get_taxa_unique(grvbr, "Genus") #378 genera total
 
 sort((table(tax_table(grvbr)[,2]))/ntaxa(grvbr)*100)
+#Proteobacteria (36.8%), Bacteroidota (32.1%), Firmicutes (13.1%)
+
+#Hydropsychidae
+hydro_grvbr<-subset_samples(grvbr, Family=="Hydropsychidae")
+hydro_grvbr<-prune_taxa(taxa_sums(hydro_grvbr) > 0, hydro_grvbr)
+ntaxa(hydro_grvbr) #1143
+nsamples(hydro_grvbr) #8
+
+get_taxa_unique(hydro_grvbr, "Phylum") #21 phyla total
+get_taxa_unique(hydro_grvbr, "Class") #37 Classes total
+get_taxa_unique(hydro_grvbr, "Order") #76 orders total
+get_taxa_unique(hydro_grvbr, "Family") #147 families total
+get_taxa_unique(hydro_grvbr, "Genus") #245 genera total
 
 #Trichoptera at graves bridge
 trigrvbr<-subset_samples(grvbr, Order=="Trichoptera")
@@ -7295,6 +7410,8 @@ Most supported DA tests:
 ANCOM-BC (Lin & Peddada, 2020. Biofilms and Microbiomes.) (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microbiome.)
 
 ALDEX2 (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microbiome.)
+
+DAtest package can test a bunch of different DA methods and see which one is the best
 
 ## Comparing un-exposed sites to exposed sites - Bow River (inverts separated)
 ```{r}
