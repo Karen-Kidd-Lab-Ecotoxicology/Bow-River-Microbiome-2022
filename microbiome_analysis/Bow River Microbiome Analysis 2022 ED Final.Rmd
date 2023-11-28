@@ -20,25 +20,21 @@ par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
 
 ## Loading Packages
 ```{r Load packages}
-library(rlang)
-library(glue)
-library(ggh4x)
 #if (!require("BiocManager", quietly = TRUE))
     #install.packages("BiocManager")
 #BiocManager::install("phyloseq")
 library(phyloseq) #phyloseq will be the main package used for structuring microbiome data and diversity comparisons
-#if (!require("BiocManager", quietly = TRUE))
-    #install.packages("BiocManager")
-#install.packages("viridis")
+library(rlang)
+library(glue)
+library(ggh4x)
 library(viridis)
-
 #BiocManager::install("apeglm")
 library(apeglm)
 library(geosphere)
 library(car)
 library(ggplot2) #For creating graphs
-#install.packages("ggtext")
 library(ggtext)
+library(plyr) #if you load this after dpylr it messes up the dplyr functions
 library(dplyr) #Helps with data wrangling 
 library(cluster) #Used for cluster analyses
 library(grid)
@@ -51,18 +47,12 @@ library(glmmTMB)
 library(gridExtra)
 library(vegan)
 library(tidyverse) #data wrangling
-#if (!require("BiocManager", quietly = TRUE)) #Installing microbiome package
-  #install.packages("BiocManager")
 #BiocManager::install("microbiome")
 library(microbiome) #For microbiome analyses
-#if(!requireNamespace("BiocManager", quietly = TRUE))
-  #install.packages("BiocManager")
 #BiocManager::install("PERFect")
 library(PERFect) #Permutation filtration for microbiome data. Used when comparing beta diversities across sites/locations. 
 library(knitr) #For R Markdown knitting
 library(kableExtra)
-#if (!requireNamespace("remotes", quietly = TRUE))
-  #install.packages("remotes")
 #remotes::install_github("mikemc/speedyseq")
 library(speedyseq)
 library(colorspace)
@@ -77,50 +67,27 @@ library(imsig)
 library(phangorn) #For phylogenetic tree
 library(metacoder) 
 library(tibble)
-#if (!require("BiocManager", quietly = TRUE))
-    #install.packages("BiocManager")
-
 #BiocManager::install("DESeq2")
 library(DESeq2)
 library(emmeans)
 library(devtools)
-#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis", force=TRUE)
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
-#library(plyr) apparently if you load this after dpylr it messes up the summarize function?
-
-#if( !require(NbClust) ){install.packages("NbClust"); library(NbClust)}
-#if( !require(cobiclust) ){install.packages("cobiclust"); library(cobiclust)}
-library(NbClust)
-library(cobiclust)
-#if (!require("BiocManager", quietly = TRUE))
-    #install.packages("BiocManager")
-
 #BiocManager::install("mia")
 library(mia)
 library(factoextra)
 #install.packages("microViz", repos = c(davidbarnett = "https://david-barnett.r-universe.dev", getOption("repos")))
 library(microViz)
-library(dendextend) #Formatting dendrograms
 #remotes::install_github("vmikk/metagMisc")
 library(metagMisc)
-#if (!require("BiocManager", quietly = TRUE))
-    #install.packages("BiocManager")
-
 #BiocManager::install("decontam")
 library(decontam)
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-    #install.packages("BiocManager")
-#BiocManager::install("dada2", version = "3.17")
+#BiocManager::install("dada2", version = "3.16") 3.16 with R v 4.2.3, 3.17 with R v 4.3.2
 library(dada2)
 library(forcats)
-#install.packages(c("dbplyr", "dplyr", "dtplyr", "haven", "httr", "jsonlite", "readr", 
-#"readxl", "rvest", "tibble", "tidyr", "xml2"))
 library(ggpubr)
-#install.packages("remotes")
 #remotes::install_github("kstagaman/phyloseqCompanion")
 library(phyloseqCompanion)
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-    #install.packages("BiocManager")
 #BiocManager::install("ANCOMBC")
 library(ANCOMBC)
 #devtools::install_github("Russel88/DAtest")
@@ -187,6 +154,9 @@ taxa_table = tax_table(taxa_table)
 
 #Make sure the ASV table and taxa table are both matricies before trying to turn into phyloseq object
 ps <- phyloseq(ASVtable, sample_data(metadata), taxa_table)
+
+#ps_df<-psmelt(ps)
+#write.csv(ps_df, "microbiome_analysis/ps_df.csv")
 ```
 
 
@@ -202,7 +172,7 @@ Removing low prevalence taxa: I removed taxa that were only found in less than 4
 
 Removing low read samples: I removed all samples whose total reads were less than 2000. 
 
-Rarefying: Results from statistical analysis (alpha and beta diversity) will be compared before and after rarefying to the minimum sampling depth. The minimum even sampling depth is 2283 reads (the lowest read count after filtering). If there is no difference in results, other methods of normalization will be used (i.e., transform to relative abundances or log transformation) besides rarefaction since it removes a large portion of the data. 
+Rarefying: Results from statistical analysis (alpha and beta diversity) will be compared before and after rarefying to the minimum sampling depth. The minimum even sampling depth is 2384 reads (the lowest read count after filtering). If there is no difference in results, other methods of normalization will be used (i.e., transform to relative abundances or log transformation) besides rarefaction since it removes a large portion of the data. 
 
 In total, ~85 % of the taxa (ASVs) were filtered out but only 0.32 % of the entire dataset (reads) were filtered out from the original decontaminated dataset. This may have consequences for diversity measures but ensures sequencing errors and potential contaminants are removed. 
 
@@ -562,13 +532,20 @@ ntaxa(psexp)-ntaxa(ps0) #Got rid of 39 ASVs
 ps1<-subset_taxa(ps0, !is.na(Phylum) & !Phylum %in% c("","uncharacterized")) #Removes the phyla characterized as NA
 ntaxa(ps0) - ntaxa(ps1) #Got rid of 403 ASVs
 
-ps2<-ps_prune(ps1, min.samples = 4, min.reads = 6)
-ps2 #4564 taxa, 349 samples. 
-any(taxa_sums(ps2) <6) #FALSE. Means it did a good job of getting rid of them. 
+ps2<-ps_prune(ps1, min.samples = 4, min.reads = 6) # Remove ASVs with reads less than 6 across all samples or less than 4 within a sample. ps_prune from MicEco package. It groups all taxa that don't fit into this category into an "others" category. Need to remove that. 
+others = c("Others")
+allTaxa = taxa_names(ps2)
+allTaxa <- allTaxa[!(allTaxa %in% others)] #removes others from taxa names
+ps3 = prune_taxa(allTaxa, ps2)
+# new phyloseq object with just the taxa you kept.
+ps3 #4563, 349 samples
 
-sample_ps <- subset_samples(ps2, sample_sums(ps2) > 2000) 
-sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2283 reads.
-sample_ps #4564 taxa, 339 samples.
+any(taxa_sums(ps3) <6) #FALSE. Means it did a good job of getting rid of them. 
+
+sample_ps <- subset_samples(ps3, sample_sums(ps3) > 2000) 
+sample_ps<-prune_taxa(taxa_sums(sample_ps) > 0, sample_ps)
+sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2384 reads.
+sample_ps #4563 taxa, 335 samples.
 ```
 
 ### Re-frame filtered data to work as a data frame
@@ -1303,162 +1280,250 @@ nsamples(hydro_grvbr) #8
 get_taxa_unique(hydro_grvbr, "Phylum") #21 phyla total
 get_taxa_unique(hydro_grvbr, "Class") #37 Classes total
 get_taxa_unique(hydro_grvbr, "Order") #76 orders total
-get_taxa_unique(hydro_grvbr, "Family") #147 families total
-get_taxa_unique(hydro_grvbr, "Genus") #245 genera total
+get_taxa_unique(hydro_grvbr, "Family") #98 families total
+get_taxa_unique(hydro_grvbr, "Genus") #137 genera total
+
+
+#Heptageniidae
+hep_grvbr<-subset_samples(grvbr, Family=="Heptageniidae")
+hep_grvbr<-prune_taxa(taxa_sums(hep_grvbr) > 0, hep_grvbr)
+ntaxa(hep_grvbr) #1316
+nsamples(hep_grvbr) #8
+
+get_taxa_unique(hep_grvbr, "Phylum") #19 phyla total
+get_taxa_unique(hep_grvbr, "Class") #42 Classes total
+get_taxa_unique(hep_grvbr, "Order") #88 orders total
+get_taxa_unique(hep_grvbr, "Family") #132 families total
+get_taxa_unique(hydro_grvbr, "Genus") #137 genera total
 
 #Trichoptera at graves bridge
-trigrvbr<-subset_samples(grvbr, Order=="Trichoptera")
-trigrvbr<-prune_taxa(taxa_sums(trigrvbr) > 0, trigrvbr)
-ntaxa(trigrvbr) #1595
-nsamples(trigrvbr) #15
+trichop_grvbr<-subset_samples(grvbr, Family=="Trichoptera")
+trichop_grvbr<-prune_taxa(taxa_sums(trichop_grvbr) > 0, trichop_grvbr)
+ntaxa(trichop_grvbr) #510
+nsamples(trichop_grvbr) #7
 
-get_taxa_unique(trigrvbr, "Phylum") #22 phyla total
-get_taxa_unique(trigrvbr, "Class") #42 Classes total
-get_taxa_unique(trigrvbr, "Order") #101 orders total
-get_taxa_unique(trigrvbr, "Family") #147 families total
-get_taxa_unique(trigrvbr, "Genus") #245 genera total
+get_taxa_unique(trichop_grvbr, "Phylum") #13 phyla total
+get_taxa_unique(trichop_grvbr, "Class") #19 Classes total
+get_taxa_unique(trichop_grvbr, "Order") #61 orders total
+get_taxa_unique(trichop_grvbr, "Family") #104 families total
+get_taxa_unique(trichop_grvbr, "Genus") #160 genera total
 
-ephgrvbr<-subset_samples(grvbr, Order=="Ephemeroptera")
-ephgrvbr<-prune_taxa(taxa_sums(ephgrvbr) > 0, ephgrvbr)
-ntaxa(ephgrvbr) #1473
-nsamples(ephgrvbr) #16
+#Ephemeroptera
+ephem_grvbr<-subset_samples(grvbr, Family=="Ephemeroptera")
+ephem_grvbr<-prune_taxa(taxa_sums(ephem_grvbr) > 0, ephem_grvbr)
+ntaxa(ephem_grvbr) #194
+nsamples(ephem_grvbr) #8
 
-get_taxa_unique(ephgrvbr, "Phylum") #20 phyla total
-get_taxa_unique(ephgrvbr, "Class") #44 Classes total
-get_taxa_unique(ephgrvbr, "Order") #98 orders total
-get_taxa_unique(ephgrvbr, "Family") #153 families total
-get_taxa_unique(ephgrvbr, "Genus") #269 genera total
+get_taxa_unique(ephem_grvbr, "Phylum") #10 phyla total
+get_taxa_unique(ephem_grvbr, "Class") #12 Classes total
+get_taxa_unique(ephem_grvbr, "Order") #41 orders total
+get_taxa_unique(ephem_grvbr, "Family") #61 families total
+get_taxa_unique(ephem_grvbr, "Genus") #88 genera total
 
-arangrvbr<-subset_samples(grvbr, Order=="Araneae")
-arangrvbr<-prune_taxa(taxa_sums(arangrvbr) > 0, arangrvbr)
-ntaxa(arangrvbr) #376
-nsamples(arangrvbr) #16
+#Araneidae
+aran_grvbr<-subset_samples(grvbr, Family=="Araneidae")
+aran_grvbr<-prune_taxa(taxa_sums(aran_grvbr) > 0, aran_grvbr)
+ntaxa(aran_grvbr) #331
+nsamples(aran_grvbr) #8
 
-get_taxa_unique(arangrvbr, "Phylum") #9 phyla total
-get_taxa_unique(arangrvbr, "Class") #17 Classes total
-get_taxa_unique(arangrvbr, "Order") #53 orders total
-get_taxa_unique(arangrvbr, "Family") #84 families total
-get_taxa_unique(arangrvbr, "Genus") #148 genera total
+get_taxa_unique(aran_grvbr, "Phylum") #7 phyla total
+get_taxa_unique(aran_grvbr, "Class") #14 Classes total
+get_taxa_unique(aran_grvbr, "Order") #48 orders total
+get_taxa_unique(aran_grvbr, "Family") #76 families total
+get_taxa_unique(aran_grvbr, "Genus") #133 genera total
+
+#Tetragnathidae
+tetra_grvbr<-subset_samples(grvbr, Family=="Tetragnathidae")
+tetra_grvbr<-prune_taxa(taxa_sums(tetra_grvbr) > 0, tetra_grvbr)
+ntaxa(tetra_grvbr) #123
+nsamples(tetra_grvbr) #8
+
+get_taxa_unique(tetra_grvbr, "Phylum") #8 phyla total
+get_taxa_unique(tetra_grvbr, "Class") #12 Classes total
+get_taxa_unique(tetra_grvbr, "Order") #34 orders total
+get_taxa_unique(tetra_grvbr, "Family") #49 families total
+get_taxa_unique(tetra_grvbr, "Genus") #71 genera total
 
 
-#Policeman Flats, n = 58
+#Policeman Flats, n = 60
 pmf<-subset_samples(sample_ps, Site=="Policeman Flats")
 pmf<-prune_taxa(taxa_sums(pmf) > 0, pmf)
 ntaxa(pmf) #3175
 nsamples(pmf) #60
 
 get_taxa_unique(pmf, "Phylum") #27 phyla total
-get_taxa_unique(pmf, "Class") #61 Classes total
-get_taxa_unique(pmf, "Order") #153 orders total
-get_taxa_unique(pmf, "Family") #218 families total
-get_taxa_unique(pmf, "Genus") #418 genera total
+get_taxa_unique(pmf, "Class") #60 Classes total
+get_taxa_unique(pmf, "Order") #152 orders total
+get_taxa_unique(pmf, "Family") #217 families total
+get_taxa_unique(pmf, "Genus") #417 genera total
 
 sort((table(tax_table(pmf)[,2]))/ntaxa(pmf)*100)
+#Proteobacteria (37.4%), Bacteroidota (31.2%), Firmicutes (12.2%)
 
-tripmf<-subset_samples(pmf, Order=="Trichoptera")
-tripmf<-prune_taxa(taxa_sums(tripmf) > 0, tripmf)
-ntaxa(tripmf) #1196
-nsamples(tripmf) #8
+#Hydropsychidae
+hydro_pmf<-subset_samples(pmf, Family=="Hydropsychidae")
+hydro_pmf<-prune_taxa(taxa_sums(hydro_pmf) > 0, hydro_pmf)
+ntaxa(hydro_pmf) #1196
+nsamples(hydro_pmf) #8
 
-get_taxa_unique(tripmf, "Phylum") #21 phyla total
-get_taxa_unique(tripmf, "Class") #41 Classes total
-get_taxa_unique(tripmf, "Order") #85 orders total
-get_taxa_unique(tripmf, "Family") #107 families total
-get_taxa_unique(tripmf, "Genus") #139 genera total
+get_taxa_unique(hydro_pmf, "Phylum") #21 phyla total
+get_taxa_unique(hydro_pmf, "Class") #40 Classes total
+get_taxa_unique(hydro_pmf, "Order") #84 orders total
+get_taxa_unique(hydro_pmf, "Family") #106 families total
+get_taxa_unique(hydro_pmf, "Genus") #138 genera total
 
-ephpmf<-subset_samples(pmf, Order=="Ephemeroptera")
-ephpmf<-prune_taxa(taxa_sums(ephpmf) > 0, ephpmf)
-ntaxa(ephpmf) #1813
-nsamples(ephpmf) #16
+#Heptageniidae
+hep_pmf<-subset_samples(pmf, Family=="Heptageniidae")
+hep_pmf<-prune_taxa(taxa_sums(hep_pmf) > 0, hep_pmf)
+ntaxa(hep_pmf) #1560
+nsamples(hep_pmf) #8
 
-get_taxa_unique(ephpmf, "Phylum") #22 phyla total
-get_taxa_unique(ephpmf, "Class") #49 Classes total
-get_taxa_unique(ephpmf, "Order") #113 orders total
-get_taxa_unique(ephpmf, "Family") #173 families total
-get_taxa_unique(ephpmf, "Genus") #296 genera total
+get_taxa_unique(hep_pmf, "Phylum") #20 phyla total
+get_taxa_unique(hep_pmf, "Class") #47 Classes total
+get_taxa_unique(hep_pmf, "Order") #103 orders total
+get_taxa_unique(hep_pmf, "Family") #148 families total
+get_taxa_unique(hep_pmf, "Genus") #233 genera total
 
-dippmf<-subset_samples(pmf, Order=="Diptera")
+#Chironomidae
+chiro_pmf<-subset_samples(pmf, Family=="Chironomidae")
+chiro_pmf<-prune_taxa(taxa_sums(chiro_pmf) > 0, chiro_pmf)
+ntaxa(chiro_pmf) #712
+nsamples(chiro_pmf) #5
+
+get_taxa_unique(chiro_pmf, "Phylum") #15 phyla total
+get_taxa_unique(chiro_pmf, "Class") #33 Classes total
+get_taxa_unique(chiro_pmf, "Order") #79 orders total
+get_taxa_unique(chiro_pmf, "Family") #113 families total
+get_taxa_unique(chiro_pmf, "Genus") #156 genera total
+
+
+#Perlidae
+perl_pmf<-subset_samples(pmf, Family=="Perlidae")
+perl_pmf<-prune_taxa(taxa_sums(perl_pmf) > 0, perl_pmf)
+ntaxa(perl_pmf) #754
+nsamples(perl_pmf) #8
+
+get_taxa_unique(perl_pmf, "Phylum") #17 phyla total
+get_taxa_unique(perl_pmf, "Class") #29 Classes total
+get_taxa_unique(perl_pmf, "Order") #70 orders total
+get_taxa_unique(perl_pmf, "Family") #95 families total
+get_taxa_unique(perl_pmf, "Genus") #132 genera total
+
+#Ephemeroptera
+ephem_pmf<-subset_samples(pmf, Family=="Ephemeroptera")
+ephem_pmf<-prune_taxa(taxa_sums(ephem_pmf) > 0, ephem_pmf)
+ntaxa(ephem_pmf) #469
+nsamples(ephem_pmf) #8
+
+get_taxa_unique(ephem_pmf, "Phylum") #15 phyla total
+get_taxa_unique(ephem_pmf, "Class") #23 Classes total
+get_taxa_unique(ephem_pmf, "Order") #56 orders total
+get_taxa_unique(ephem_pmf, "Family") #101 families total
+get_taxa_unique(ephem_pmf, "Genus") #161 genera total
+
+#Diptera
+dippmf<-subset_samples(pmf, Family=="Diptera")
 dippmf<-prune_taxa(taxa_sums(dippmf) > 0, dippmf)
-ntaxa(dippmf) #890
-nsamples(dippmf) #13
+ntaxa(dippmf) #225
+nsamples(dippmf) #8
 
-get_taxa_unique(dippmf, "Phylum") #16 phyla total
-get_taxa_unique(dippmf, "Class") #35 Classes total
-get_taxa_unique(dippmf, "Order") #87 orders total
-get_taxa_unique(dippmf, "Family") #134 families total
-get_taxa_unique(dippmf, "Genus") #211 genera total
+get_taxa_unique(dippmf, "Phylum") #7 phyla total
+get_taxa_unique(dippmf, "Class") #10 Classes total
+get_taxa_unique(dippmf, "Order") #35 orders total
+get_taxa_unique(dippmf, "Family") #65 families total
+get_taxa_unique(dippmf, "Genus") #98 genera total
 
-plecpmf<-subset_samples(pmf, Order=="Plecoptera")
-plecpmf<-prune_taxa(taxa_sums(plecpmf) > 0, plecpmf)
-ntaxa(plecpmf) #754
-nsamples(plecpmf) #8
-
-get_taxa_unique(plecpmf, "Phylum") #17 phyla total
-get_taxa_unique(plecpmf, "Class") #30 Classes total
-get_taxa_unique(plecpmf, "Order") #71 orders total
-get_taxa_unique(plecpmf, "Family") #96 families total
-get_taxa_unique(plecpmf, "Genus") #133 genera total
-
-aranpmf<-subset_samples(pmf, Order=="Araneae")
+#Araneidae
+aranpmf<-subset_samples(pmf, Family=="Araneidae")
 aranpmf<-prune_taxa(taxa_sums(aranpmf) > 0, aranpmf)
-ntaxa(aranpmf) #524
-nsamples(aranpmf) #15
+ntaxa(aranpmf) #390
+nsamples(aranpmf) #7
 
-get_taxa_unique(aranpmf, "Phylum") #11 phyla total
-get_taxa_unique(aranpmf, "Class") #19 Classes total
-get_taxa_unique(aranpmf, "Order") #67 orders total
-get_taxa_unique(aranpmf, "Family") #103 families total
-get_taxa_unique(aranpmf, "Genus") #187 genera total
+get_taxa_unique(aranpmf, "Phylum") #9 phyla total
+get_taxa_unique(aranpmf, "Class") #17 Classes total
+get_taxa_unique(aranpmf, "Order") #59 orders total
+get_taxa_unique(aranpmf, "Family") #87 families total
+get_taxa_unique(aranpmf, "Genus") #149 genera total
 
-#BRR2 (ACWA control), n = 8
+#Tetragnathidae
+tetrapmf<-subset_samples(pmf, Family=="Tetragnathidae")
+tetrapmf<-prune_taxa(taxa_sums(tetrapmf) > 0, tetrapmf)
+ntaxa(tetrapmf) #328
+nsamples(tetrapmf) #8
+
+get_taxa_unique(tetrapmf, "Phylum") #9 phyla total
+get_taxa_unique(tetrapmf, "Class") #16 Classes total
+get_taxa_unique(tetrapmf, "Order") #57 orders total
+get_taxa_unique(tetrapmf, "Family") #83 families total
+get_taxa_unique(tetrapmf, "Genus") #143 genera total
+
+#### ACWA ####
+
+#REF (ACWA control), n = 8
 BRR2<-subset_samples(sample_ps, Site=="BRR2")
 BRR2<-prune_taxa(taxa_sums(BRR2) > 0, BRR2)
 ntaxa(BRR2) #1325
 nsamples(BRR2) #8
 
 get_taxa_unique(BRR2, "Phylum") #22 phyla total
-get_taxa_unique(BRR2, "Class") #48 Classes total
-get_taxa_unique(BRR2, "Order") #113 orders total
-get_taxa_unique(BRR2, "Family") #132 families total
-get_taxa_unique(BRR2, "Genus") #172 genera total
+get_taxa_unique(BRR2, "Class") #47 Classes total
+get_taxa_unique(BRR2, "Order") #112 orders total
+get_taxa_unique(BRR2, "Family") #131 families total
+get_taxa_unique(BRR2, "Genus") #171 genera total
 
 sort((table(tax_table(BRR2)[,2]))/ntaxa(BRR2)*100)
+#Bacteroidota (38.9%), Proteobacteria (31.0%), Firmicutes (11.3%)
 
-#PCR1 (ACWA 5% effluent stream), n = 20
+#EFF5 (ACWA 5% effluent stream), n = 24
 PCR1<-subset_samples(sample_ps, Site=="PCR1")
 PCR1<-prune_taxa(taxa_sums(PCR1) > 0, PCR1)
 ntaxa(PCR1) #2180
 nsamples(PCR1) #24
 
 get_taxa_unique(PCR1, "Phylum") #26 phyla total
-get_taxa_unique(PCR1, "Class") #59 Classes total
-get_taxa_unique(PCR1, "Order") #139 orders total
-get_taxa_unique(PCR1, "Family") #178 families total
-get_taxa_unique(PCR1, "Genus") #284 genera total
+get_taxa_unique(PCR1, "Class") #58 Classes total
+get_taxa_unique(PCR1, "Order") #138 orders total
+get_taxa_unique(PCR1, "Family") #177 families total
+get_taxa_unique(PCR1, "Genus") #283 genera total
 
 sort((table(tax_table(PCR1)[,2]))/ntaxa(PCR1)*100)
+#Proteobacteria (35.6%), Bacteroidota (32.3%), Firmicutes (8.81%)
 
-triPCR1<-subset_samples(PCR1, Order=="Trichoptera")
-triPCR1<-prune_taxa(taxa_sums(triPCR1) > 0, triPCR1)
-ntaxa(triPCR1) #1585
-nsamples(triPCR1) #8
+#Hydropsychidae
+hydro_EFF5<-subset_samples(PCR1, Family=="Hydropsychidae")
+hydro_EFF5<-prune_taxa(taxa_sums(hydro_EFF5) > 0, hydro_EFF5)
+ntaxa(hydro_EFF5) #1585
+nsamples(hydro_EFF5) #8
 
-get_taxa_unique(triPCR1, "Phylum") #25 phyla total
-get_taxa_unique(triPCR1, "Class") #54 Classes total
-get_taxa_unique(triPCR1, "Order") #122 orders total
-get_taxa_unique(triPCR1, "Family") #143 families total
-get_taxa_unique(triPCR1, "Genus") #205 genera total
+get_taxa_unique(hydro_EFF5, "Phylum") #25 phyla total
+get_taxa_unique(hydro_EFF5, "Class") #53 Classes total
+get_taxa_unique(hydro_EFF5, "Order") #121 orders total
+get_taxa_unique(hydro_EFF5, "Family") #142 families total
+get_taxa_unique(hydro_EFF5, "Genus") #204 genera total
 
-ephPCR1<-subset_samples(PCR1, Order=="Ephemeroptera")
-ephPCR1<-prune_taxa(taxa_sums(ephPCR1) > 0, ephPCR1)
-ntaxa(ephPCR1) #1272
-nsamples(ephPCR1) #16
+#Baetidae
+baetid_EFF5<-subset_samples(PCR1, Family=="Baetidae")
+baetid_EFF5<-prune_taxa(taxa_sums(baetid_EFF5) > 0, baetid_EFF5)
+ntaxa(baetid_EFF5) #1211
+nsamples(baetid_EFF5) #8
 
-get_taxa_unique(ephPCR1, "Phylum") #21 phyla total
-get_taxa_unique(ephPCR1, "Class") #48 Classes total
-get_taxa_unique(ephPCR1, "Order") #111 orders total
-get_taxa_unique(ephPCR1, "Family") #153 families total
-get_taxa_unique(ephPCR1, "Genus") #237 genera total
+get_taxa_unique(baetid_EFF5, "Phylum") #21 phyla total
+get_taxa_unique(baetid_EFF5, "Class") #47 Classes total
+get_taxa_unique(baetid_EFF5, "Order") #108 orders total
+get_taxa_unique(baetid_EFF5, "Family") #144 families total
+get_taxa_unique(baetid_EFF5, "Genus") #216 genera total
+
+#Ephemeroptera
+ephem_EFF5<-subset_samples(PCR1, Family=="Ephemeroptera")
+ephem_EFF5<-prune_taxa(taxa_sums(ephem_EFF5) > 0, ephem_EFF5)
+ntaxa(ephem_EFF5) #181
+nsamples(ephem_EFF5) #8
+
+get_taxa_unique(ephem_EFF5, "Phylum") #11 phyla total
+get_taxa_unique(ephem_EFF5, "Class") #20 Classes total
+get_taxa_unique(ephem_EFF5, "Order") #43 orders total
+get_taxa_unique(ephem_EFF5, "Family") #59 families total
+get_taxa_unique(ephem_EFF5, "Genus") #74 genera total
 
 
 #PCR3 (ACWA 15% effluent stream), n = 15
@@ -1468,368 +1533,49 @@ ntaxa(PCR3) #2037
 nsamples(PCR3) #23
 
 get_taxa_unique(PCR3, "Phylum") #27 phyla total
-get_taxa_unique(PCR3, "Class") #55 Classes total
-get_taxa_unique(PCR3, "Order") #130 orders total
-get_taxa_unique(PCR3, "Family") #178 families total
-get_taxa_unique(PCR3, "Genus") #295 genera total
+get_taxa_unique(PCR3, "Class") #54 Classes total
+get_taxa_unique(PCR3, "Order") #129 orders total
+get_taxa_unique(PCR3, "Family") #177 families total
+get_taxa_unique(PCR3, "Genus") #294 genera total
 
 sort((table(tax_table(PCR3)[,2]))/ntaxa(PCR3)*100)
+#Proteobacteria (37.0%), Bacteroidota (31.3%), Firmicutes (9.77%)
 
-triPCR3<-subset_samples(PCR3, Order=="Trichoptera")
-triPCR3<-prune_taxa(taxa_sums(triPCR3) > 0, triPCR3)
-ntaxa(triPCR3) #1349
-nsamples(triPCR3) #8
+#Hydropsychidae
+hydro_EFF15<-subset_samples(PCR3, Family=="Hydropsychidae")
+hydro_EFF15<-prune_taxa(taxa_sums(hydro_EFF15) > 0, hydro_EFF15)
+ntaxa(hydro_EFF15) #1349
+nsamples(hydro_EFF15) #8
 
-get_taxa_unique(triPCR3, "Phylum") #24 phyla total
-get_taxa_unique(triPCR3, "Class") #48 Classes total
-get_taxa_unique(triPCR3, "Order") #110 orders total
-get_taxa_unique(triPCR3, "Family") #134 families total
-get_taxa_unique(triPCR3, "Genus") #182 genera total
+get_taxa_unique(hydro_EFF15, "Phylum") #24 phyla total
+get_taxa_unique(hydro_EFF15, "Class") #47 Classes total
+get_taxa_unique(hydro_EFF15, "Order") #109 orders total
+get_taxa_unique(hydro_EFF15, "Family") #133 families total
+get_taxa_unique(hydro_EFF15, "Genus") #181 genera total
 
-ephPCR3<-subset_samples(PCR3, Order=="Ephemeroptera")
-ephPCR3<-prune_taxa(taxa_sums(ephPCR3) > 0, ephPCR3)
-ntaxa(ephPCR3) #1141
-nsamples(ephPCR3) #15
+#Baetidae
+baetid_EFF15<-subset_samples(PCR3, Family=="Baetidae")
+baetid_EFF15<-prune_taxa(taxa_sums(baetid_EFF15) > 0, baetid_EFF15)
+ntaxa(baetid_EFF15) #1007
+nsamples(baetid_EFF15) #8
 
-get_taxa_unique(ephPCR3, "Phylum") #24 phyla total
-get_taxa_unique(ephPCR3, "Class") #45 Classes total
-get_taxa_unique(ephPCR3, "Order") #104 orders total
-get_taxa_unique(ephPCR3, "Family") #144 families total
-get_taxa_unique(ephPCR3, "Genus") #244 genera total
+get_taxa_unique(baetid_EFF15, "Phylum") #23 phyla total
+get_taxa_unique(baetid_EFF15, "Class") #43 Classes total
+get_taxa_unique(baetid_EFF15, "Order") #98 orders total
+get_taxa_unique(baetid_EFF15, "Family") #126 families total
+get_taxa_unique(baetid_EFF15, "Genus") #185 genera total
 
-#Larvae
-larvae<-subset_samples(sample_ps, Stage=="Larvae")
-larvae<-prune_taxa(taxa_sums(larvae) > 0, larvae)
-nsamples(larvae) #152
+#Ephemeroptera
+ephem_EFF15<-subset_samples(PCR3, Family=="Ephemeroptera")
+ephem_EFF15<-prune_taxa(taxa_sums(ephem_EFF15) > 0, ephem_EFF15)
+ntaxa(ephem_EFF15) #212
+nsamples(ephem_EFF15) #8
 
-#Adults
-Adults<-subset_samples(sample_ps, Stage=="Adults")
-Adults<-prune_taxa(taxa_sums(Adults) > 0, Adults)
-nsamples(Adults) #109
-
-#Spiders
-spiders<-subset_samples(sample_ps, Stage=="Spiders")
-spiders<-prune_taxa(taxa_sums(spiders) > 0, spiders)
-nsamples(spiders)
-#78 Spiders samples
-```
-
-#### Relative abundance across sites 
-```{r}
-#Cochrane
-#Larvae
-cochlar<-subset_samples(coch, Stage=="Larvae")
-cochlar<-prune_taxa(taxa_sums(cochlar) > 0, cochlar)
-sort((table(tax_table(cochlar)[,2]))/ntaxa(cochlar)*100)
-#Adults
-cochad<-subset_samples(coch, Stage=="Adults")
-cochad<-prune_taxa(taxa_sums(cochad) > 0, cochad)
-sort((table(tax_table(cochad)[,2]))/ntaxa(cochad)*100)
-#Spiders
-cochSpiders<-subset_samples(coch, Stage=="Spiderss")
-cochSpiders<-prune_taxa(taxa_sums(cochSpiders) > 0, cochSpiders)
-sort((table(tax_table(cochSpiders)[,2]))/ntaxa(cochSpiders)*100)
-#Hydropsychidae larvae
-coch_hydro_lar<-subset_samples(sample_ps, Site=="Cochrane" & Stage=="Larvae" & Family=="Hydropsychidae")
-coch_hydro_lar<-prune_taxa(taxa_sums(coch_hydro_lar)> 0, coch_hydro_lar)
-sort((table(tax_table(coch_hydro_lar)[,2]))/ntaxa(coch_hydro_lar)*100)
-
-#Heptageniidae larvae
-coch_hep_lar<-subset_samples(sample_ps, Site=="Cochrane" & Stage=="Larvae" & Family=="Heptageniidae")
-coch_hep_lar<-prune_taxa(taxa_sums(coch_hep_lar)> 0, coch_hep_lar)
-sort((table(tax_table(coch_hep_lar)[,2]))/ntaxa(coch_hep_lar)*100)
-
-#Perlidae larvae
-coch_perl_lar<-subset_samples(sample_ps, Site=="Cochrane" & Stage=="Larvae" & Family=="Perlidae")
-coch_perl_lar<-prune_taxa(taxa_sums(coch_perl_lar)> 0, coch_perl_lar)
-sort((table(tax_table(coch_perl_lar)[,2]))/sum(ntaxa(coch_perl_lar))*100)
-
-
-
-hydro_lar_bow_rel_abun <- tax_glom(hydro_lar_Bow, "Phylum")
-hydro_lar_bow_rel_abun_top <- merge_samples(hydro_lar_bow_rel_abun, top=5)
-ps4 <- merge_samples(ps3.top, "Sex")
-
-
-hydro_lar_Bow_df<-psmelt(hydro_lar_Bow)
-hydro_lar_Bow_df$Phylum <- as.character(hydro_lar_Bow_df$Phylum)
-hydro_lar_Bow_df <- hydro_lar_Bow_df %>%
-group_by(Phylum, Site, sample_Family) %>%
-mutate(median=median(Abundance))
-
-#to get the same rows together
-hydro_lar_Bow_df_sum <- hydro_lar_Bow_df %>%
-group_by(Site, Phylum) %>%
-summarise(Abundance=mean(Abundance))
-
-mean(hydro_lar_Bow_df_sum$Site)
-
-
-
-
-summarize_taxa(ps4)
-#Heptageniidae larvae
-sort((table(tax_table(hep_lar_Bow)[,2]))/ntaxa(hep_lar_Bow)*100)
-#Chironomid larvae
-sort((table(tax_table(chiro_lar_Bow)[,2]))/ntaxa(chiro_lar_Bow)*100)
-
-#Sunalta
-#Larvae
-sunlar<-subset_samples(sun, Stage=="Larvae")
-sunlar<-prune_taxa(taxa_sums(sunlar) > 0, sunlar)
-sort((table(tax_table(sunlar)[,2]))/ntaxa(sunlar)*100)
-#Adultss
-sunad<-subset_samples(sun, Stage=="Adultss")
-sunad<-prune_taxa(taxa_sums(sunad) > 0, sunad)
-sort((table(tax_table(sunad)[,2]))/ntaxa(sunad)*100)
-#Spiders
-sunSpiders<-subset_samples(sun, Stage=="Spiders")
-sunSpiders<-prune_taxa(taxa_sums(sunSpiders) > 0, sunSpiders)
-sort((table(tax_table(sunSpiders)[,2]))/ntaxa(sunSpiders)*100)
-
-#Cushing Bridge
-#Larvae
-cushbrlar<-subset_samples(sample_ps, Stage=="Larvae" & Site=="Cushing Bridge")
-cushbrlar<-prune_taxa(taxa_sums(cushbrlar) > 0, cushbrlar)
-sort((table(tax_table(cushbrlar)[,2]))/ntaxa(cushbrlar)*100)
-#Adults
-cushbrad<-subset_samples(cushbr, Stage=="Adults")
-cushbrad<-prune_taxa(taxa_sums(cushbrad) > 0, cushbrad)
-sort((table(tax_table(cushbrad)[,2]))/ntaxa(cushbrad)*100)
-#Spiders
-cushbrSpiders<-subset_samples(cushbr, Stage=="Spiders")
-cushbrSpiders<-prune_taxa(taxa_sums(cushbrSpiders) > 0, cushbrSpiders)
-sort((table(tax_table(cushbrSpiders)[,2]))/ntaxa(cushbrSpiders)*100)
-
-#Graves Bridge
-#Larvae
-grvbrlar<-subset_samples(sample_ps, Stage=="Larvae" & Site=="Graves Bridge")
-grvbrlar<-prune_taxa(taxa_sums(grvbrlar) > 0, grvbrlar)
-sort((table(tax_table(grvbrlar)[,2]))/ntaxa(grvbrlar)*100)
-#Adults
-grvbrad<-subset_samples(grvbr, Stage=="Adults")
-grvbrad<-prune_taxa(taxa_sums(grvbrad) > 0, grvbrad)
-sort((table(tax_table(grvbrad)[,2]))/ntaxa(grvbrad)*100)
-#Spiders
-grvbrSpiders<-subset_samples(grvbr, Stage=="Spiders")
-grvbrSpiders<-prune_taxa(taxa_sums(grvbrSpiders) > 0, grvbrSpiders)
-sort((table(tax_table(grvbrSpiders)[,2]))/ntaxa(grvbrSpiders)*100)
-
-#Policeman Flats
-#Larvae
-pmflar<-subset_samples(sample_ps, Stage=="Larvae" & Site=="Policeman Flats")
-pmflar<-prune_taxa(taxa_sums(pmflar) > 0, pmflar)
-sort((table(tax_table(pmflar)[,2]))/ntaxa(pmflar)*100)
-#Adults
-pmfad<-subset_samples(pmf, Stage=="Adults")
-pmfad<-prune_taxa(taxa_sums(pmfad) > 0, pmfad)
-sort((table(tax_table(pmfad)[,2]))/ntaxa(pmfad)*100)
-#Spiders
-pmfSpiders<-subset_samples(pmf, Stage=="Spiders")
-pmfSpiders<-prune_taxa(taxa_sums(pmfSpiders) > 0, pmfSpiders)
-sort((table(tax_table(pmfSpiders)[,2]))/ntaxa(pmfSpiders)*100)
-
-#BRR2
-#Larvae
-sort((table(tax_table(BRR2)[,2]))/ntaxa(BRR2)*100)
-
-#PCR1
-#Larvae
-PCR1lar<-subset_samples(sample_ps, Stage=="Larvae" & Site=="PCR1")
-PCR1lar<-prune_taxa(taxa_sums(PCR1lar) > 0, PCR1lar)
-sort((table(tax_table(PCR1lar)[,2]))/ntaxa(PCR1lar)*100)
-#Adults
-PCR1ad<-subset_samples(PCR1, Stage=="Adults")
-PCR1ad<-prune_taxa(taxa_sums(PCR1ad) > 0, PCR1ad)
-sort((table(tax_table(PCR1ad)[,2]))/ntaxa(PCR1ad)*100)
-
-#PCR3
-#Larvae
-PCR3lar<-subset_samples(sample_ps, Stage=="Larvae" & Site=="PCR3")
-PCR3lar<-prune_taxa(taxa_sums(PCR3lar) > 0, PCR3lar)
-sort((table(tax_table(PCR3lar)[,2]))/ntaxa(PCR3lar)*100)
-```
-
-### Sample sizes 
-```{r}
-#### Hydropsychidae ####
-#Bow River
-hydro_lar_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Hydropsychidae")
-nsamples(hydro_lar_Bow) #36; 5-8/site
-#Cochrane
-hydro_coch<-subset_samples(hydro_lar_Bow, Site=="Cochrane")
-nsamples(hydro_coch) #8
-#Sunalta
-hydro_sun<-subset_samples(hydro_lar_Bow, Site=="Sunalta")
-nsamples(hydro_sun) #7
-#Cushing Bridge
-hydro_cush<-subset_samples(hydro_lar_Bow, Site=="Cushing Bridge")
-nsamples(hydro_cush) #5
-#Graves Bridge
-hydro_grv<-subset_samples(hydro_lar_Bow, Site=="Graves Bridge")
-nsamples(hydro_grv) #8
-#Policeman Flats
-hydro_pmf<-subset_samples(hydro_lar_Bow, Site=="Policeman Flats")
-nsamples(hydro_pmf) #8
-
-#ACWA
-hydro_lar_ACWA<-subset_samples(sample_ps, Stream_Type!="Bow River" & Family=="Hydropsychidae")
-nsamples(hydro_lar_ACWA) #24; 8/site
-
-#### Heptageniidae ####
-
-hep_lar_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Heptageniidae")
-nsamples(hep_lar_Bow) #40; 8/site
-#Cochrane
-hep_coch<-subset_samples(hep_lar_Bow, Site=="Cochrane")
-nsamples(hep_coch) #8
-#Sunalta
-hep_sun<-subset_samples(hep_lar_Bow, Site=="Sunalta")
-nsamples(hep_sun) #8
-#Cushing Bridge
-hep_cush<-subset_samples(hep_lar_Bow, Site=="Cushing Bridge")
-nsamples(hep_cush) #8
-#Graves Bridge
-hep_grv<-subset_samples(hep_lar_Bow, Site=="Graves Bridge")
-nsamples(hep_grv) #8
-#Policeman Flats
-hep_pmf<-subset_samples(hep_lar_Bow, Site=="Policeman Flats")
-nsamples(hep_pmf) #8
-
-
-#### Chironomidae ####
-
-chiro_lar_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Chironomidae")
-nsamples(chiro_lar_Bow) #16; 5-6/site
-#Cochrane
-chiro_coch<-subset_samples(chiro_lar_Bow, Site=="Cochrane")
-nsamples(chiro_coch) #5
-
-#Cushing Bridge
-chiro_cush<-subset_samples(chiro_lar_Bow, Site=="Cushing Bridge")
-nsamples(chiro_cush) #6
-
-#Policeman Flats
-chiro_pmf<-subset_samples(chiro_lar_Bow, Site=="Policeman Flats")
-nsamples(chiro_pmf) #5
-
-#### Perlidae ####
-
-perl_lar_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Perlidae")
-nsamples(perl_lar_Bow) #21; 5-8/site
-#Cochrane
-perl_coch<-subset_samples(perl_lar_Bow, Site=="Cochrane")
-nsamples(perl_coch) #8
-
-#Cushing Bridge
-perl_cush<-subset_samples(perl_lar_Bow, Site=="Cushing Bridge")
-nsamples(perl_cush) #5
-
-#Policeman Flats
-perl_pmf<-subset_samples(perl_lar_Bow, Site=="Policeman Flats")
-nsamples(perl_pmf) #8
-
-#### Baetidae ####
-baetid_ACWA<-subset_samples(sample_ps, Stream_Type=="ACWA Streams" & Family=="Baetidae")
-nsamples(baetid_ACWA) #15
-
-#EXP5
-baetid_EXP5<-subset_samples(baetid_ACWA, Site=="PCR1")
-baetid_EXP5 #8
-
-#EXP15
-baetid_EXP15<-subset_samples(baetid_ACWA, Site=="PCR3")
-baetid_EXP15 #7
-
-#### Trichoptera ####
-trichop<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Trichoptera")
-nsamples(trichop) #31; 7-8/site
-#Cochrane
-trichop_coch<-subset_samples(trichop, Site=="Cochrane")
-nsamples(trichop_coch) #8
-#Sunalta
-trichop_sun<-subset_samples(trichop, Site=="Sunalta")
-nsamples(trichop_sun) #8
-#Cushing Bridge
-trichop_cush<-subset_samples(trichop, Site=="Cushing Bridge")
-nsamples(trichop_cush) #8
-#Graves Bridge
-trichop_grv<-subset_samples(trichop, Site=="Graves Bridge")
-nsamples(trichop_grv) #7
-
-#### Ephemeroptera ####
-ephem<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Ephemeroptera")
-nsamples(ephem) #40; 8/site
-#Cochrane
-ephem_coch<-subset_samples(ephem, Site=="Cochrane")
-nsamples(ephem_coch) #8
-#Sunalta
-ephem_sun<-subset_samples(ephem, Site=="Sunalta")
-nsamples(ephem_sun) #8
-#Cushing Bridge
-ephem_cush<-subset_samples(ephem, Site=="Cushing Bridge")
-nsamples(ephem_cush) #8
-#Graves Bridge
-ephem_grv<-subset_samples(ephem, Site=="Graves Bridge")
-nsamples(ephem_grv) #8
-#Policeman Flats
-ephem_pmf<-subset_samples(ephem, Site=="Policeman Flats")
-nsamples(ephem_pmf) #8
-
-
-#### Diptera ####
-dip<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Diptera")
-nsamples(dip) #22; 6-8/site
-#Cochrane
-dip_coch<-subset_samples(dip, Site=="Cochrane")
-nsamples(dip_coch) #6
-
-#Cushing Bridge
-dip_cush<-subset_samples(dip, Site=="Cushing Bridge")
-nsamples(dip_cush) #8
-
-#Policeman Flats
-dip_pmf<-subset_samples(dip, Site=="Policeman Flats")
-nsamples(dip_pmf) #8
-
-#### Araneidae ####
-aran<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Araneidae")
-nsamples(aran) #38; 7-8/site
-#Cochrane
-aran_coch<-subset_samples(aran, Site=="Cochrane")
-nsamples(aran_coch) #8
-#Sunalta
-aran_sun<-subset_samples(aran, Site=="Sunalta")
-nsamples(aran_sun) #8
-#Cushing Bridge
-aran_cush<-subset_samples(aran, Site=="Cushing Bridge")
-nsamples(aran_cush) #7
-#Graves Bridge
-aran_grv<-subset_samples(aran, Site=="Graves Bridge")
-nsamples(aran_grv) #8
-#Policeman Flats
-aran_pmf<-subset_samples(aran, Site=="Policeman Flats")
-nsamples(aran_pmf) #7
-
-#### Tetragnathidae ####
-tetra<-subset_samples(sample_ps, Stream_Type=="Bow River" & Family=="Tetragnathidae")
-nsamples(tetra) #40; 8/site
-#Cochrane
-tetra_coch<-subset_samples(tetra, Site=="Cochrane")
-nsamples(tetra_coch) #8
-#Sunalta
-tetra_sun<-subset_samples(tetra, Site=="Sunalta")
-nsamples(tetra_sun) #8
-#Cushing Bridge
-tetra_cush<-subset_samples(tetra, Site=="Cushing Bridge")
-nsamples(tetra_cush) #8
-#Graves Bridge
-tetra_grv<-subset_samples(tetra, Site=="Graves Bridge")
-nsamples(tetra_grv) #8
-#Policeman Flats
-tetra_pmf<-subset_samples(tetra, Site=="Policeman Flats")
-nsamples(tetra_pmf) #8
-
+get_taxa_unique(ephem_EFF15, "Phylum") #13 phyla total
+get_taxa_unique(ephem_EFF15, "Class") #19 Classes total
+get_taxa_unique(ephem_EFF15, "Order") #52 orders total
+get_taxa_unique(ephem_EFF15, "Family") #78 families total
+get_taxa_unique(ephem_EFF15, "Genus") #115 genera total
 ```
 
 # Relative Abundance 
@@ -1966,1054 +1712,934 @@ topgenusplotbl
 
 ## Experimental {.tabset}
 
-### Calculating relative abundance of top 5 phyla  (Table 4 and 5)
+### Calculating mean relative abundance and SD of top 5 phyla 
 ```{r}
-#### All Bow sites combined ####
-
-Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-
-bow_glom = tax_glom(Bow_ps, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-bow_glom_df = data.frame(Phylum = tax_table(bow_glom)[,"Phylum"], Mean = rowMeans(otu_table(bow_glom)), row.names = NULL)
-bow_glom_df = bow_glom_df[order(-bow_glom_df$Mean),]
-
-top3_bow_glom <- bow_glom_df$Phylum[1:5]
-bow_glom_df_2 <- bow_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_bow_glom))
-
-bow_glom_df_3<-aggregate(data=bow_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(bow_glom_df_3)
-#Proteobacteria (42.4%), Cyanobacteria (20.8%), Bacteroidota (18.5%)
-
-
-#Larval Hydropsychidae
-hydro<-subset_samples(Bow_ps, Family=="Hydropsychidae")
-
-hydro_glom = tax_glom(hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-# The taxa orders are the same in tax_table() and otu_table()
-# Use 'rowMeans(otu_table(GPf))' to calculate per-row average in the OTU table
-hydro_glom_df = data.frame(Phylum = tax_table(hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(hydro_glom)), row.names = NULL)
-hydro_glom_df = hydro_glom_df[order(-hydro_glom_df$Mean),]
-
-top3_hydro_glom <- hydro_glom_df$Phylum[1:3]
-hydro_glom_df_2 <- hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_hydro_glom))
-
-hydro_glom_df_3<-aggregate(data=hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(hydro_glom_df_3)
-#Bacteroidota (44.0%), Proteobacteria (31.7%), Firmicutes (14.1%)
-
-
-#Larval Heptageniidae
-hep<-subset_samples(Bow_ps, Family=="Heptageniidae")
-
-hep_glom = tax_glom(hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-hep_glom_df = data.frame(Phylum = tax_table(hep_glom)[,"Phylum"], Mean = rowMeans(otu_table(hep_glom)), row.names = NULL)
-hep_glom_df = hep_glom_df[order(-hep_glom_df$Mean),]
-
-top3_hep_glom <- hep_glom_df$Phylum[1:3]
-hep_glom_df_2 <- hep_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_hep_glom)) 
-
-hep_glom_df_3<-aggregate(data=hep_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(hep_glom_df_3)
-#Proteobacteria (31.0%), Cyanobacteria (29.5%), Firmicutes (28.5%)
-
-#Larval Chironomidae
-chiro<-subset_samples(Bow_ps, Family=="Chironomidae")
-
-chiro_glom = tax_glom(chiro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-chiro_glom_df = data.frame(Phylum = tax_table(chiro_glom)[,"Phylum"], Mean = rowMeans(otu_table(chiro_glom)), row.names = NULL)
-chiro_glom_df = chiro_glom_df[order(-chiro_glom_df$Mean),]
-
-top3_chiro_glom <- chiro_glom_df$Phylum[1:3]
-
-chiro_glom_df_2 <- chiro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_chiro_glom)) 
-
-chiro_glom_df_3<-aggregate(data=chiro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(chiro_glom_df_3)
-#Cyanobacteria (45.5%), Proteobacteria (28.6%), Bacteroidota (13.2%)
-
-#Larval Perlidae
-perl<-subset_samples(Bow_ps, Family=="Perlidae")
-
-perl_glom = tax_glom(perl, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-perl_glom_df = data.frame(Phylum = tax_table(perl_glom)[,"Phylum"], Mean = rowMeans(otu_table(perl_glom)), row.names = NULL)
-perl_glom_df = perl_glom_df[order(-perl_glom_df$Mean),]
-
-top3_perl_glom <- perl_glom_df$Phylum[1:3]
-
-perl_glom_df_2 <- perl_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_perl_glom)) 
-
-perl_glom_df_3<-aggregate(data=perl_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(perl_glom_df_3)
-#Proteobacteria (63.2%), Bacteroidota (20.3%), Cyanobacteria (13.4%)
-
-#Adult Tricoptera
-tricho<-subset_samples(Bow_ps, Family=="Trichoptera")
-
-tricho_glom = tax_glom(tricho, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-tricho_glom_df = data.frame(Phylum = tax_table(tricho_glom)[,"Phylum"], Mean = rowMeans(otu_table(tricho_glom)), row.names = NULL)
-tricho_glom_df = tricho_glom_df[order(-tricho_glom_df$Mean),]
-
-top3_tricho_glom <- tricho_glom_df$Phylum[1:3]
-tricho_glom_df_2 <- tricho_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_tricho_glom))
-
-tricho_glom_df_3<-aggregate(data=tricho_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(tricho_glom_df_3)
-#Proteobacteria (49.2%), Cyanobacteria (19.4%), Bacteroidota (14.4%)
-
-#Adult Ephemperoptera
-ephem<-subset_samples(Bow_ps, Family=="Ephemeroptera")
-
-ephem_glom = tax_glom(ephem, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-ephem_glom_df = data.frame(Phylum = tax_table(ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(ephem_glom)), row.names = NULL)
-ephem_glom_df = ephem_glom_df[order(-ephem_glom_df$Mean),]
-
-top3_ephem_glom <- ephem_glom_df$Phylum[1:3]
-ephem_glom_df_2 <- ephem_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_ephem_glom))
-
-ephem_glom_df_3<-aggregate(data=ephem_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(ephem_glom_df_3)
-#Proteobacteria (40.2%), Firmicutes (23.7%), Cyanobacteria (22.6%)
-
-#Adult Chironomidae
-dip<-subset_samples(Bow_ps, Family=="Diptera")
-
-dip_glom = tax_glom(dip, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-dip_glom_df = data.frame(Phylum = tax_table(dip_glom)[,"Phylum"], Mean = rowMeans(otu_table(dip_glom)), row.names = NULL)
-dip_glom_df = dip_glom_df[order(-dip_glom_df$Mean),]
-
-top3_dip_glom <- dip_glom_df$Phylum[1:3]
-dip_glom_df_2 <- dip_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_dip_glom))
-
-dip_glom_df_3<-aggregate(data=dip_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(dip_glom_df_3)
-#Proteobacteria (45.2%), Firmicutes (26.4%), Cyanobacteria (17.8%)
-
-#Araneidae
-aran<-subset_samples(sample_ps, Family=="Araneidae")
-
-aran_glom = tax_glom(aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-aran_glom_df = data.frame(Phylum = tax_table(aran_glom)[,"Phylum"], Mean = rowMeans(otu_table(aran_glom)), row.names = NULL)
-aran_glom_df = aran_glom_df[order(-aran_glom_df$Mean),]
-
-top3_aran_glom <- aran_glom_df$Phylum[1:3]
-aran_glom_df_2 <- aran_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_aran_glom))
-
-aran_glom_df_3<-aggregate(data=aran_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(aran_glom_df_3)
-#Cyanobacteria (38.8%), Bacteroidota (37.5%), Proteobacteria (12.1%)
-
-#Tetragnathidae
-tetra<-subset_samples(sample_ps,  Family=="Tetragnathidae")
-
-tetra_glom = tax_glom(tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-tetra_glom_df = data.frame(Phylum = tax_table(tetra_glom)[,"Phylum"], Mean = rowMeans(otu_table(tetra_glom)), row.names = NULL)
-tetra_glom_df = tetra_glom_df[order(-tetra_glom_df$Mean),]
-
-top3_tetra_glom <- tetra_glom_df$Phylum[1:3]
-tetra_glom_df_2 <- tetra_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_tetra_glom))
-
-tetra_glom_df_3<-aggregate(data=tetra_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(tetra_glom_df_3)
-#Proteobacteria (81.8%), Bacteroidota (6.59%), Cyanobacteria (5.98%)
-
-#### Cochrane ####
-
-cochrane<-subset_samples(sample_ps, Site=="Cochrane")
+#### Sites ####
+# Cochrane #
+
+cochrane<-subset_samples(sample_ps, Site=="Cochrane") 
+cochrane<-prune_taxa(taxa_sums(cochrane) > 0, cochrane) 
 
 coch_glom = tax_glom(cochrane, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
 
-coch_glom_df = data.frame(Phylum = tax_table(coch_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_glom)), row.names = NULL)
-coch_glom_df = coch_glom_df[order(-coch_glom_df$Mean),]
-
-top3_coch_glom <- coch_glom_df$Phylum[1:5]
-coch_glom_df_2 <- coch_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_glom))
-
-coch_glom_df_3<-aggregate(data=coch_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_glom_df_3)
-
-#Larval Hydropsychidae
-coch_hydro<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Hydropsychidae")
-
-coch_hydro_glom = tax_glom(coch_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_hydro_glom_df = data.frame(Phylum = tax_table(coch_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_hydro_glom)), row.names = NULL)
-coch_hydro_glom_df = coch_hydro_glom_df[order(-coch_hydro_glom_df$Mean),]
-head(coch_hydro_glom_df)
-
-top3_coch_hydro_glom <- coch_hydro_glom_df$Phylum[1:3]
-coch_hydro_glom_df_2 <- coch_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_hydro_glom))
-
-coch_hydro_glom_df_3<-aggregate(data=coch_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_hydro_glom_df_3)
-
-
-#Larval Heptageniidae
-coch_hep<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Heptageniidae")
-
-coch_hep_glom = tax_glom(coch_hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_hep_glom_df = data.frame(Phylum = tax_table(coch_hep_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_hep_glom)), row.names = NULL)
-coch_hep_glom_df = coch_hep_glom_df[order(-coch_hep_glom_df$Mean),]
-head(coch_hep_glom_df)
-
-top3_coch_hep_glom <- coch_hep_glom_df$Phylum[1:3]
-coch_hep_glom_df_2 <- coch_hep_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_hep_glom)) 
-
-coch_hep_glom_df_3<-aggregate(data=coch_hep_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_hep_glom_df_3)
-
-
-#Larval Chironomidae
-coch_chiro<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Chironomidae")
-
-coch_chiro_glom = tax_glom(coch_chiro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_chiro_glom_df = data.frame(Phylum = tax_table(coch_chiro_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_chiro_glom)), row.names = NULL)
-coch_chiro_glom_df = coch_chiro_glom_df[order(-coch_chiro_glom_df$Mean),]
-head(coch_chiro_glom_df)
-
-top3_coch_chiro_glom <- coch_chiro_glom_df$Phylum[1:5]
-
-coch_chiro_glom_df_2 <- coch_chiro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_chiro_glom)) 
-
-coch_chiro_glom_df_3<-aggregate(data=coch_chiro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_chiro_glom_df_3)
-
-#Larval Perlidae
-coch_perl<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Perlidae")
-
-coch_perl_glom = tax_glom(coch_perl, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_perl_glom_df = data.frame(Phylum = tax_table(coch_perl_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_perl_glom)), row.names = NULL)
-coch_perl_glom_df = coch_perl_glom_df[order(-coch_perl_glom_df$Mean),]
-head(coch_perl_glom_df)
-
-top3_coch_perl_glom <- coch_perl_glom_df$Phylum[1:3]
-
-coch_perl_glom_df_2 <- coch_perl_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_perl_glom)) 
-
-coch_perl_glom_df_3<-aggregate(data=coch_perl_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_perl_glom_df_3)
-
-#Adult Tricoptera
-coch_tricho<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Trichoptera")
-
-coch_tricho_glom = tax_glom(coch_tricho, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_tricho_glom_df = data.frame(Phylum = tax_table(coch_tricho_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_tricho_glom)), row.names = NULL)
-coch_tricho_glom_df = coch_tricho_glom_df[order(-coch_tricho_glom_df$Mean),]
-head(coch_tricho_glom_df)
-
-top3_coch_tricho_glom <- coch_tricho_glom_df$Phylum[1:5]
-coch_tricho_glom_df_2 <- coch_tricho_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_tricho_glom))
-
-coch_tricho_glom_df_3<-aggregate(data=coch_tricho_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_tricho_glom_df_3)
-
-#Adult Ephemperoptera
-coch_ephem<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Ephemeroptera")
-
-coch_ephem_glom = tax_glom(coch_ephem, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_ephem_glom_df = data.frame(Phylum = tax_table(coch_ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_ephem_glom)), row.names = NULL)
-coch_ephem_glom_df = coch_ephem_glom_df[order(-coch_ephem_glom_df$Mean),]
-
-top3_coch_ephem_glom <- coch_ephem_glom_df$Phylum[1:6]
-coch_ephem_glom_df_2 <- coch_ephem_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_ephem_glom))
-
-coch_ephem_glom_df_3<-aggregate(data=coch_ephem_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_ephem_glom_df_3)
-
-#Adult Chironomidae
-coch_dip<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Diptera")
-
-coch_dip_glom = tax_glom(coch_dip, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_dip_glom_df = data.frame(Phylum = tax_table(coch_dip_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_dip_glom)), row.names = NULL)
-coch_dip_glom_df = coch_dip_glom_df[order(-coch_dip_glom_df$Mean),]
-
-top3_coch_dip_glom <- coch_dip_glom_df$Phylum[1:3]
-coch_dip_glom_df_2 <- coch_dip_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_dip_glom))
-
-coch_dip_glom_df_3<-aggregate(data=coch_dip_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_dip_glom_df_3)
-
-#Araneidae
-coch_aran<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Araneidae")
-
-coch_aran_glom = tax_glom(coch_aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_aran_glom_df = data.frame(Phylum = tax_table(coch_aran_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_aran_glom)), row.names = NULL)
-coch_aran_glom_df = coch_aran_glom_df[order(-coch_aran_glom_df$Mean),]
-
-top3_coch_aran_glom <- coch_aran_glom_df$Phylum[1:6]
-coch_aran_glom_df_2 <- coch_aran_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_aran_glom))
-
-coch_aran_glom_df_3<-aggregate(data=coch_aran_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_aran_glom_df_3)
-
-#Tetragnathidae
-coch_tetra<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Tetragnathidae")
-
-coch_tetra_glom = tax_glom(coch_tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-coch_tetra_glom_df = data.frame(Phylum = tax_table(coch_tetra_glom)[,"Phylum"], Mean = rowMeans(otu_table(coch_tetra_glom)), row.names = NULL)
-coch_tetra_glom_df = coch_tetra_glom_df[order(-coch_tetra_glom_df$Mean),]
-
-top3_coch_tetra_glom <- coch_tetra_glom_df$Phylum[1:6]
-coch_tetra_glom_df_2 <- coch_tetra_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_coch_tetra_glom))
-
-coch_tetra_glom_df_3<-aggregate(data=coch_tetra_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(coch_tetra_glom_df_3)
-
-
-#### Sunalta ####
-
-sun<-subset_samples(sample_ps, Site=="Sunalta")
-
-sun_glom = tax_glom(sun, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-sun_glom_df = data.frame(Phylum = tax_table(sun_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_glom)), row.names = NULL)
-sun_glom_df = sun_glom_df[order(-sun_glom_df$Mean),]
-
-top3_sun_glom <- sun_glom_df$Phylum[1:5]
-sun_glom_df_2 <- sun_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_glom))
-
-sun_glom_df_3<-aggregate(data=sun_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_glom_df_3)
-
-#Larval Hydropsychidae
-sun_hydro<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Hydropsychidae")
-
-sun_hydro_glom = tax_glom(sun_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-sun_hydro_glom_df = data.frame(Phylum = tax_table(sun_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_hydro_glom)), row.names = NULL)
-sun_hydro_glom_df = sun_hydro_glom_df[order(-sun_hydro_glom_df$Mean),]
-head(sun_hydro_glom_df)
-
-top3_sun_hydro_glom <- sun_hydro_glom_df$Phylum[1:3]
-sun_hydro_glom_df_2 <- sun_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_hydro_glom))
-
-sun_hydro_glom_df_3<-aggregate(data=sun_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_hydro_glom_df_3)
-
-
-#Larval Heptageniidae
-sun_hep<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Heptageniidae")
-
-sun_hep_glom = tax_glom(sun_hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-sun_hep_glom_df = data.frame(Phylum = tax_table(sun_hep_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_hep_glom)), row.names = NULL)
-sun_hep_glom_df = sun_hep_glom_df[order(-sun_hep_glom_df$Mean),]
-head(sun_hep_glom_df)
-
-top3_sun_hep_glom <- sun_hep_glom_df$Phylum[1:3]
-sun_hep_glom_df_2 <- sun_hep_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_hep_glom)) 
-
-sun_hep_glom_df_3<-aggregate(data=sun_hep_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_hep_glom_df_3)
-
-
-#Adult Trichoptera
-sun_tricho<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Trichoptera")
-
-sun_tricho_glom = tax_glom(sun_tricho, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-sun_tricho_glom_df = data.frame(Phylum = tax_table(sun_tricho_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_tricho_glom)), row.names = NULL)
-sun_tricho_glom_df = sun_tricho_glom_df[order(-sun_tricho_glom_df$Mean),]
-head(sun_tricho_glom_df)
-
-top3_sun_tricho_glom <- sun_tricho_glom_df$Phylum[1:6]
-sun_tricho_glom_df_2 <- sun_tricho_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_tricho_glom))
-
-sun_tricho_glom_df_3<-aggregate(data=sun_tricho_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_tricho_glom_df_3)
-
-#Adult Ephemperoptera
-sun_ephem<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Ephemeroptera")
-
-sun_ephem_glom = tax_glom(sun_ephem, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-sun_ephem_glom_df = data.frame(Phylum = tax_table(sun_ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_ephem_glom)), row.names = NULL)
-sun_ephem_glom_df = sun_ephem_glom_df[order(-sun_ephem_glom_df$Mean),]
-
-top3_sun_ephem_glom <- sun_ephem_glom_df$Phylum[1:3]
-sun_ephem_glom_df_2 <- sun_ephem_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_ephem_glom))
-
-sun_ephem_glom_df_3<-aggregate(data=sun_ephem_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_ephem_glom_df_3)
-
-
-#Araneidae
-sun_aran<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Araneidae")
-
-sun_aran_glom = tax_glom(sun_aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-sun_aran_glom_df = data.frame(Phylum = tax_table(sun_aran_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_aran_glom)), row.names = NULL)
-sun_aran_glom_df = sun_aran_glom_df[order(-sun_aran_glom_df$Mean),]
-
-top3_sun_aran_glom <- sun_aran_glom_df$Phylum[1:3]
-sun_aran_glom_df_2 <- sun_aran_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_aran_glom))
-
-sun_aran_glom_df_3<-aggregate(data=sun_aran_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_aran_glom_df_3)
-
-#Tetragnathidae
-sun_tetra<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Tetragnathidae")
-
-sun_tetra_glom = tax_glom(sun_tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-sun_tetra_glom_df = data.frame(Phylum = tax_table(sun_tetra_glom)[,"Phylum"], Mean = rowMeans(otu_table(sun_tetra_glom)), row.names = NULL)
-sun_tetra_glom_df = sun_tetra_glom_df[order(-sun_tetra_glom_df$Mean),]
-
-top3_sun_tetra_glom <- sun_tetra_glom_df$Phylum[1:5]
-sun_tetra_glom_df_2 <- sun_tetra_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_sun_tetra_glom))
-
-sun_tetra_glom_df_3<-aggregate(data=sun_tetra_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(sun_tetra_glom_df_3)
-
-#### Cushing Bridge #### 
-
-cush<-subset_samples(sample_ps, Site=="Cushing Bridge")
+coch_phylum <- psmelt(coch_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+
+# Sunalta #
+
+sunalta<-subset_samples(sample_ps, Site=="Sunalta") 
+sunalta<-prune_taxa(taxa_sums(sunalta) > 0, sunalta) 
+
+sun_glom = tax_glom(sunalta, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+sun_phylum <- psmelt(sun_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+
+# Cushing Bridge #
+
+cush<-subset_samples(sample_ps, Site=="Cushing Bridge") 
+cush<-prune_taxa(taxa_sums(cush) > 0, cush) 
 
 cush_glom = tax_glom(cush, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
 
-cush_glom_df = data.frame(Phylum = tax_table(cush_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_glom)), row.names = NULL)
-cush_glom_df = cush_glom_df[order(-cush_glom_df$Mean),]
-
-top3_cush_glom <- cush_glom_df$Phylum[1:5]
-cush_glom_df_2 <- cush_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_glom))
-
-cush_glom_df_3<-aggregate(data=cush_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_glom_df_3)
-
-#Larval Hydropsychidae
-cush_hydro<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Hydropsychidae")
-
-cush_hydro_glom = tax_glom(cush_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_hydro_glom_df = data.frame(Phylum = tax_table(cush_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_hydro_glom)), row.names = NULL)
-cush_hydro_glom_df = cush_hydro_glom_df[order(-cush_hydro_glom_df$Mean),]
-head(cush_hydro_glom_df)
-
-top3_cush_hydro_glom <- cush_hydro_glom_df$Phylum[1:3]
-cush_hydro_glom_df_2 <- cush_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_hydro_glom))
-
-cush_hydro_glom_df_3<-aggregate(data=cush_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_hydro_glom_df_3)
-
-
-#Larval Heptageniidae
-cush_hep<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Heptageniidae")
-
-cush_hep_glom = tax_glom(cush_hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_hep_glom_df = data.frame(Phylum = tax_table(cush_hep_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_hep_glom)), row.names = NULL)
-cush_hep_glom_df = cush_hep_glom_df[order(-cush_hep_glom_df$Mean),]
-head(cush_hep_glom_df)
-
-top3_cush_hep_glom <- cush_hep_glom_df$Phylum[1:3]
-cush_hep_glom_df_2 <- cush_hep_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_hep_glom)) 
-
-cush_hep_glom_df_3<-aggregate(data=cush_hep_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_hep_glom_df_3)
-
-
-#Larval Chironomidae
-cush_chiro<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Chironomidae")
-
-cush_chiro_glom = tax_glom(cush_chiro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_chiro_glom_df = data.frame(Phylum = tax_table(cush_chiro_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_chiro_glom)), row.names = NULL)
-cush_chiro_glom_df = cush_chiro_glom_df[order(-cush_chiro_glom_df$Mean),]
-head(cush_chiro_glom_df)
-
-top3_cush_chiro_glom <- cush_chiro_glom_df$Phylum[1:5]
-
-cush_chiro_glom_df_2 <- cush_chiro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_chiro_glom)) 
-
-cush_chiro_glom_df_3<-aggregate(data=cush_chiro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_chiro_glom_df_3)
-
-#Larval Perlidae
-cush_perl<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Perlidae")
-
-cush_perl_glom = tax_glom(cush_perl, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_perl_glom_df = data.frame(Phylum = tax_table(cush_perl_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_perl_glom)), row.names = NULL)
-cush_perl_glom_df = cush_perl_glom_df[order(-cush_perl_glom_df$Mean),]
-head(cush_perl_glom_df)
-
-top3_cush_perl_glom <- cush_perl_glom_df$Phylum[1:5]
-
-cush_perl_glom_df_2 <- cush_perl_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_perl_glom)) 
-
-cush_perl_glom_df_3<-aggregate(data=cush_perl_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_perl_glom_df_3)
-
-#Adult Trichoptera
-cush_tricho<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Trichoptera")
-
-cush_tricho_glom = tax_glom(cush_tricho, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_tricho_glom_df = data.frame(Phylum = tax_table(cush_tricho_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_tricho_glom)), row.names = NULL)
-cush_tricho_glom_df = cush_tricho_glom_df[order(-cush_tricho_glom_df$Mean),]
-head(cush_tricho_glom_df)
-
-top3_cush_tricho_glom <- cush_tricho_glom_df$Phylum[1:5]
-cush_tricho_glom_df_2 <- cush_tricho_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_tricho_glom))
-
-cush_tricho_glom_df_3<-aggregate(data=cush_tricho_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_tricho_glom_df_3)
-
-#Adult Ephemperoptera
-cush_ephem<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Ephemeroptera")
-
-cush_ephem_glom = tax_glom(cush_ephem, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_ephem_glom_df = data.frame(Phylum = tax_table(cush_ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_ephem_glom)), row.names = NULL)
-cush_ephem_glom_df = cush_ephem_glom_df[order(-cush_ephem_glom_df$Mean),]
-
-top3_cush_ephem_glom <- cush_ephem_glom_df$Phylum[1:6]
-cush_ephem_glom_df_2 <- cush_ephem_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_ephem_glom))
-
-cush_ephem_glom_df_3<-aggregate(data=cush_ephem_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_ephem_glom_df_3)
-
-#Adult Chironomidae
-cush_dip<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Diptera")
-
-cush_dip_glom = tax_glom(cush_dip, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_dip_glom_df = data.frame(Phylum = tax_table(cush_dip_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_dip_glom)), row.names = NULL)
-cush_dip_glom_df = cush_dip_glom_df[order(-cush_dip_glom_df$Mean),]
-
-top3_cush_dip_glom <- cush_dip_glom_df$Phylum[1:3]
-cush_dip_glom_df_2 <- cush_dip_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_dip_glom))
-
-cush_dip_glom_df_3<-aggregate(data=cush_dip_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_dip_glom_df_3)
-
-#Araneidae
-cush_aran<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Araneidae")
-
-cush_aran_glom = tax_glom(cush_aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_aran_glom_df = data.frame(Phylum = tax_table(cush_aran_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_aran_glom)), row.names = NULL)
-cush_aran_glom_df = cush_aran_glom_df[order(-cush_aran_glom_df$Mean),]
-
-top3_cush_aran_glom <- cush_aran_glom_df$Phylum[1:3]
-cush_aran_glom_df_2 <- cush_aran_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_aran_glom))
-
-cush_aran_glom_df_3<-aggregate(data=cush_aran_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_aran_glom_df_3)
-
-#Tetragnathidae
-cush_tetra<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Tetragnathidae")
-
-cush_tetra_glom = tax_glom(cush_tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-cush_tetra_glom_df = data.frame(Phylum = tax_table(cush_tetra_glom)[,"Phylum"], Mean = rowMeans(otu_table(cush_tetra_glom)), row.names = NULL)
-cush_tetra_glom_df = cush_tetra_glom_df[order(-cush_tetra_glom_df$Mean),]
-
-top3_cush_tetra_glom <- cush_tetra_glom_df$Phylum[1:3]
-cush_tetra_glom_df_2 <- cush_tetra_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_cush_tetra_glom))
-
-cush_tetra_glom_df_3<-aggregate(data=cush_tetra_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(cush_tetra_glom_df_3)
-
-#### Graves Bridge ####
-
-grv<-subset_samples(sample_ps, Site=="Graves Bridge")
-
-grv_glom = tax_glom(grv, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_glom_df = data.frame(Phylum = tax_table(grv_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_glom)), row.names = NULL)
-grv_glom_df = grv_glom_df[order(-grv_glom_df$Mean),]
-
-top3_grv_glom <- grv_glom_df$Phylum[1:5]
-grv_glom_df_2 <- grv_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_glom))
-
-grv_glom_df_3<-aggregate(data=grv_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_glom_df_3)
-
-#Larval Hydropsychidae
-grv_hydro<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Hydropsychidae")
-
-grv_hydro_glom = tax_glom(grv_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_hydro_glom_df = data.frame(Phylum = tax_table(grv_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_hydro_glom)), row.names = NULL)
-grv_hydro_glom_df = grv_hydro_glom_df[order(-grv_hydro_glom_df$Mean),]
-
-top3_grv_hydro_glom <- grv_hydro_glom_df$Phylum[1:3]
-grv_hydro_glom_df_2 <- grv_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_hydro_glom))
-
-grv_hydro_glom_df_3<-aggregate(data=grv_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_hydro_glom_df_3)
-
-
-#Larval Heptageniidae
-grv_hep<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Heptageniidae")
-
-grv_hep_glom = tax_glom(grv_hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_hep_glom_df = data.frame(Phylum = tax_table(grv_hep_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_hep_glom)), row.names = NULL)
-grv_hep_glom_df = grv_hep_glom_df[order(-grv_hep_glom_df$Mean),]
-head(grv_hep_glom_df)
-
-top3_grv_hep_glom <- grv_hep_glom_df$Phylum[1:3]
-grv_hep_glom_df_2 <- grv_hep_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_hep_glom)) 
-
-grv_hep_glom_df_3<-aggregate(data=grv_hep_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_hep_glom_df_3)
-
-
-#Adult Trichoptera
-grv_tricho<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Trichoptera")
-
-grv_tricho_glom = tax_glom(grv_tricho, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_tricho_glom_df = data.frame(Phylum = tax_table(grv_tricho_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_tricho_glom)), row.names = NULL)
-grv_tricho_glom_df = grv_tricho_glom_df[order(-grv_tricho_glom_df$Mean),]
-
-top3_grv_tricho_glom <- grv_tricho_glom_df$Phylum[1:3]
-grv_tricho_glom_df_2 <- grv_tricho_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_tricho_glom))
-
-grv_tricho_glom_df_3<-aggregate(data=grv_tricho_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_tricho_glom_df_3)
-
-#Adult Ephemperoptera
-grv_ephem<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Ephemeroptera")
-
-grv_ephem_glom = tax_glom(grv_ephem, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_ephem_glom_df = data.frame(Phylum = tax_table(grv_ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_ephem_glom)), row.names = NULL)
-grv_ephem_glom_df = grv_ephem_glom_df[order(-grv_ephem_glom_df$Mean),]
-
-top3_grv_ephem_glom <- grv_ephem_glom_df$Phylum[1:3]
-grv_ephem_glom_df_2 <- grv_ephem_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_ephem_glom))
-
-grv_ephem_glom_df_3<-aggregate(data=grv_ephem_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_ephem_glom_df_3)
-
-
-#Araneidae
-grv_aran<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Araneidae")
-
-grv_aran_glom = tax_glom(grv_aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_aran_glom_df = data.frame(Phylum = tax_table(grv_aran_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_aran_glom)), row.names = NULL)
-grv_aran_glom_df = grv_aran_glom_df[order(-grv_aran_glom_df$Mean),]
-
-top3_grv_aran_glom <- grv_aran_glom_df$Phylum[1:3]
-grv_aran_glom_df_2 <- grv_aran_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_aran_glom))
-
-grv_aran_glom_df_3<-aggregate(data=grv_aran_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_aran_glom_df_3)
-
-#Tetragnathidae
-grv_tetra<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Tetragnathidae")
-
-grv_tetra_glom = tax_glom(grv_tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-grv_tetra_glom_df = data.frame(Phylum = tax_table(grv_tetra_glom)[,"Phylum"], Mean = rowMeans(otu_table(grv_tetra_glom)), row.names = NULL)
-grv_tetra_glom_df = grv_tetra_glom_df[order(-grv_tetra_glom_df$Mean),]
-
-top3_grv_tetra_glom <- grv_tetra_glom_df$Phylum[1:6]
-grv_tetra_glom_df_2 <- grv_tetra_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_grv_tetra_glom))
-
-grv_tetra_glom_df_3<-aggregate(data=grv_tetra_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(grv_tetra_glom_df_3)
-
-
-#### Policeman Flats ####
-
-pmf<-subset_samples(sample_ps, Site=="Policeman Flats")
+cush_phylum <- psmelt(cush_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+
+#Graves Bridge
+
+grvbr<-subset_samples(sample_ps, Site=="Graves Bridge") 
+grvbr<-prune_taxa(taxa_sums(grvbr) > 0, grvbr) 
+
+grvbr_glom = tax_glom(grvbr, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+grvbr_phylum <- psmelt(grvbr_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+
+# Policeman Flats #
+
+pmf<-subset_samples(sample_ps, Site=="Policeman Flats") 
+pmf<-prune_taxa(taxa_sums(pmf) > 0, pmf) 
 
 pmf_glom = tax_glom(pmf, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
 
-pmf_glom_df = data.frame(Phylum = tax_table(pmf_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_glom)), row.names = NULL)
-pmf_glom_df = pmf_glom_df[order(-pmf_glom_df$Mean),]
+pmf_phylum <- psmelt(pmf_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+
+# REF ACWA Stream #
+
+REF<-subset_samples(sample_ps, Site=="BRR2") 
+REF<-prune_taxa(taxa_sums(REF) > 0, REF) 
 
-top3_pmf_glom <- pmf_glom_df$Phylum[1:5]
-pmf_glom_df_2 <- pmf_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_glom))
+REF_glom = tax_glom(REF, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+REF_phylum <- psmelt(REF_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+#(Bacteroidota, Proteobacteria, Firmicutes)
+
+# EFF5 ACWA Stream #
+
+EFF5<-subset_samples(sample_ps, Site=="PCR1") 
+EFF5<-prune_taxa(taxa_sums(EFF5) > 0, EFF5) 
 
-pmf_glom_df_3<-aggregate(data=pmf_glom_df_2, Mean ~ Phylum, FUN=sum)
+EFF5_glom = tax_glom(EFF5, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
 
-head(pmf_glom_df_3)
+EFF5_phylum <- psmelt(EFF5_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+
+# EFF15 ACWA Stream #
+
+EFF15<-subset_samples(sample_ps, Site=="PCR3") 
+EFF15<-prune_taxa(taxa_sums(EFF15) > 0, EFF15) 
+
+EFF15_glom = tax_glom(EFF15, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
 
-#Larval Hydropsychidae
-pmf_hydro<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Hydropsychidae")
+EFF15_phylum <- psmelt(EFF15_glom) %>%
+  as_tibble %>%
+    group_by(sample_Family, Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup
 
-pmf_hydro_glom = tax_glom(pmf_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+#### Hydropsychidae Bow River ####
 
-pmf_hydro_glom_df = data.frame(Phylum = tax_table(pmf_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_hydro_glom)), row.names = NULL)
-pmf_hydro_glom_df = pmf_hydro_glom_df[order(-pmf_hydro_glom_df$Mean),]
-head(pmf_hydro_glom_df)
+#How to find the top three phyla across all sites
+hydro_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River") #Subset hydropsychidae
 
-top3_pmf_hydro_glom <- pmf_hydro_glom_df$Phylum[1:3]
-pmf_hydro_glom_df_2 <- pmf_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_hydro_glom))
+hydro_Bow_glom = tax_glom(hydro_Bow, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
 
-pmf_hydro_glom_df_3<-aggregate(data=pmf_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
+hydro_Bow_phylum <- psmelt(hydro_Bow_glom) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup  #Top 3 most abundant phyla across all sites (Bacteroidota, Proteobacteria, Firmicutes)
 
-head(pmf_hydro_glom_df_3)
+# Cochrane #
+hydro_coch_phy<-subset(coch_phylum, sample_Family=="Hydropsychidae")
+hydro_coch_phy<-subset(hydro_coch_phy, Mean > 0)
+hydro_coch_phy<-hydro_coch_phy[order(hydro_coch_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_coch_hydro <- hydro_coch_phy$Phylum[1:3]
+  
+coch_phy_sum_hydro<- hydro_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_coch_hydro))
+  
+top_means_phy_hydro_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
 
+top_phy_hydro_coch<-merge(top_means_phy_hydro_coch, top_SD_phy_hydro_coch, by=c("Phylum", "sample_Family"))
 
-#Larval Heptageniidae
-pmf_hep<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Heptageniidae")
+# Sunalta #
+hydro_sun_phy<-subset(sun_phylum, sample_Family=="Hydropsychidae")
+hydro_sun_phy<-subset(hydro_sun_phy, Mean > 0)
+hydro_sun_phy<-hydro_sun_phy[order(hydro_sun_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_sun_hydro <- hydro_sun_phy$Phylum[1:3]
+  
+sun_phy_sum_hydro<- hydro_sun_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_sun_hydro))
+  
+top_means_phy_hydro_sun<-aggregate(Mean ~ Phylum + sample_Family, data = sun_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_sun<-aggregate(SD ~ Phylum + sample_Family, data = sun_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
 
-pmf_hep_glom = tax_glom(pmf_hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+top_phy_hydro_sun<-merge(top_means_phy_hydro_sun, top_SD_phy_hydro_sun, by=c("Phylum", "sample_Family"))
 
-pmf_hep_glom_df = data.frame(Phylum = tax_table(pmf_hep_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_hep_glom)), row.names = NULL)
-pmf_hep_glom_df = pmf_hep_glom_df[order(-pmf_hep_glom_df$Mean),]
-head(pmf_hep_glom_df)
 
-top3_pmf_hep_glom <- pmf_hep_glom_df$Phylum[1:3]
-pmf_hep_glom_df_2 <- pmf_hep_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_hep_glom)) 
+# Cushing Bridge #
+hydro_cush_phy<-subset(cush_phylum, sample_Family=="Hydropsychidae")
+hydro_cush_phy<-subset(hydro_cush_phy, Mean > 0)
+hydro_cush_phy<-hydro_cush_phy[order(hydro_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_hydro <- hydro_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_hydro<- hydro_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_hydro))
+  
+top_means_phy_hydro_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
 
-pmf_hep_glom_df_3<-aggregate(data=pmf_hep_glom_df_2, Mean ~ Phylum, FUN=sum)
+top_phy_hydro_cush<-merge(top_means_phy_hydro_cush, top_SD_phy_hydro_cush, by=c("Phylum", "sample_Family"))
 
-head(pmf_hep_glom_df_3)
 
+# Graves Bridge #
+hydro_grvbr_phy<-subset(grvbr_phylum, sample_Family=="Hydropsychidae")
+hydro_grvbr_phy<-subset(hydro_grvbr_phy, Mean > 0)
+hydro_grvbr_phy<-hydro_grvbr_phy[order(hydro_grvbr_phy$Mean, decreasing = TRUE),]  
 
-#Larval Chironomidae
-pmf_chiro<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Chironomidae")
+top3_phy_grvbr_hydro <- hydro_grvbr_phy$Phylum[1:3]
+  
+grvbr_phy_sum_hydro<- hydro_grvbr_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_grvbr_hydro))
+  
+top_means_phy_hydro_grvbr<-aggregate(Mean ~ Phylum + sample_Family, data = grvbr_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_grvbr<-aggregate(SD ~ Phylum + sample_Family, data = grvbr_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
 
-pmf_chiro_glom = tax_glom(pmf_chiro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+top_phy_hydro_grvbr<-merge(top_means_phy_hydro_grvbr, top_SD_phy_hydro_grvbr, by=c("Phylum", "sample_Family"))
 
-pmf_chiro_glom_df = data.frame(Phylum = tax_table(pmf_chiro_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_chiro_glom)), row.names = NULL)
-pmf_chiro_glom_df = pmf_chiro_glom_df[order(-pmf_chiro_glom_df$Mean),]
-head(pmf_chiro_glom_df)
 
-top3_pmf_chiro_glom <- pmf_chiro_glom_df$Phylum[1:3]
+# Policeman Flats #
+hydro_pmf_phy<-subset(pmf_phylum, sample_Family=="Hydropsychidae")
+hydro_pmf_phy<-subset(hydro_pmf_phy, Mean > 0)
+hydro_pmf_phy<-hydro_pmf_phy[order(hydro_pmf_phy$Mean, decreasing = TRUE),]  
 
-pmf_chiro_glom_df_2 <- pmf_chiro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_chiro_glom)) 
+top3_phy_pmf_hydro <- hydro_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_hydro<- hydro_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_hydro))
+  
+top_means_phy_hydro_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
 
-pmf_chiro_glom_df_3<-aggregate(data=pmf_chiro_glom_df_2, Mean ~ Phylum, FUN=sum)
+top_phy_hydro_pmf<-merge(top_means_phy_hydro_pmf, top_SD_phy_hydro_pmf, by=c("Phylum", "sample_Family"))
 
-head(pmf_chiro_glom_df_3)
+
+#### Hydropsychidae ACWA ####
 
-#Larval Perlidae
-pmf_perl<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Perlidae")
+#How to find the top three phyla across all sites
+hydro_ACWA<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type!="Bow River") #Subset hydropsychidae
 
-pmf_perl_glom = tax_glom(pmf_perl, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+hydro_ACWA_glom = tax_glom(hydro_ACWA, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
 
-pmf_perl_glom_df = data.frame(Phylum = tax_table(pmf_perl_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_perl_glom)), row.names = NULL)
-pmf_perl_glom_df = pmf_perl_glom_df[order(-pmf_perl_glom_df$Mean),]
-head(pmf_perl_glom_df)
+hydro_ACWA_phylum <- psmelt(hydro_ACWA_glom) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup  #Top 3 most abundant phyla across all sites (Bacteroidota, Proteobacteria, Firmicutes)
+
+# REF #
+hydro_REF_phy<-subset(REF_phylum, sample_Family=="Hydropsychidae")
+hydro_REF_phy<-subset(hydro_REF_phy, Mean > 0)
+hydro_REF_phy<-hydro_REF_phy[order(hydro_REF_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_REF_hydro <- hydro_REF_phy$Phylum[1:3]
+  
+REF_phy_sum_hydro<- hydro_REF_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_REF_hydro))
+  
+top_means_phy_hydro_REF<-aggregate(Mean ~ Phylum + sample_Family, data = REF_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_REF<-aggregate(SD ~ Phylum + sample_Family, data = REF_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
+
+top_phy_hydro_REF<-merge(top_means_phy_hydro_REF, top_SD_phy_hydro_REF, by=c("Phylum", "sample_Family"))
+
+# EFF5 #
+
+hydro_EFF5_phy<-subset(EFF5_phylum, sample_Family=="Hydropsychidae")
+hydro_EFF5_phy<-subset(hydro_EFF5_phy, Mean > 0)
+hydro_EFF5_phy<-hydro_EFF5_phy[order(hydro_EFF5_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_EFF5_hydro <- hydro_EFF5_phy$Phylum[1:3]
+  
+EFF5_phy_sum_hydro<- hydro_EFF5_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_EFF5_hydro))
+  
+top_means_phy_hydro_EFF5<-aggregate(Mean ~ Phylum + sample_Family, data = EFF5_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_EFF5<-aggregate(SD ~ Phylum + sample_Family, data = EFF5_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
+
+top_phy_hydro_EFF5<-merge(top_means_phy_hydro_EFF5, top_SD_phy_hydro_EFF5, by=c("Phylum", "sample_Family"))
+
+# EFF15 #
+
+hydro_EFF15_phy<-subset(EFF15_phylum, sample_Family=="Hydropsychidae")
+hydro_EFF15_phy<-subset(hydro_EFF15_phy, Mean > 0)
+hydro_EFF15_phy<-hydro_EFF15_phy[order(hydro_EFF15_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_EFF15_hydro <- hydro_EFF15_phy$Phylum[1:3]
+  
+EFF15_phy_sum_hydro<- hydro_EFF15_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_EFF15_hydro))
+  
+top_means_phy_hydro_EFF15<-aggregate(Mean ~ Phylum + sample_Family, data = EFF15_phy_sum_hydro, FUN = sum)
+top_SD_phy_hydro_EFF15<-aggregate(SD ~ Phylum + sample_Family, data = EFF15_phy_sum_hydro, FUN = sum) #Not sure if this is statistically correct to sum all the standard deviations together... 
 
-top3_pmf_perl_glom <- pmf_perl_glom_df$Phylum[1:3]
+top_phy_hydro_EFF15<-merge(top_means_phy_hydro_EFF15, top_SD_phy_hydro_EFF15, by=c("Phylum", "sample_Family"))
+
+
+#### Heptageniidae ####
 
-pmf_perl_glom_df_2 <- pmf_perl_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_perl_glom)) 
+hep<-subset_samples(sample_ps, Family=="Heptageniidae")
+
+hep_glom = tax_glom(hep, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 
-pmf_perl_glom_df_3<-aggregate(data=pmf_perl_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(pmf_perl_glom_df_3)
-
-
-#Adult Ephemperoptera
-pmf_ephem<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Ephemeroptera")
-
-pmf_ephem_glom = tax_glom(pmf_ephem, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-pmf_ephem_glom_df = data.frame(Phylum = tax_table(pmf_ephem_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_ephem_glom)), row.names = NULL)
-pmf_ephem_glom_df = pmf_ephem_glom_df[order(-pmf_ephem_glom_df$Mean),]
-
-top3_pmf_ephem_glom <- pmf_ephem_glom_df$Phylum[1:6]
-pmf_ephem_glom_df_2 <- pmf_ephem_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_ephem_glom))
-
-pmf_ephem_glom_df_3<-aggregate(data=pmf_ephem_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(pmf_ephem_glom_df_3)
-
-#Adult Chironomidae
-pmf_dip<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Diptera")
-
-pmf_dip_glom = tax_glom(pmf_dip, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-pmf_dip_glom_df = data.frame(Phylum = tax_table(pmf_dip_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_dip_glom)), row.names = NULL)
-pmf_dip_glom_df = pmf_dip_glom_df[order(-pmf_dip_glom_df$Mean),]
-
-top3_pmf_dip_glom <- pmf_dip_glom_df$Phylum[1:3]
-pmf_dip_glom_df_2 <- pmf_dip_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_dip_glom))
-
-pmf_dip_glom_df_3<-aggregate(data=pmf_dip_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(pmf_dip_glom_df_3)
-
-#Araneidae
-pmf_aran<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Araneidae")
-
-pmf_aran_glom = tax_glom(pmf_aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-pmf_aran_glom_df = data.frame(Phylum = tax_table(pmf_aran_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_aran_glom)), row.names = NULL)
-pmf_aran_glom_df = pmf_aran_glom_df[order(-pmf_aran_glom_df$Mean),]
-
-top3_pmf_aran_glom <- pmf_aran_glom_df$Phylum[1:6]
-pmf_aran_glom_df_2 <- pmf_aran_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_aran_glom))
-
-pmf_aran_glom_df_3<-aggregate(data=pmf_aran_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(pmf_aran_glom_df_3)
-
-#Tetragnathidae
-pmf_tetra<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Tetragnathidae")
-
-pmf_tetra_glom = tax_glom(pmf_tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-pmf_tetra_glom_df = data.frame(Phylum = tax_table(pmf_tetra_glom)[,"Phylum"], Mean = rowMeans(otu_table(pmf_tetra_glom)), row.names = NULL)
-pmf_tetra_glom_df = pmf_tetra_glom_df[order(-pmf_tetra_glom_df$Mean),]
-
-top3_pmf_tetra_glom <- pmf_tetra_glom_df$Phylum[1:3]
-pmf_tetra_glom_df_2 <- pmf_tetra_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_pmf_tetra_glom))
-
-pmf_tetra_glom_df_3<-aggregate(data=pmf_tetra_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(pmf_tetra_glom_df_3)
-
-#### BRR2/REF ####
-#Larval Hydropsychidae
-BRR2_hydro<-subset_samples(sample_ps, Site=="BRR2" & Family=="Hydropsychidae")
-
-BRR2_hydro_glom = tax_glom(BRR2_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-BRR2_hydro_glom_df = data.frame(Phylum = tax_table(BRR2_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(BRR2_hydro_glom)), row.names = NULL)
-BRR2_hydro_glom_df = BRR2_hydro_glom_df[order(-BRR2_hydro_glom_df$Mean),]
-head(BRR2_hydro_glom_df)
-
-top3_BRR2_hydro_glom <- BRR2_hydro_glom_df$Phylum[1:3]
-BRR2_hydro_glom_df_2 <- BRR2_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_BRR2_hydro_glom))
-
-BRR2_hydro_glom_df_3<-aggregate(data=BRR2_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(BRR2_hydro_glom_df_3)
-
-#### PCR1/EXP5 ####
-
-#Larval Hydropsychidae
-PCR1_hydro<-subset_samples(sample_ps, Site=="PCR1" & Family=="Hydropsychidae")
-
-PCR1_hydro_glom = tax_glom(PCR1_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-PCR1_hydro_glom_df = data.frame(Phylum = tax_table(PCR1_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(PCR1_hydro_glom)), row.names = NULL)
-PCR1_hydro_glom_df = PCR1_hydro_glom_df[order(-PCR1_hydro_glom_df$Mean),]
-head(PCR1_hydro_glom_df)
-
-top3_PCR1_hydro_glom <- PCR1_hydro_glom_df$Phylum[1:3]
-PCR1_hydro_glom_df_2 <- PCR1_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_PCR1_hydro_glom))
-
-PCR1_hydro_glom_df_3<-aggregate(data=PCR1_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(PCR1_hydro_glom_df_3)
-
-
-#Larval Baetidae
-PCR1_bae<-subset_samples(sample_ps, Site=="PCR1" & Family=="Baetidae")
-
-PCR1_bae_glom = tax_glom(PCR1_bae, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-PCR1_bae_glom_df = data.frame(Phylum = tax_table(PCR1_bae_glom)[,"Phylum"], Mean = rowMeans(otu_table(PCR1_bae_glom)), row.names = NULL)
-PCR1_bae_glom_df = PCR1_bae_glom_df[order(-PCR1_bae_glom_df$Mean),]
-head(PCR1_bae_glom_df)
-
-top3_PCR1_bae_glom <- PCR1_bae_glom_df$Phylum[1:3]
-PCR1_bae_glom_df_2 <- PCR1_bae_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_PCR1_bae_glom))
-
-PCR1_bae_glom_df_3<-aggregate(data=PCR1_bae_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(PCR1_bae_glom_df_3)
-
-#Adult Baetidae
-
-PCR1_bae_ad<-subset_samples(sample_ps, Site=="PCR1" & Family=="Ephemeroptera")
-
-PCR1_bae_ad_glom = tax_glom(PCR1_bae_ad, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-PCR1_bae_ad_glom_df = data.frame(Phylum = tax_table(PCR1_bae_ad_glom)[,"Phylum"], Mean = rowMeans(otu_table(PCR1_bae_ad_glom)), row.names = NULL)
-PCR1_bae_ad_glom_df = PCR1_bae_ad_glom_df[order(-PCR1_bae_ad_glom_df$Mean),]
-head(PCR1_bae_ad_glom_df)
-
-top3_PCR1_bae_ad_glom <- PCR1_bae_ad_glom_df$Phylum[1:3]
-PCR1_bae_ad_glom_df_2 <- PCR1_bae_ad_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_PCR1_bae_ad_glom))
-
-PCR1_bae_ad_glom_df_3<-aggregate(data=PCR1_bae_ad_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(PCR1_bae_ad_glom_df_3)
-
-#### PCR3/EXP15 ####
-
-#Larval Hydropsychidae
-PCR3_hydro<-subset_samples(sample_ps, Site=="PCR3" & Family=="Hydropsychidae")
-
-PCR3_hydro_glom = tax_glom(PCR3_hydro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-PCR3_hydro_glom_df = data.frame(Phylum = tax_table(PCR3_hydro_glom)[,"Phylum"], Mean = rowMeans(otu_table(PCR3_hydro_glom)), row.names = NULL)
-PCR3_hydro_glom_df = PCR3_hydro_glom_df[order(-PCR3_hydro_glom_df$Mean),]
-head(PCR3_hydro_glom_df)
-
-top3_PCR3_hydro_glom <- PCR3_hydro_glom_df$Phylum[1:3]
-PCR3_hydro_glom_df_2 <- PCR3_hydro_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_PCR3_hydro_glom))
-
-PCR3_hydro_glom_df_3<-aggregate(data=PCR3_hydro_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(PCR3_hydro_glom_df_3)
-
-
-#Larval Baetidae
-PCR3_bae<-subset_samples(sample_ps, Site=="PCR3" & Family=="Baetidae")
-
-PCR3_bae_glom = tax_glom(PCR3_bae, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-PCR3_bae_glom_df = data.frame(Phylum = tax_table(PCR3_bae_glom)[,"Phylum"], Mean = rowMeans(otu_table(PCR3_bae_glom)), row.names = NULL)
-PCR3_bae_glom_df = PCR3_bae_glom_df[order(-PCR3_bae_glom_df$Mean),]
-head(PCR3_bae_glom_df)
-
-top3_PCR3_bae_glom <- PCR3_bae_glom_df$Phylum[1:3]
-PCR3_bae_glom_df_2 <- PCR3_bae_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_PCR3_bae_glom))
-
-PCR3_bae_glom_df_3<-aggregate(data=PCR3_bae_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(PCR3_bae_glom_df_3)
-
-#Adult Baetidae
-
-PCR3_bae_ad<-subset_samples(sample_ps, Site=="PCR3" & Family=="Ephemeroptera")
-
-PCR3_bae_ad_glom = tax_glom(PCR3_bae_ad, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-
-PCR3_bae_ad_glom_df = data.frame(Phylum = tax_table(PCR3_bae_ad_glom)[,"Phylum"], Mean = rowMeans(otu_table(PCR3_bae_ad_glom)), row.names = NULL)
-PCR3_bae_ad_glom_df = PCR3_bae_ad_glom_df[order(-PCR3_bae_ad_glom_df$Mean),]
-head(PCR3_bae_ad_glom_df)
-
-top3_PCR3_bae_ad_glom <- PCR3_bae_ad_glom_df$Phylum[1:3]
-PCR3_bae_ad_glom_df_2 <- PCR3_bae_ad_glom_df %>%
-    mutate(Phylum = fct_other(Phylum, top3_PCR3_bae_ad_glom))
-
-PCR3_bae_ad_glom_df_3<-aggregate(data=PCR3_bae_ad_glom_df_2, Mean ~ Phylum, FUN=sum)
-
-head(PCR3_bae_ad_glom_df_3)
+hep_phylum <- psmelt(hep_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Cyanobacteria, Firmicutes)
+
+# Cochrane #
+hep_coch_phy<-subset(coch_phylum, sample_Family=="Heptageniidae")
+hep_coch_phy<-subset(hep_coch_phy, Mean > 0)
+hep_coch_phy<-hep_coch_phy[order(hep_coch_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_coch_hep <- hep_coch_phy$Phylum[1:3]
+  
+coch_phy_sum_hep<- hep_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_coch_hep))
+  
+top_means_phy_hep_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_hep, FUN = sum)
+top_SD_phy_hep_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_hep, FUN = sum)
+
+top_phy_hep_coch<-merge(top_means_phy_hep_coch, top_SD_phy_hep_coch, by=c("Phylum", "sample_Family"))
+
+# Sunalta #
+hep_sun_phy<-subset(sun_phylum, sample_Family=="Heptageniidae")
+hep_sun_phy<-subset(hep_sun_phy, Mean > 0)
+hep_sun_phy<-hep_sun_phy[order(hep_sun_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_sun_hep <- hep_sun_phy$Phylum[1:3]
+  
+sun_phy_sum_hep<- hep_sun_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_sun_hep))
+  
+top_means_phy_hep_sun<-aggregate(Mean ~ Phylum + sample_Family, data = sun_phy_sum_hep, FUN = sum)
+top_SD_phy_hep_sun<-aggregate(SD ~ Phylum + sample_Family, data = sun_phy_sum_hep, FUN = sum)
+
+top_phy_hep_sun<-merge(top_means_phy_hep_sun, top_SD_phy_hep_sun, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+hep_cush_phy<-subset(cush_phylum, sample_Family=="Heptageniidae")
+hep_cush_phy<-subset(hep_cush_phy, Mean > 0)
+hep_cush_phy<-hep_cush_phy[order(hep_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_hep <- hep_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_hep<- hep_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_hep))
+  
+top_means_phy_hep_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_hep, FUN = sum)
+top_SD_phy_hep_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_hep, FUN = sum)
+
+top_phy_hep_cush<-merge(top_means_phy_hep_cush, top_SD_phy_hep_cush, by=c("Phylum", "sample_Family"))
+
+# Graves Bridge #
+hep_grvbr_phy<-subset(grvbr_phylum, sample_Family=="Heptageniidae")
+hep_grvbr_phy<-subset(hep_grvbr_phy, Mean > 0)
+hep_grvbr_phy<-hep_grvbr_phy[order(hep_grvbr_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_grvbr_hep <- hep_grvbr_phy$Phylum[1:3]
+  
+grvbr_phy_sum_hep<- hep_grvbr_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_grvbr_hep))
+  
+top_means_phy_hep_grvbr<-aggregate(Mean ~ Phylum + sample_Family, data = grvbr_phy_sum_hep, FUN = sum)
+top_SD_phy_hep_grvbr<-aggregate(SD ~ Phylum + sample_Family, data = grvbr_phy_sum_hep, FUN = sum)
+
+top_phy_hep_grvbr<-merge(top_means_phy_hep_grvbr, top_SD_phy_hep_grvbr, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+hep_pmf_phy<-subset(pmf_phylum, sample_Family=="Heptageniidae")
+hep_pmf_phy<-subset(hep_pmf_phy, Mean > 0)
+hep_pmf_phy<-hep_pmf_phy[order(hep_pmf_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_pmf_hep <- hep_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_hep<- hep_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_hep))
+  
+top_means_phy_hep_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_hep, FUN = sum)
+top_SD_phy_hep_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_hep, FUN = sum)
+
+top_phy_hep_pmf<-merge(top_means_phy_hep_pmf, top_SD_phy_hep_pmf, by=c("Phylum", "sample_Family"))
+
+
+#### Chironomidae ####
+
+chiro<-subset_samples(sample_ps, Family=="Chironomidae")
+
+chiro_glom = tax_glom(chiro, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+chiro_phylum <- psmelt(chiro_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Cyanobacteria, Bacteroidota)
+
+# Cochrane #
+chiro_coch_phy<-subset(coch_phylum, sample_Family=="Chironomidae")
+chiro_coch_phy<-subset(chiro_coch_phy, Mean > 0)
+chiro_coch_phy<-chiro_coch_phy[order(chiro_coch_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_coch_chiro <- chiro_coch_phy$Phylum[1:3]
+  
+coch_phy_sum_chiro<- chiro_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_coch_chiro))
+  
+top_means_phy_chiro_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_chiro, FUN = sum)
+top_SD_phy_chiro_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_chiro, FUN = sum)
+
+top_phy_chiro_coch<-merge(top_means_phy_chiro_coch, top_SD_phy_chiro_coch, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+chiro_cush_phy<-subset(cush_phylum, sample_Family=="Chironomidae")
+chiro_cush_phy<-subset(chiro_cush_phy, Mean > 0)
+chiro_cush_phy<-chiro_cush_phy[order(chiro_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_chiro <- chiro_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_chiro<- chiro_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_chiro))
+  
+top_means_phy_chiro_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_chiro, FUN = sum)
+top_SD_phy_chiro_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_chiro, FUN = sum)
+
+top_phy_chiro_cush<-merge(top_means_phy_chiro_cush, top_SD_phy_chiro_cush, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+chiro_pmf_phy<-subset(pmf_phylum, sample_Family=="Chironomidae")
+chiro_pmf_phy<-subset(chiro_pmf_phy, Mean > 0)
+chiro_pmf_phy<-chiro_pmf_phy[order(chiro_pmf_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_pmf_chiro <- chiro_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_chiro<- chiro_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_chiro))
+  
+top_means_phy_chiro_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_chiro, FUN = sum)
+top_SD_phy_chiro_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_chiro, FUN = sum)
+
+top_phy_chiro_pmf<-merge(top_means_phy_chiro_pmf, top_SD_phy_chiro_pmf, by=c("Phylum", "sample_Family"))
+
+
+#### Perlidae ####
+perl<-subset_samples(sample_ps, Family=="Perlidae")
+
+perl_glom = tax_glom(perl, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+perl_phylum <- psmelt(perl_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Bacteroidota, Cyanobacteria)
+
+# Cochrane #
+perl_coch_phy<-subset(coch_phylum, sample_Family=="Perlidae")
+perl_coch_phy<-subset(perl_coch_phy, Mean > 0)
+perl_coch_phy<-perl_coch_phy[order(perl_coch_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_coch_perl <- perl_coch_phy$Phylum[1:3]
+  
+coch_phy_sum_perl<- perl_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_coch_perl))
+  
+top_means_phy_perl_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_perl, FUN = sum)
+top_SD_phy_perl_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_perl, FUN = sum)
+
+top_phy_perl_coch<-merge(top_means_phy_perl_coch, top_SD_phy_perl_coch, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+perl_cush_phy<-subset(cush_phylum, sample_Family=="Perlidae")
+perl_cush_phy<-subset(perl_cush_phy, Mean > 0)
+perl_cush_phy<-perl_cush_phy[order(perl_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_perl <- perl_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_perl<- perl_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_perl))
+  
+top_means_phy_perl_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_perl, FUN = sum)
+top_SD_phy_perl_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_perl, FUN = sum)
+
+top_phy_perl_cush<-merge(top_means_phy_perl_cush, top_SD_phy_perl_cush, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+perl_pmf_phy<-subset(pmf_phylum, sample_Family=="Perlidae")
+perl_pmf_phy<-subset(perl_pmf_phy, Mean > 0)
+perl_pmf_phy<-perl_pmf_phy[order(perl_pmf_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_pmf_perl <- perl_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_perl<- perl_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_perl))
+  
+top_means_phy_perl_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_perl, FUN = sum)
+top_SD_phy_perl_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_perl, FUN = sum)
+
+top_phy_perl_pmf<-merge(top_means_phy_perl_pmf, top_SD_phy_perl_pmf, by=c("Phylum", "sample_Family"))
+
+
+#### Trichoptera ####
+trichop<-subset_samples(sample_ps, Family=="Trichoptera")
+
+trichop_glom = tax_glom(trichop, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+trichop_phylum <- psmelt(trichop_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Cyanobacteria, Bacteroidota)
+
+# Cochrane #
+trichop_coch_phy<-subset(coch_phylum, sample_Family=="Trichoptera")
+trichop_coch_phy<-subset(trichop_coch_phy, Mean > 0)
+trichop_coch_phy<-trichop_coch_phy[order(trichop_coch_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_coch_trichop <- trichop_coch_phy$Phylum[1:3]
+  
+coch_phy_sum_trichop<- trichop_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_coch_trichop))
+  
+top_means_phy_trichop_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_trichop, FUN = sum)
+top_SD_phy_trichop_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_trichop, FUN = sum)
+
+top_phy_trichop_coch<-merge(top_means_phy_trichop_coch, top_SD_phy_trichop_coch, by=c("Phylum", "sample_Family"))
+
+# Sunalta #
+
+trichop_sun_phy<-subset(sun_phylum, sample_Family=="Trichoptera")
+trichop_sun_phy<-subset(trichop_sun_phy, Mean > 0)
+trichop_sun_phy<-trichop_sun_phy[order(trichop_sun_phy$Mean, decreasing = TRUE),]  
+  
+sun_phy_sum_trichop<- trichop_sun_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Cyanobacteria", "Bacteroidota")))
+  
+top_means_phy_trichop_sun<-aggregate(Mean ~ Phylum + sample_Family, data = sun_phy_sum_trichop, FUN = sum)
+top_SD_phy_trichop_sun<-aggregate(SD ~ Phylum + sample_Family, data = sun_phy_sum_trichop, FUN = sum)
+
+top_phy_trichop_sun<-merge(top_means_phy_trichop_sun, top_SD_phy_trichop_sun, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+trichop_cush_phy<-subset(cush_phylum, sample_Family=="Trichoptera")
+trichop_cush_phy<-subset(trichop_cush_phy, Mean > 0)
+trichop_cush_phy<-trichop_cush_phy[order(trichop_cush_phy$Mean, decreasing = TRUE),]  
+
+cush_phy_sum_trichop<- trichop_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Cyanobacteria", "Bacteroidota")))
+  
+top_means_phy_trichop_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_trichop, FUN = sum)
+top_SD_phy_trichop_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_trichop, FUN = sum)
+
+top_phy_trichop_cush<-merge(top_means_phy_trichop_cush, top_SD_phy_trichop_cush, by=c("Phylum", "sample_Family"))
+
+# Graves Bridge #
+trichop_grvbr_phy<-subset(grvbr_phylum, sample_Family=="Trichoptera")
+trichop_grvbr_phy<-subset(trichop_grvbr_phy, Mean > 0)
+trichop_grvbr_phy<-trichop_grvbr_phy[order(trichop_grvbr_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_grvbr_trichop <- trichop_grvbr_phy$Phylum[1:3]
+  
+grvbr_phy_sum_trichop<- trichop_grvbr_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_grvbr_trichop))
+  
+top_means_phy_trichop_grvbr<-aggregate(Mean ~ Phylum + sample_Family, data = grvbr_phy_sum_trichop, FUN = sum)
+top_SD_phy_trichop_grvbr<-aggregate(SD ~ Phylum + sample_Family, data = grvbr_phy_sum_trichop, FUN = sum)
+
+top_phy_trichop_grvbr<-merge(top_means_phy_trichop_grvbr, top_SD_phy_trichop_grvbr, by=c("Phylum", "sample_Family"))
+
+#### Ephemeroptera Bow River ####
+
+ephem_Bow<-subset_samples(sample_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+
+ephem_Bow_glom = tax_glom(ephem_Bow, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+ephem_Bow_phylum <- psmelt(ephem_Bow_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Cyanobacteria, Firmicutes)
+
+# Cochrane #
+ephem_coch_phy<-subset(coch_phylum, sample_Family=="Ephemeroptera")
+ephem_coch_phy<-subset(ephem_coch_phy, Mean > 0)
+ephem_coch_phy<-ephem_coch_phy[order(ephem_coch_phy$Mean, decreasing = TRUE),]  
+
+coch_phy_sum_ephem<- ephem_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Cyanobacteria", "Firmicutes")))
+  
+top_means_phy_ephem_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_coch<-merge(top_means_phy_ephem_coch, top_SD_phy_ephem_coch, by=c("Phylum", "sample_Family"))
+
+# Sunalta #
+ephem_sun_phy<-subset(sun_phylum, sample_Family=="Ephemeroptera")
+ephem_sun_phy<-subset(ephem_sun_phy, Mean > 0)
+ephem_sun_phy<-ephem_sun_phy[order(ephem_sun_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_sun_ephem <- ephem_sun_phy$Phylum[1:3]
+  
+sun_phy_sum_ephem<- ephem_sun_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_sun_ephem))
+  
+top_means_phy_ephem_sun<-aggregate(Mean ~ Phylum + sample_Family, data = sun_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_sun<-aggregate(SD ~ Phylum + sample_Family, data =sun_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_sun<-merge(top_means_phy_ephem_sun, top_SD_phy_ephem_sun, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+ephem_cush_phy<-subset(cush_phylum, sample_Family=="Ephemeroptera")
+ephem_cush_phy<-subset(ephem_cush_phy, Mean > 0)
+ephem_cush_phy<-ephem_cush_phy[order(ephem_cush_phy$Mean, decreasing = TRUE),]  
+
+cush_phy_sum_ephem<- ephem_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Cyanobacteria", "Firmicutes")))
+  
+top_means_phy_ephem_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_cush<-aggregate(SD ~ Phylum + sample_Family, data =cush_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_cush<-merge(top_means_phy_ephem_cush, top_SD_phy_ephem_cush, by=c("Phylum", "sample_Family"))
+
+# Graves Bridge #
+ephem_grvbr_phy<-subset(grvbr_phylum, sample_Family=="Ephemeroptera")
+ephem_grvbr_phy<-subset(ephem_grvbr_phy, Mean > 0)
+ephem_grvbr_phy<-ephem_grvbr_phy[order(ephem_grvbr_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_grvbr_ephem <- ephem_grvbr_phy$Phylum[1:3]
+  
+grvbr_phy_sum_ephem<- ephem_grvbr_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_grvbr_ephem))
+  
+top_means_phy_ephem_grvbr<-aggregate(Mean ~ Phylum + sample_Family, data = grvbr_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_grvbr<-aggregate(SD ~ Phylum + sample_Family, data =grvbr_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_grvbr<-merge(top_means_phy_ephem_grvbr, top_SD_phy_ephem_grvbr, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+ephem_pmf_phy<-subset(pmf_phylum, sample_Family=="Ephemeroptera")
+ephem_pmf_phy<-subset(ephem_pmf_phy, Mean > 0)
+ephem_pmf_phy<-ephem_pmf_phy[order(ephem_pmf_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_pmf_ephem <- ephem_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_ephem<- ephem_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_ephem))
+  
+top_means_phy_ephem_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_pmf<-aggregate(SD ~ Phylum + sample_Family, data =pmf_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_pmf<-merge(top_means_phy_ephem_pmf, top_SD_phy_ephem_pmf, by=c("Phylum", "sample_Family"))
+
+
+#### Ephemeroptera ACWA ####
+ephem_ACWA<-subset_samples(sample_ps, Family=="Ephemeroptera" & Stream_Type!="Bow River")
+
+ephem_ACWA_glom = tax_glom(ephem_ACWA, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+ephem_ACWA_phylum <- psmelt(ephem_ACWA_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites ()
+
+# EFF5 #
+ephem_EFF5_phy<-subset(EFF5_phylum, sample_Family=="Ephemeroptera")
+ephem_EFF5_phy<-subset(ephem_EFF5_phy, Mean > 0)
+ephem_EFF5_phy<-ephem_EFF5_phy[order(ephem_EFF5_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_EFF5_ephem <- ephem_EFF5_phy$Phylum[1:3]
+  
+EFF5_phy_sum_ephem<- ephem_EFF5_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_EFF5_ephem))
+  
+top_means_phy_ephem_EFF5<-aggregate(Mean ~ Phylum + sample_Family, data = EFF5_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_EFF5<-aggregate(SD ~ Phylum + sample_Family, data = EFF5_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_EFF5<-merge(top_means_phy_ephem_EFF5, top_SD_phy_ephem_EFF5, by=c("Phylum", "sample_Family"))
+
+# EFF15 #
+ephem_EFF15_phy<-subset(EFF15_phylum, sample_Family=="Ephemeroptera")
+ephem_EFF15_phy<-subset(ephem_EFF15_phy, Mean > 0)
+ephem_EFF15_phy<-ephem_EFF15_phy[order(ephem_EFF15_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_EFF15_ephem <- ephem_EFF15_phy$Phylum[1:3]
+  
+EFF15_phy_sum_ephem<- ephem_EFF15_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_EFF15_ephem))
+  
+top_means_phy_ephem_EFF15<-aggregate(Mean ~ Phylum + sample_Family, data = EFF15_phy_sum_ephem, FUN = sum)
+top_SD_phy_ephem_EFF15<-aggregate(SD ~ Phylum + sample_Family, data = EFF15_phy_sum_ephem, FUN = sum)
+
+top_phy_ephem_EFF15<-merge(top_means_phy_ephem_EFF15, top_SD_phy_ephem_EFF15, by=c("Phylum", "sample_Family"))
+
+
+#### Baetidae ####
+
+baetid_ACWA<-subset_samples(sample_ps, Family=="Baetidae" & Stream_Type!="Bow River")
+
+baetid_ACWA_glom = tax_glom(baetid_ACWA, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+baetid_ACWA_phylum <- psmelt(baetid_ACWA_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites ()
+
+# EFF5 #
+baetid_EFF5_phy<-subset(EFF5_phylum, sample_Family=="Baetidae")
+baetid_EFF5_phy<-subset(baetid_EFF5_phy, Mean > 0)
+baetid_EFF5_phy<-baetid_EFF5_phy[order(baetid_EFF5_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_EFF5_baetid <- baetid_EFF5_phy$Phylum[1:3]
+  
+EFF5_phy_sum_baetid<- baetid_EFF5_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_EFF5_baetid))
+  
+top_means_phy_baetid_EFF5<-aggregate(Mean ~ Phylum + sample_Family, data = EFF5_phy_sum_baetid, FUN = sum)
+top_SD_phy_baetid_EFF5<-aggregate(SD ~ Phylum + sample_Family, data = EFF5_phy_sum_baetid, FUN = sum)
+
+top_phy_baetid_EFF5<-merge(top_means_phy_baetid_EFF5, top_SD_phy_baetid_EFF5, by=c("Phylum", "sample_Family"))
+
+# EFF15 #
+baetid_EFF15_phy<-subset(EFF15_phylum, sample_Family=="Baetidae")
+baetid_EFF15_phy<-subset(baetid_EFF15_phy, Mean > 0)
+baetid_EFF15_phy<-baetid_EFF15_phy[order(baetid_EFF15_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_EFF15_baetid <- baetid_EFF15_phy$Phylum[1:3]
+  
+EFF15_phy_sum_baetid<- baetid_EFF15_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_EFF15_baetid))
+  
+top_means_phy_baetid_EFF15<-aggregate(Mean ~ Phylum + sample_Family, data = EFF15_phy_sum_baetid, FUN = sum)
+top_SD_phy_baetid_EFF15<-aggregate(SD ~ Phylum + sample_Family, data = EFF15_phy_sum_baetid, FUN = sum)
+
+top_phy_baetid_EFF15<-merge(top_means_phy_baetid_EFF15, top_SD_phy_baetid_EFF15, by=c("Phylum", "sample_Family"))
+
+
+#### Diptera ####
+dip<-subset_samples(sample_ps, Family=="Diptera")
+
+dip_glom = tax_glom(dip, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+dip_phylum <- psmelt(dip_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Firmicutes, Cyanobacteria)
+
+# Cochrane #
+dip_coch_phy<-subset(coch_phylum, sample_Family=="Diptera")
+dip_coch_phy<-subset(dip_coch_phy, Mean > 0)
+dip_coch_phy<-dip_coch_phy[order(dip_coch_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_coch_dip <- dip_coch_phy$Phylum[1:3]
+  
+coch_phy_sum_dip<- dip_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_coch_dip))
+  
+top_means_phy_dip_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_dip, FUN = sum)
+top_SD_phy_dip_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_dip, FUN = sum)
+
+top_phy_dip_coch<-merge(top_means_phy_dip_coch, top_SD_phy_dip_coch, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+dip_cush_phy<-subset(cush_phylum, sample_Family=="Diptera")
+dip_cush_phy<-subset(dip_cush_phy, Mean > 0)
+dip_cush_phy<-dip_cush_phy[order(dip_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_dip <- dip_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_dip<- dip_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_dip))
+  
+top_means_phy_dip_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_dip, FUN = sum)
+top_SD_phy_dip_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_dip, FUN = sum)
+
+top_phy_dip_cush<-merge(top_means_phy_dip_cush, top_SD_phy_dip_cush, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+dip_pmf_phy<-subset(pmf_phylum, sample_Family=="Diptera")
+dip_pmf_phy<-subset(dip_pmf_phy, Mean > 0)
+dip_pmf_phy<-dip_pmf_phy[order(dip_pmf_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_pmf_dip <- dip_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_dip<- dip_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_dip))
+  
+top_means_phy_dip_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_dip, FUN = sum)
+top_SD_phy_dip_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_dip, FUN = sum)
+
+top_phy_dip_pmf<-merge(top_means_phy_dip_pmf, top_SD_phy_dip_pmf, by=c("Phylum", "sample_Family"))
+
+
+#### Araneidae ####
+aran<-subset_samples(sample_ps, Family=="Araneidae")
+
+aran_glom = tax_glom(aran, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+aran_phylum <- psmelt(aran_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Cyanobacteria, Bacteroidota, Proteobacteria)
+
+# Cochrane #
+aran_coch_phy<-subset(coch_phylum, sample_Family=="Araneidae")
+aran_coch_phy<-subset(aran_coch_phy, Mean > 0)
+aran_coch_phy<-aran_coch_phy[order(aran_coch_phy$Mean, decreasing = TRUE),]  
+
+coch_phy_sum_aran<- aran_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  
+top_means_phy_aran_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_aran, FUN = sum)
+top_SD_phy_aran_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_aran, FUN = sum)
+
+top_phy_aran_coch<-merge(top_means_phy_aran_coch, top_SD_phy_aran_coch, by=c("Phylum", "sample_Family"))
+
+# Sunalta #
+aran_sun_phy<-subset(sun_phylum, sample_Family=="Araneidae")
+aran_sun_phy<-subset(aran_sun_phy, Mean > 0)
+aran_sun_phy<-aran_sun_phy[order(aran_sun_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_sun_aran <- aran_sun_phy$Phylum[1:3]
+  
+sun_phy_sum_aran<- aran_sun_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_sun_aran))
+  
+top_means_phy_aran_sun<-aggregate(Mean ~ Phylum + sample_Family, data = sun_phy_sum_aran, FUN = sum)
+top_SD_phy_aran_sun<-aggregate(SD ~ Phylum + sample_Family, data = sun_phy_sum_aran, FUN = sum)
+
+top_phy_aran_sun<-merge(top_means_phy_aran_sun, top_SD_phy_aran_sun, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+aran_cush_phy<-subset(cush_phylum, sample_Family=="Araneidae")
+aran_cush_phy<-subset(aran_cush_phy, Mean > 0)
+aran_cush_phy<-aran_cush_phy[order(aran_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_aran <- aran_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_aran<- aran_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_aran))
+  
+top_means_phy_aran_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_aran, FUN = sum)
+top_SD_phy_aran_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_aran, FUN = sum)
+
+top_phy_aran_cush<-merge(top_means_phy_aran_cush, top_SD_phy_aran_cush, by=c("Phylum", "sample_Family"))
+
+# Graves Bridge #
+aran_grvbr_phy<-subset(grvbr_phylum, sample_Family=="Araneidae")
+aran_grvbr_phy<-subset(aran_grvbr_phy, Mean > 0)
+aran_grvbr_phy<-aran_grvbr_phy[order(aran_grvbr_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_grvbr_aran <- aran_grvbr_phy$Phylum[1:3]
+  
+grvbr_phy_sum_aran<- aran_grvbr_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_grvbr_aran))
+  
+top_means_phy_aran_grvbr<-aggregate(Mean ~ Phylum + sample_Family, data = grvbr_phy_sum_aran, FUN = sum)
+top_SD_phy_aran_grvbr<-aggregate(SD ~ Phylum + sample_Family, data = grvbr_phy_sum_aran, FUN = sum)
+
+top_phy_aran_grvbr<-merge(top_means_phy_aran_grvbr, top_SD_phy_aran_grvbr, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+aran_pmf_phy<-subset(pmf_phylum, sample_Family=="Araneidae")
+aran_pmf_phy<-subset(aran_pmf_phy, Mean > 0)
+aran_pmf_phy<-aran_pmf_phy[order(aran_pmf_phy$Mean, decreasing = TRUE),]  
+
+pmf_phy_sum_aran<- aran_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  
+top_means_phy_aran_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_aran, FUN = sum)
+top_SD_phy_aran_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_aran, FUN = sum)
+
+top_phy_aran_pmf<-merge(top_means_phy_aran_pmf, top_SD_phy_aran_pmf, by=c("Phylum", "sample_Family"))
+
+
+#### Tetragnathidae ####
+tetra<-subset_samples(sample_ps, Family=="Tetragnathidae")
+
+tetra_glom = tax_glom(tetra, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+tetra_phylum <- psmelt(tetra_glom) %>%  
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Bacteroidota, Cyanobacteria)
+
+# Cochrane #
+tetra_coch_phy<-subset(coch_phylum, sample_Family=="Tetragnathidae")
+tetra_coch_phy<-subset(tetra_coch_phy, Mean > 0)
+tetra_coch_phy<-tetra_coch_phy[order(tetra_coch_phy$Mean, decreasing = TRUE),]  
+
+coch_phy_sum_tetra<- tetra_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+
+top_means_phy_tetra_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_tetra, FUN = sum)
+top_SD_phy_tetra_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_tetra, FUN = sum)
+
+top_phy_tetra_coch<-merge(top_means_phy_tetra_coch, top_SD_phy_tetra_coch, by=c("Phylum", "sample_Family"))
+
+# Sunalta #
+tetra_sun_phy<-subset(sun_phylum, sample_Family=="Tetragnathidae")
+tetra_sun_phy<-subset(tetra_sun_phy, Mean > 0)
+tetra_sun_phy<-tetra_sun_phy[order(tetra_sun_phy$Mean, decreasing = TRUE),]  
+
+sun_phy_sum_tetra<- tetra_sun_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  
+top_means_phy_tetra_sun<-aggregate(Mean ~ Phylum + sample_Family, data = sun_phy_sum_tetra, FUN = sum)
+top_SD_phy_tetra_sun<-aggregate(SD ~ Phylum + sample_Family, data = sun_phy_sum_tetra, FUN = sum)
+
+top_phy_tetra_sun<-merge(top_means_phy_tetra_sun, top_SD_phy_tetra_sun, by=c("Phylum", "sample_Family"))
+
+# Cushing Bridge #
+tetra_cush_phy<-subset(cush_phylum, sample_Family=="Tetragnathidae")
+tetra_cush_phy<-subset(tetra_cush_phy, Mean > 0)
+tetra_cush_phy<-tetra_cush_phy[order(tetra_cush_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_cush_tetra <- tetra_cush_phy$Phylum[1:3]
+  
+cush_phy_sum_tetra<- tetra_cush_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_cush_tetra))
+  
+top_means_phy_tetra_cush<-aggregate(Mean ~ Phylum + sample_Family, data = cush_phy_sum_tetra, FUN = sum)
+top_SD_phy_tetra_cush<-aggregate(SD ~ Phylum + sample_Family, data = cush_phy_sum_tetra, FUN = sum)
+
+top_phy_tetra_cush<-merge(top_means_phy_tetra_cush, top_SD_phy_tetra_cush, by=c("Phylum", "sample_Family"))
+
+# Graves Bridge #
+tetra_grvbr_phy<-subset(grvbr_phylum, sample_Family=="Tetragnathidae")
+tetra_grvbr_phy<-subset(tetra_grvbr_phy, Mean > 0)
+tetra_grvbr_phy<-tetra_grvbr_phy[order(tetra_grvbr_phy$Mean, decreasing = TRUE),]  
+
+grvbr_phy_sum_tetra<- tetra_grvbr_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  
+top_means_phy_tetra_grvbr<-aggregate(Mean ~ Phylum + sample_Family, data = grvbr_phy_sum_tetra, FUN = sum)
+top_SD_phy_tetra_grvbr<-aggregate(SD ~ Phylum + sample_Family, data = grvbr_phy_sum_tetra, FUN = sum)
+
+top_phy_tetra_grvbr<-merge(top_means_phy_tetra_grvbr, top_SD_phy_tetra_grvbr, by=c("Phylum", "sample_Family"))
+
+# Policeman Flats #
+tetra_pmf_phy<-subset(pmf_phylum, sample_Family=="Tetragnathidae")
+tetra_pmf_phy<-subset(tetra_pmf_phy, Mean > 0)
+tetra_pmf_phy<-tetra_pmf_phy[order(tetra_pmf_phy$Mean, decreasing = TRUE),]  
+
+top3_phy_pmf_tetra <- tetra_pmf_phy$Phylum[1:3]
+  
+pmf_phy_sum_tetra<- tetra_pmf_phy %>%
+  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_tetra))
+  
+top_means_phy_tetra_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_tetra, FUN = sum)
+top_SD_phy_tetra_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_tetra, FUN = sum)
+
+top_phy_tetra_pmf<-merge(top_means_phy_tetra_pmf, top_SD_phy_tetra_pmf, by=c("Phylum", "sample_Family"))
 ```
 
 ### Testing significant differences across sites and invert taxa
@@ -9609,17 +9235,26 @@ ggplot(Bow_ali_agg, aes(x=Site, y=Abundance))+
 
 # Endosymbionts
 
-```{r Percent of endosymbionts to total abundance}
+```{r Relative abundance of endosymbionts to total abundance/site and taxa}
+endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia")
+endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
+endo #31 taxa
+
+endo_rel_abun<-transform_sample_counts(endo, function(x) {x * 100/sum(x)})
+
+
 #### Larval Hydropsychidae Bow River ####
 
 hydro_lar_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
-
-endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia")
-endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
-endo #31 taxa 
+nsamples(hydro_lar_Bow) #36
 
 endo_lar_hydro_Bow<-subset_samples(endo, Family=="Hydropsychidae" & Stream_Type=="Bow River")
 endo_lar_hydro_Bow<-prune_taxa(taxa_sums(endo_lar_hydro_Bow) > 0, endo_lar_hydro_Bow) 
+
+endo_lar_hydro_Bow_rel_abun<-transform_sample_counts(endo_lar_hydro_Bow, function(x) {x * 100/sum(x)})
+
+endo_lar_hydro_Bow_df<-psmelt(endo_lar_hydro_Bow_rel_abun)
+
 sort((table(tax_table(endo_lar_hydro_Bow)[,6]))/sum(ntaxa(endo_lar_hydro_Bow))*100)
 sum(sample_sums(endo_lar_hydro_Bow))/sum(sample_sums(hydro_lar_Bow))*100
 
@@ -9636,7 +9271,6 @@ sort((table(tax_table(endo_lar_hydro_Bow_coch)[,6]))/sum(ntaxa(endo_lar_hydro_Bo
 #Rickettsia: 100 %
 sum(sample_sums(endo_lar_hydro_Bow_coch))/sum(sample_sums(hydro_coch))*100
 #Ricketssia: 11.2%, non-endosymbionts: 88.8%
-
 
 
 #Sunalta
@@ -9727,13 +9361,14 @@ endo_plot_hydro
 
 #### Larval Heptageniidae Bow River ####
 hep_lar_Bow<-subset_samples(sample_ps, Family=="Heptageniidae" & Stream_Type=="Bow River")
+nsamples(hep_lar_Bow) #40
 
 endo_lar_hep_Bow<-subset_samples(endo, Family=="Heptageniidae" & Stream_Type=="Bow River")
 endo_lar_hep_Bow<-prune_taxa(taxa_sums(endo_lar_hep_Bow) > 0, endo_lar_hep_Bow) 
 sort((table(tax_table(endo_lar_hep_Bow)[,6]))/sum(ntaxa(endo_lar_hep_Bow))*100)
 #Rickettsia 28.6%, Wolbachia 71.4%
 sum(sample_sums(endo_lar_hep_Bow))/sum(sample_sums(hep_lar_Bow))*100
-#0.012 %
+#0.012 % of total 
 
 #Cochrane 
 hep_coch<-subset_samples(hep_lar_Bow, Site=="Cochrane")
@@ -9743,7 +9378,7 @@ endo_lar_hep_Bow_coch<-prune_taxa(taxa_sums(endo_lar_hep_Bow_coch) > 0, endo_lar
 sort((table(tax_table(endo_lar_hep_Bow_coch)[,6]))/sum(ntaxa(endo_lar_hep_Bow_coch))*100)
 #Rickettsia: 20 %, Wolbachia: 80%
 sum(sample_sums(endo_lar_hep_Bow_coch))/sum(sample_sums(hep_coch))*100
-#0.024 % of total; Rickettsia: 0.005, Wolbachia: 0.02, Non-endo:100
+#0.024 % of total: Rickettsia: 0.005%, Wolbachia: 0.02%, Non-endo:100
 
 #Sunalta
 hep_sun<-subset_samples(hep_lar_Bow, Site=="Sunalta")
@@ -9839,7 +9474,7 @@ endo_lar_chiro_Bow<-prune_taxa(taxa_sums(endo_lar_chiro_Bow) > 0, endo_lar_chiro
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
 chiro_Bow_genus <- tax_glom(chiro_lar_Bow, taxrank = "Genus")
-comp_chiro_Bow_genus <- microbiome::transform(chiro_Bow_genus, "compositional")
+comp_chiro_Bow_genus <- transform_sample_counts(chiro_Bow_genus, function(x) x/sum(x))
 
 chiro_Bow_genus_df <- psmelt(comp_chiro_Bow_genus)
 
@@ -9893,7 +9528,7 @@ endo_lar_perl_Bow<-prune_taxa(taxa_sums(endo_lar_perl_Bow) > 0, endo_lar_perl_Bo
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
 perl_Bow_genus <- tax_glom(perl_lar_Bow, taxrank = "Genus")
-comp_perl_Bow_genus <- microbiome::transform(perl_Bow_genus, "compositional")
+comp_perl_Bow_genus <- transform_sample_counts(perl_Bow_genus, function(x) x/sum(x))
 
 perl_Bow_genus_df <- psmelt(comp_perl_Bow_genus)
 
@@ -9936,21 +9571,49 @@ endo_plot_perl <- ggplot(endo_agg_df_perl, aes(x=Site_code, y=Abundance, fill=Ge
 endo_plot_perl
 
 #### Adult Trichoptera Bow River ####
-trichop_lar_Bow<-subset_samples(sample_ps, Family=="Trichoptera" & Stream_Type=="Bow River")
+trichop_Bow<-subset_samples(sample_ps, Family=="Trichoptera" & Stream_Type=="Bow River")
 
-endo_lar_trichop_Bow<-subset_samples(endo, Family=="Trichoptera" & Stream_Type=="Bow River")
+trichop_endo_rel_abun = transform_sample_counts(trichop_Bow, function(x) {x * 100/sum(x)})
 
-endo_lar_trichop_Bow<-prune_taxa(taxa_sums(endo_lar_trichop_Bow) > 0, endo_lar_trichop_Bow) 
-sort((table(tax_table(endo_lar_trichop_Bow)[,6]))/sum(ntaxa(endo_lar_trichop_Bow))*100)
+endo_trichop_Bow<-subset_samples(trichop_endo_rel_abun, Family=="Trichoptera" & Stream_Type=="Bow River")
+nsamples(endo_trichop_Bow) #31
+
+trichop_endo_glom<-prune_taxa(taxa_sums(trichop_endo_glom) > 0, trichop_endo_glom) 
+
+endo_trichop_df<-psmelt(trichop_endo_glom) #%>%
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup
+
+sort((table(tax_table(endo_trichop_Bow)[,6]))/sum(ntaxa(endo_trichop_Bow))*100)
 #Buchnera (16.7%) Spiroplasma (16.7) Rickettsia (66.7%)
-sum(sample_sums(endo_lar_trichop_Bow))/sum(sample_sums(trichop_lar_Bow))*100
+sum(sample_sums(endo_trichop_Bow))/sum(sample_sums(trichop_Bow))*100
 #36.7% 
+
+
+# Cochrane #
+
+
+tetra_coch_phy<-subset(coch_phylum, sample_Family=="Tetragnathidae")
+tetra_coch_phy<-subset(tetra_coch_phy, Mean > 0)
+tetra_coch_phy<-tetra_coch_phy[order(tetra_coch_phy$Mean, decreasing = TRUE),]  
+
+coch_phy_sum_tetra<- tetra_coch_phy %>%
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+
+top_means_phy_tetra_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_tetra, FUN = sum)
+top_SD_phy_tetra_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_tetra, FUN = sum)
+
+top_phy_tetra_coch<-merge(top_means_phy_tetra_coch, top_SD_phy_tetra_coch, by=c("Phylum", "sample_Family"))
+
 
 
 #Cochrane 
 trichop_coch<-subset_samples(trichop_lar_Bow, Site=="Cochrane")
 
 endo_lar_trichop_Bow_coch<-subset_samples(endo_lar_trichop_Bow, Site=="Cochrane")
+nsamples(endo_lar_trichop_Bow_coch) #8
 endo_lar_trichop_Bow_coch<-prune_taxa(taxa_sums(endo_lar_trichop_Bow_coch) > 0, endo_lar_trichop_Bow_coch) 
 sort((table(tax_table(endo_lar_trichop_Bow_coch)[,6]))/sum(ntaxa(endo_lar_trichop_Bow_coch))*100)
 #Rickettsia: 100%
@@ -9993,25 +9656,27 @@ endo_lar_trichop_Bow_pmf<-subset_samples(endo_lar_trichop_Bow, Site=="Policeman 
 
 #### Adult Ephemeroptera Bow River ####
 
-ephem_lar_Bow<-subset_samples(sample_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+ephem_Bow<-subset_samples(sample_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+ephem_Bow_df<-psmelt(ephem_Bow)
 
-endo_lar_ephem_Bow<-subset_samples(endo, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+endo_ephem_Bow<-subset_taxa(ephem_Bow, Genus=="Rickettsia" | Genus=="Buchnera" | Genus=="Candidatus cardinium" | Genus=="Spiroplasma" | Genus=="Wolbachia")
 
-endo_lar_ephem_Bow<-prune_taxa(taxa_sums(endo_lar_ephem_Bow) > 0, endo_lar_ephem_Bow) 
-sort((table(tax_table(endo_lar_ephem_Bow)[,6]))/sum(ntaxa(endo_lar_ephem_Bow))*100)
+endo_ephem_Bow<-prune_taxa(taxa_sums(endo_ephem_Bow) > 0, endo_ephem_Bow) 
+sort((table(tax_table(endo_ephem_Bow)[,6]))/sum(ntaxa(endo_ephem_Bow))*100)
 #Buchnera (14.3%) Spiroplasma (14.3) Wolbachia (14.3) Rickettsia (57.1%)
-sum(sample_sums(endo_lar_ephem_Bow))/sum(sample_sums(ephem_lar_Bow))*100
+sum(sample_sums(endo_ephem_Bow))/sum(sample_sums(ephem_Bow))*100
 #5.39% 
 
 
 #Cochrane 
-ephem_coch<-subset_samples(ephem_lar_Bow, Site=="Cochrane")
+ephem_coch<-subset_samples(ephem_Bow, Site=="Cochrane")
+nsamples(ephem_coch) #8
 
-endo_lar_ephem_Bow_coch<-subset_samples(endo_lar_ephem_Bow, Site=="Cochrane")
-endo_lar_ephem_Bow_coch<-prune_taxa(taxa_sums(endo_lar_ephem_Bow_coch) > 0, endo_lar_ephem_Bow_coch) 
-sort((table(tax_table(endo_lar_ephem_Bow_coch)[,6]))/sum(ntaxa(endo_lar_ephem_Bow_coch))*100)
+endo_ephem_Bow_coch<-subset_samples(endo_ephem_Bow, Site=="Cochrane")
+endo_ephem_Bow_coch<-prune_taxa(taxa_sums(endo_ephem_Bow_coch) > 0, endo_ephem_Bow_coch) 
+sort((table(tax_table(endo_ephem_Bow_coch)[,6]))/sum(ntaxa(endo_ephem_Bow_coch))*100)
 #Rickettsia: 100%
-sum(sample_sums(endo_lar_ephem_Bow_coch))/sum(sample_sums(ephem_coch))*100
+sum(sample_sums(endo_ephem_Bow_coch))/sum(sample_sums(ephem_coch))*100
 #26.4 % of total
 
 #Sunalta
@@ -10025,13 +9690,15 @@ sum(sample_sums(endo_lar_ephem_Bow_sun))/sum(sample_sums(ephem_sun))*100
 #6.20 % of total
 
 #Cushing Bridge
-ephem_cush<-subset_samples(ephem_lar_Bow, Site=="Cushing Bridge")
+ephem_cush<-subset_samples(ephem_Bow, Site=="Cushing Bridge")
+ephem_cush_df<-psmelt(ephem_cush)
+sum(ephem_cush_df$Abundance)
 
-endo_lar_ephem_Bow_cush<-subset_samples(endo_lar_ephem_Bow, Site=="Cushing Bridge")
-endo_lar_ephem_Bow_cush<-prune_taxa(taxa_sums(endo_lar_ephem_Bow_cush) > 0, endo_lar_ephem_Bow_cush) 
-sort((table(tax_table(endo_lar_ephem_Bow_cush)[,6]))/sum(ntaxa(endo_lar_ephem_Bow_cush))*100)
+endo_ephem_Bow_cush<-subset_taxa(ephem_cush, Genus=="Rickettsia" | Genus=="Buchnera" | Genus=="Candidatus cardinium" | Genus=="Spiroplasma" | Genus=="Wolbachia")
+endo_ephem_Bow_cush<-prune_taxa(taxa_sums(endo_ephem_Bow_cush) > 0, endo_ephem_Bow_cush) 
+sort((table(tax_table(endo_ephem_Bow_cush)[,6]))/sum(ntaxa(endo_ephem_Bow_cush))*100)
 #Buchnera: 33.3%, Spiroplasma: 33.3%, Rickettsia: 33.3%
-sum(sample_sums(endo_lar_ephem_Bow_cush))/sum(sample_sums(ephem_cush))*100
+sum(sample_sums(endo_ephem_Bow_cush))/sum(sample_sums(ephem_cush))*100
 #0.085 % of total
 
 #Graves Bridge
@@ -10756,7 +10423,7 @@ Genus_endo_Bow_graphing_df<- dplyr::inner_join(taxon_rel_abund_Genus_endo_Bow, t
   dplyr::mutate(taxon = factor(taxon),
          taxon = fct_reorder(taxon, median, .desc=T)) %>%
   dplyr::mutate(rel_abund = if_else(rel_abund == 0,
-                             2/3 * lod,
+                             2/3 * lod_endo,
                              rel_abund))
 Genus_endo_Bow_graphing_df
 
