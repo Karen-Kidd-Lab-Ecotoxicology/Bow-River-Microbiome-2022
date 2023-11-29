@@ -8,7 +8,7 @@ editor_options:
 ---
 # Introduction {.tabset}
 
-This data comes from a study done in 2022 across 5 sites on the Bow River, Calgary AB and 3 experimental streams from Advancing Candian Water Assets (ACWA) at the Pine Creek wastewater treatment plant with varying municipal wastewater effluent exposures (stream additions: 0, 5, or 15% effluent). The objective of this study was to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian spiders with exposure to wastewater effluents as well as any differences across taxa and across metamorphosis/life stage. 
+This data comes from a study done in 2022 across 5 sites on the Bow River, Calgary AB and 3 experimental streams from Advancing Canadian Water Assets (ACWA) at the Pine Creek waste water treatment plant with varying municipal waste water effluent exposures (stream additions: 0, 5, or 15% effluent). The objective of this study was to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian spiders with exposure to waste water effluents as well as if there were any differences in the microbial assemblage across taxa and across metamorphosis/life stage. 
 
 ## Setup
 ```{r setup, include=FALSE}
@@ -24,12 +24,14 @@ par(mar = c(2, 2, 2, 2)) # Set the margin on all sides to 2
     #install.packages("BiocManager")
 #BiocManager::install("phyloseq")
 library(phyloseq) #phyloseq will be the main package used for structuring microbiome data and diversity comparisons
+#BiocManager::install("apeglm")
+library(apeglm)
+#BiocManager::install("microbiome")
+library(microbiome) #For microbiome analyses
 library(rlang)
 library(glue)
 library(ggh4x)
 library(viridis)
-#BiocManager::install("apeglm")
-library(apeglm)
 library(geosphere)
 library(car)
 library(ggplot2) #For creating graphs
@@ -47,8 +49,6 @@ library(glmmTMB)
 library(gridExtra)
 library(vegan)
 library(tidyverse) #data wrangling
-#BiocManager::install("microbiome")
-library(microbiome) #For microbiome analyses
 #BiocManager::install("PERFect")
 library(PERFect) #Permutation filtration for microbiome data. Used when comparing beta diversities across sites/locations. 
 library(knitr) #For R Markdown knitting
@@ -154,9 +154,6 @@ taxa_table = tax_table(taxa_table)
 
 #Make sure the ASV table and taxa table are both matricies before trying to turn into phyloseq object
 ps <- phyloseq(ASVtable, sample_data(metadata), taxa_table)
-
-#ps_df<-psmelt(ps)
-#write.csv(ps_df, "microbiome_analysis/ps_df.csv")
 ```
 
 
@@ -196,7 +193,7 @@ contamdf.prev.ad.mesh <- isContaminant(ad_mesh_bl, method="prevalence", neg="is.
 #Runs the decontamination with a threshold of 0.1. 
 hist(contamdf.prev.ad.mesh$p) 
 table(contamdf.prev.ad.mesh$contaminant)
-#FALSE = 822, TRUE=15. Identifies 15 potential contaminants.
+#Threshold of 0.1: FALSE = 822, TRUE=15. Identifies 15 potential contaminants.
 
 #Prune samples to get rid of contaminants and continue with filtering steps
 ps.noncontam.ad.mesh <- prune_taxa(!contamdf.prev.ad.mesh$contaminant, ad_mesh_bl) #Keeps the 822 taxa that were not ID as contaminants
@@ -236,7 +233,7 @@ sample_data(ad_Bow_bl)$is.neg <- sample_data(ad_Bow_bl)$Sample_Type == "Blank"
 contamdf.prev.ad.Bow <- isContaminant(ad_Bow_bl, method="prevalence", neg="is.neg", threshold=0.1)
  
 table(contamdf.prev.ad.Bow$contaminant)
-# FALSE = 9552, TRUE=325
+#Threshold of 0.1: FALSE = 9552, TRUE=325
 
 #Prune samples to get rid of contaminants and continue with filtering steps
 ps.noncontam.ad.Bow <- prune_taxa(!contamdf.prev.ad.Bow$contaminant, ad_Bow_bl)
@@ -302,10 +299,15 @@ decontam_sample_ps_0 <- subset_taxa(decontam_sample_ps, Kingdom != "Eukaryota")
 decontam_sample_ps_1<-subset_taxa(decontam_sample_ps_0, !is.na(Phylum) & !Phylum %in% c("","uncharacterized")) 
 
 decontam_sample_ps_2<-ps_prune(decontam_sample_ps_1, min.samples = 4, min.reads = 6)
+others = c("Others")
+allTaxa_decontam = taxa_names(decontam_sample_ps_2)
+allTaxa_decontam <- allTaxa_decontam[!(allTaxa_decontam %in% others)] #removes others from taxa names
+decontam_sample_ps_2 = prune_taxa(allTaxa_decontam, decontam_sample_ps_2)
+decontam_sample_ps_2 #4520, 350 samples
 
 decontam_ps <- subset_samples(decontam_sample_ps_2, sample_sums(decontam_sample_ps_2) > 2000) 
-decontam_ps #4521 taxa, 339 samples. 
-#Removed 43 potential contaminants from original dataset.
+decontam_ps #4520 taxa, 332 samples. 
+#Removed 44 potential contaminants from original dataset.
 ```
 
 ### Removing low confidence taxa
@@ -341,24 +343,25 @@ sort(sample_sums(ps1)) #Reads/sample range from 59 - 222,956
 ##Prevalence threshold pruning ##
 #Define prevalence of each taxa (in how many samples did each taxa appear at least once)
 #2%
-prev0 = apply(X = otu_table(sample_ps),
-                MARGIN = ifelse(taxa_are_rows(sample_ps), yes = 1, no = 2),
+prev0 = apply(X = otu_table(ps1),
+                MARGIN = ifelse(taxa_are_rows(ps1), yes = 1, no = 2),
                 FUN = function(x){sum(x > 0)})
 prevdf = data.frame(Prevalence = prev0,
-                      TotalAbundance = taxa_sums(sample_ps),
-                      tax_table(sample_ps))
+                      TotalAbundance = taxa_sums(ps1),
+                      tax_table(ps1))
 keepPhyla = table(prevdf$Phylum)[(table(prevdf$Phylum) > 2)] #Keeping phyla with a prevalence greater than 2
 prevdf1 = subset(prevdf, Phylum %in% names(keepPhyla))
 # Define prevalence threshold as 2% of total samples
-prevalenceThreshold = 0.02 * nsamples(sample_ps)
+prevalenceThreshold = 0.02 * nsamples(ps1)
 prevalenceThreshold #We are keeping phyla that occur at least 6.78 samples (2% of samples) with a prevalence of 2 or greater 
 
-psprune = prune_taxa((prev0 > prevalenceThreshold), sample_ps)
-psprune #2811 taxa. Cut out a very large portion of the data. Probably too high of a threshold.  
+psprune = prune_taxa((prev0 > prevalenceThreshold), ps1)
+psprune #2823 taxa. Cut out a very large portion of the data. Probably too high of a threshold.  
 
 reads_pruned <- taxa_sums(psprune)
-print(sum(reads_pruned)) #12,297,605 total reads left after pruning
-(1-(sum(reads_pruned))/(sum(reads_per_OTU)))*100 #6.27% of the total read data was removed by pruning. A decently large portion of the data was cut out from additional pruning
+print(sum(reads_pruned)) #11,202,901 total reads left after pruning
+reads_per_OTU <- taxa_sums(psexp) 
+(1-(sum(reads_pruned))/(sum(reads_per_OTU)))*100 #14.6% of the total read data was removed by pruning. A decently large portion of the data was cut out from additional pruning
 
 #Graphs prevalence of each bacterial Phylum with dotted line indicating the prevalence threshold so you get an idea of how much data would be lost.
 ggplot(prevdf1, aes(TotalAbundance, Prevalence, color = Phylum)) +
@@ -374,24 +377,25 @@ ggplot(prevdf1, aes(TotalAbundance, Prevalence, color = Phylum)) +
 
 # Define prevalence of each taxa
 # (in how many samples did each taxa appear at least once)
-prev1 = apply(X = otu_table(sample_ps),
-                MARGIN = ifelse(taxa_are_rows(sample_ps), yes = 1, no = 2),
+prev1 = apply(X = otu_table(ps1),
+                MARGIN = ifelse(taxa_are_rows(ps1), yes = 1, no = 2),
                 FUN = function(x){sum(x > 0)})
 prevdf2 = data.frame(Prevalence = prev1,
-                      TotalAbundance = taxa_sums(sample_ps),
-                      tax_table(sample_ps))
+                      TotalAbundance = taxa_sums(ps1),
+                      tax_table(ps1))
 keepPhyla1 = table(prevdf2$Phylum)[(table(prevdf2$Phylum) > 2)]
 prevdf3 = subset(prevdf2, Phylum %in% names(keepPhyla))
-# Define prevalence threshold as 5% of total samples
-prevalenceThreshold1 = 0.01 * nsamples(sample_ps)
-prevalenceThreshold1 #3.39. Present in at least 3.39 samples (round up to 4)
+# Define prevalence threshold as 1% of total samples
+prevalenceThreshold1 = 0.01 * nsamples(ps1)
+prevalenceThreshold1 #3.49. Present in at least 3.49 samples (round up to 4)
 
-psprune1 = prune_taxa((prev1 > prevalenceThreshold1), sample_ps)
-psprune1 #4556 taxa. Still a very large percentage of taxa removed but we need to look at the amount of total reads removed to understand the implications to the data.
+psprune1 = prune_taxa((prev1 > prevalenceThreshold1), ps1)
+psprune1 #4572 taxa. Still a very large percentage of taxa removed but we need to look at the amount of total reads removed to understand the implications to the data.
 
 reads_pruned1 <- taxa_sums(psprune1)
-print(sum(reads_pruned1)) #13 ,024,528 total reads left after pruning
-(1-(sum(reads_pruned1))/(sum(reads_per_OTU)))*100 #0.73% of the total data was removed. Very small percentage 
+print(sum(reads_pruned1)) #11,981,219 total reads left after pruning
+reads_per_OTU <- taxa_sums(psexp) 
+(1-(sum(reads_pruned1))/(sum(reads_per_OTU)))*100 #8.68% of the total data was removed. Still a decnetly large percentage 
 
 #Plot prevalence of each Phylum
 ggplot(prevdf2, aes(TotalAbundance, Prevalence, color = Phylum)) +
@@ -401,6 +405,8 @@ ggplot(prevdf2, aes(TotalAbundance, Prevalence, color = Phylum)) +
   xlab("Total Abundance") +
   facet_wrap(~Phylum)
 #This threshold of filtering looks a lot better and I can be more confidence that we are not removing true taxa from samples. Looks like the ones that are removed are just artifacts of sampling or sequencing errors. 
+
+#I will use a prevalence threshold of 1 % meaning that the bacteria has to be present in at least 4 samples 
 ```
 
 ### Filtering by abundance and prevalence threshold
@@ -410,7 +416,7 @@ prevdf=apply(X=otu_table(ps1),MARGIN=ifelse(taxa_are_rows(ps1),yes=1,no=2),FUN =
 prevdf= data.frame(Prevalence= prevdf,TotalAbundance=taxa_sums(ps1),tax_table(ps1))
 
 plyr::ddply(prevdf,"Phylum",function(df1){cbind(mean(df1$Prevalence),sum(df1$TotalAbundance))}) 
-#Shows mean and total prevalence of taxa within each phylum. The ones that are only prevalent once in each phylum might be worth removing. This means they only showed up in one sample across all samples but might have a high abundance (total number of reads).  
+#Shows mean and total prevalence of taxa within each phylum. The ones that are only prevalent once or twice in each phylum might be worth removing. This means they only showed up in one or two samples across all samples but might have a high abundance (total number of reads).  
 
 #There are a couple of phyla with only a prevalence sum of one or two so these might be worth removing. 
 
@@ -433,51 +439,53 @@ print(ps1.cumsum.plot.zoom)
 #Could maybe remove taxa with an abundance of less than 5-6 across all samples however if I go higher than that it filters out a ton of taxa (about 1/3 of all of them)
 
 #I will filter out taxa that are only prevalent in 1% of all samples (has to be in at least 4/357 samples) and at least 6 reads across all samples
-ps2<-ps_prune(ps1, min.samples = 4, min.reads = 6)
-ps2 #4564 taxa, 349 samples. 
+ps2<-ps_prune(ps1, min.samples = 4, min.reads = 6) #Creates an other category that needs to be removed
+others = c("Others")
+allTaxa = taxa_names(ps2)
+allTaxa <- allTaxa[!(allTaxa %in% others)] #removes others from taxa names
+ps2 = prune_taxa(allTaxa, ps2)
+ps2 #4563, 349 samples
+
 any(taxa_sums(ps2) <6) #FALSE. Means it did a good job of getting rid of them. 
 sort(sample_sums(ps2))
-#Should remove samples with less than 2000 reads. Will remove about 10 samples.
+#Should remove samples with less than 2000 reads. Will remove 14 samples.
 ```
 
 ### Filtering by a minimum total sample count (at least 2000 reads/sample)
 ```{r}
-#Creating a rarefaction curve
+#Creating a rarefaction curve to see the spread in the sequencing depths
 tab <- otu_table(ps2)
-class(tab) <- "matrix" # as.matrix() will do nothing
-## you get a warning here, but this is what we need to have
+class(tab) <- "matrix"
 tab <- t(tab) # transpose observations to rows
 rare <- rarecurve(tab, step=5000, lwd=2, ylab="OTU",  label=F) 
 #The rarefaction curves are very spread out. This means that there are different sequencing depths and standardizing the data might be needed prior to analysis. 
 
-sort(sample_sums(ps2)) #minimum is 59, maximum is 222,956
-mean(sample_sums(ps2)) #37504.7
+sort(sample_sums(ps2)) #minimum is 24, maximum is 222,630
+mean(sample_sums(ps2)) #34330
 
 #Final dataset
 sample_ps <- subset_samples(ps2, sample_sums(ps2) > 2000) 
-sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2283 reads. 
-sample_ps #4564 taxa, 339 samples. 
+sort(sample_sums(sample_ps)) #Minimum sampling depth is now 2384 reads. 
+sample_ps #4563 taxa, 335 samples. 
 
 #Create excel file with samples that were subset out
 pruned_df<-psmelt(subset_samples(ps2, sample_sums(ps2) < 2000))
 
-write.csv(pruned_df, file="Microbiome_Analysis/Final analysis/Filtering phyloseq/Samples pruned from 2000 reads per sample.csv")
+#write.csv(pruned_df, file="microbiome_analysis/Samples pruned from 2000 reads per sample.csv")
 ```
 
 ### Amount of data that was filtered out from the original phyloseq object
 ```{r}
-ntaxa(psexp)-ntaxa(sample_ps) #filtered 25,654 total taxa (ASVs)
+ntaxa(psexp)-ntaxa(sample_ps) #filtered 25,655 total taxa (ASVs)
 (1-ntaxa(sample_ps)/ntaxa(psexp))*100 #84.9% of the taxa were removed from the original decontaminated dataset. 
 
 reads_per_OTU <- taxa_sums(psexp) #Original ps with no filtering done.
 print(sum(reads_per_OTU)) #Total number of reads is 13,120,090.
 
 reads_per_OTU_filtered <- taxa_sums(sample_ps) #Original ps with no filtering done.
-print(sum(reads_per_OTU_filtered)) #Total number of reads is now 13,078,305.
+print(sum(reads_per_OTU_filtered)) #Total number of reads is now 11,966,724.
 
-(1-13078305/13120090)*100 #0.32%. Filtered out a very small percentage of the total data (reads). 
-
-#From this we can conclude that a small part of the data can have a big impact on downstream analyses.
+(1-11966724/13120090)*100 #8.79%. Filtered out a decently small percentage of the total data (reads). 
 
 
 #Creating a distribution of reads per sample versus the sample counts. 
@@ -722,7 +730,6 @@ get_taxa_unique(buffer, "Family") #64 families total
 get_taxa_unique(buffer, "Genus") #114 genera total
 
 
-
 ## Plotting composition of blanks
 #Phylum 
 blank_phy <- tax_glom(blank_ps, taxrank="Phylum")
@@ -743,7 +750,7 @@ blank_phy_plot <- ggplot(blank_phy_agg, aes(x=Blank_Type, y=Abundance, fill=Phyl
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label=scales::percent)+
-  scale_fill_manual(name="Bacterial Class", values = c(brewer.pal(12, "Paired"), "darkolivegreen4", "#43464B", "lightcoral", "palevioletred2", brewer.pal(8, "Set3")))+
+  scale_fill_manual(name="Bacterial Class", values = c(brewer.pal(12, "Paired"), "darkolivegreen4", "#43464B", "lightcoral", "palevioletred2", brewer.pal(10, "Set3")))+
   rremove("grid")
 blank_phy_plot
 
@@ -800,30 +807,30 @@ blank_genus_plot
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps)
-Bow_ps #4194 taxa, 284 samples
+Bow_ps #4191 taxa, 280 samples
 
 #Number of larval samples
 lar_Bow<-subset_samples(Bow_ps, Stage=="Larvae")
-nsamples(lar_Bow) #113
+nsamples(lar_Bow) #111
 #Number of adult samples
 ad_Bow<-subset_samples(Bow_ps, Stage=="Adults")
-nsamples(ad_Bow) #93
+nsamples(ad_Bow) #92
 #Number of spider samples
 spider_Bow<-subset_samples(Bow_ps, Stage=="Spiders")
-nsamples(spider_Bow) #78
+nsamples(spider_Bow) #77
 
 #Total number of reads
-print(sum(sample_sums(Bow_ps))) #10,857,965 
+print(sum(sample_sums(Bow_ps))) #9,816,526  
 #Average # of reads per sample
-mean(sample_sums(Bow_ps)) #38,232 average reads/sample
-sort(sample_sums(Bow_ps)) #reads/sample ranges from 2283 - 222,956 counts
-ntaxa(Bow_ps) #4194
+mean(sample_sums(Bow_ps)) #35,059 average reads/sample
+sort(sample_sums(Bow_ps)) #reads/sample ranges from 2384 - 222,630 counts
+ntaxa(Bow_ps) #4191
 
 #All phyla combined
 sort((table(tax_table(Bow_ps)[,2]))/sum(ntaxa(Bow_ps))*100)
-#Top 5 abundant phyla are Proteobacteria (37.6 %), Bacteroidota (30.7 %), Firmicutes (11.2 %), Cyanobacteria (5.91 %), Actinobacteria (5.65 %)
+#Top 5 abundant phyla are Proteobacteria (37.6 %), Bacteroidota (30.7 %), Firmicutes (11.2 %), Cyanobacteria (5.92 %), Actinobacteria (5.65 %)
 sort((table(tax_table(Bow_ps)[,5])/sum(ntaxa(Bow_ps))*100))
-#Top 5 families are Comamonadaceae (7.82 %), Saprospiraceae (6.27 %), Flavobacteriaceae (4.58 %), Rhodobacteraceae (4.29 %), and Sphingomonadaceae (3.79 %)
+#Top 5 families are Comamonadaceae (7.83 %), Saprospiraceae (6.28 %), Flavobacteriaceae (4.58 %), Rhodobacteraceae (4.29 %), and Sphingomonadaceae (3.79 %)
 sort((table(tax_table(Bow_ps)[,6])/ntaxa(Bow_ps)*100))
 #top 5 genera: Flavobacterium (4.34 %), Rhodoferax (2.29 %), Tyzzerella (1.50 %), Pseudorhodobacter (1.41), Limnohabitans (1.10 %)
 
@@ -851,17 +858,17 @@ ntaxa(firm_Bow) #468
 
 ##Get total numbers of ASVs at each level
 get_taxa_unique(Bow_ps, "Phylum") #32 phyla total
-get_taxa_unique(Bow_ps, "Class") #69 Classes total
-get_taxa_unique(Bow_ps, "Order") #167 orders total
-get_taxa_unique(Bow_ps, "Family") #238 families total
-get_taxa_unique(Bow_ps, "Genus") #481 genera total
+get_taxa_unique(Bow_ps, "Class") #68 Classes total
+get_taxa_unique(Bow_ps, "Order") #166 orders total
+get_taxa_unique(Bow_ps, "Family") #237 families total
+get_taxa_unique(Bow_ps, "Genus") #480 genera total
 
 
 #### ACWA ####
 
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 ACWA_ps<-prune_taxa(taxa_sums(ACWA_ps) > 0, ACWA_ps)
-ACWA_ps #2605 taxa, 55 samples
+ACWA_ps #2604 taxa, 55 samples
 
 lar_ACWA<-subset_samples(ACWA_ps, Stage=="Larvae")
 nsamples(lar_ACWA) #39
@@ -869,11 +876,11 @@ ad_ACWA<-subset_samples(ACWA_ps, Stage=="Adults")
 nsamples(ad_ACWA) #16
 
 #Total number of reads
-print(sum(sample_sums(ACWA_ps))) #2,220,340
+print(sum(sample_sums(ACWA_ps))) #2,150,198
 #Average # of reads per sample
-mean(sample_sums(ACWA_ps)) #40,369 average reads/sample
-sort(sample_sums(ACWA_ps)) #reads/sample ranges from 9154 - 91,209 counts
-ntaxa(ACWA_ps) #2605
+mean(sample_sums(ACWA_ps)) #39,094 average reads/sample
+sort(sample_sums(ACWA_ps)) #reads/sample ranges from 8978 - 88,543 counts
+ntaxa(ACWA_ps) #2604
 
 #All phyla combined
 sort((table(tax_table(ACWA_ps)[,2]))/sum(ntaxa(ACWA_ps))*100)
@@ -907,33 +914,33 @@ ntaxa(firm_ACWA) #265
 
 ##Get total numbers of ASVs at each level
 get_taxa_unique(ACWA_ps, "Phylum") #27 phyla total
-get_taxa_unique(ACWA_ps, "Class") #61 Classes total
-get_taxa_unique(ACWA_ps, "Order") #145 orders total
-get_taxa_unique(ACWA_ps, "Family") #197 families total
-get_taxa_unique(ACWA_ps, "Genus") #339 genera total
+get_taxa_unique(ACWA_ps, "Class") #60 Classes total
+get_taxa_unique(ACWA_ps, "Order") #144 orders total
+get_taxa_unique(ACWA_ps, "Family") #196 families total
+get_taxa_unique(ACWA_ps, "Genus") #338 genera total
 ```
 
 ### Total ASVs per site and invertebrate taxa 
 
 ```{r}
 #Total samples
-nsamples(sample_ps) #339
-ntaxa(sample_ps) #4,564
+nsamples(sample_ps) #335
+ntaxa(sample_ps) #4,563
 
 #### Bow River ####
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 
-#Cochrane, n = 67
+#Cochrane, n = 65
 coch<-subset_samples(Bow_ps, Site=="Cochrane")
 coch<-prune_taxa(taxa_sums(coch) > 0, coch)
-nsamples(coch) #67
-ntaxa(coch) #2480
+nsamples(coch) #65
+ntaxa(coch) #2467
 
 get_taxa_unique(coch, "Phylum") #25 phyla total
-get_taxa_unique(coch, "Class") #51 Classes total
+get_taxa_unique(coch, "Class") #53 Classes total
 get_taxa_unique(coch, "Order") #127 orders total
-get_taxa_unique(coch, "Family") #187 families total
-get_taxa_unique(coch, "Genus") #363 genera total
+get_taxa_unique(coch, "Family") #185 families total
+get_taxa_unique(coch, "Genus") #362 genera total
 
 sort((table(tax_table(coch)[,2]))/ntaxa(coch)*100)
 #Proteobacteria (38.8%), Bacteroidota (30.8%), Firmicutes (13.5%).
@@ -941,7 +948,7 @@ sort((table(tax_table(coch)[,2]))/ntaxa(coch)*100)
 #Hydropsychidae
 hydro_coch<-subset_samples(coch, Family=="Hydropsychidae")
 hydro_coch<-prune_taxa(taxa_sums(hydro_coch)>0, hydro_coch)
-ntaxa(hydro_coch) #709
+ntaxa(hydro_coch) #708
 nsamples(hydro_coch) #8
 
 get_taxa_unique(hydro_coch, "Phylum") #16 phyla total
@@ -953,31 +960,31 @@ get_taxa_unique(hydro_coch, "Genus") #99 genera total
 #Heptageniidae
 hep_coch<-subset_samples(coch, Family=="Heptageniidae")
 hep_coch<-prune_taxa(taxa_sums(hep_coch)>0, hep_coch)
-ntaxa(hep_coch) #1109
+ntaxa(hep_coch) #1108
 nsamples(hep_coch) #8
 
 get_taxa_unique(hep_coch, "Phylum") #19 phyla total
-get_taxa_unique(hep_coch, "Class") #41 Classes total
-get_taxa_unique(hep_coch, "Order") #86 orders total
-get_taxa_unique(hep_coch, "Family") #126 families total
-get_taxa_unique(hep_coch, "Genus") #199 genera total
+get_taxa_unique(hep_coch, "Class") #40 Classes total
+get_taxa_unique(hep_coch, "Order") #85 orders total
+get_taxa_unique(hep_coch, "Family") #125 families total
+get_taxa_unique(hep_coch, "Genus") #198 genera total
 
 #Chironomidae
 chiro_coch<-subset_samples(coch, Family=="Chironomidae")
 chiro_coch<-prune_taxa(taxa_sums(chiro_coch)>0, chiro_coch)
-ntaxa(chiro_coch) #380
-nsamples(chiro_coch) #5
+ntaxa(chiro_coch) #323
+nsamples(chiro_coch) #4
 
-get_taxa_unique(chiro_coch, "Phylum") #11 phyla total
-get_taxa_unique(chiro_coch, "Class") #26 Classes total
-get_taxa_unique(chiro_coch, "Order") #70 orders total
-get_taxa_unique(chiro_coch, "Family") #94 families total
-get_taxa_unique(chiro_coch, "Genus") #124 genera total
+get_taxa_unique(chiro_coch, "Phylum") #9 phyla total
+get_taxa_unique(chiro_coch, "Class") #24 Classes total
+get_taxa_unique(chiro_coch, "Order") #66 orders total
+get_taxa_unique(chiro_coch, "Family") #88 families total
+get_taxa_unique(chiro_coch, "Genus") #114 genera total
 
 #Perlidae
 perl_coch<-subset_samples(coch, Family=="Perlidae")
 perl_coch<-prune_taxa(taxa_sums(perl_coch)>0, perl_coch)
-ntaxa(perl_coch) #571
+ntaxa(perl_coch) #570
 nsamples(perl_coch) #8
 
 get_taxa_unique(perl_coch, "Phylum") #12 phyla total
@@ -989,7 +996,7 @@ get_taxa_unique(perl_coch, "Genus") #107 genera total
 #Trichoptera 
 trichop_coch<-subset_samples(coch, Family=="Trichoptera")
 trichop_coch<-prune_taxa(taxa_sums(trichop_coch)>0, trichop_coch)
-ntaxa(trichop_coch) #646
+ntaxa(trichop_coch) #645
 nsamples(trichop_coch) #8
 
 get_taxa_unique(trichop_coch, "Phylum") #13 phyla total
@@ -1001,31 +1008,31 @@ get_taxa_unique(trichop_coch, "Genus") #168 genera total
 #Ephemeroptera 
 ephem_coch<-subset_samples(coch, Family=="Ephemeroptera")
 ephem_coch<-prune_taxa(taxa_sums(ephem_coch)>0, ephem_coch)
-ntaxa(ephem_coch) #231
+ntaxa(ephem_coch) #230
 nsamples(ephem_coch) #8
 
 get_taxa_unique(ephem_coch, "Phylum") #10 phyla total
 get_taxa_unique(ephem_coch, "Class") #15 Classes total
-get_taxa_unique(ephem_coch, "Order") #50 orders total
+get_taxa_unique(ephem_coch, "Order") #49 orders total
 get_taxa_unique(ephem_coch, "Family") #80 families total
 get_taxa_unique(ephem_coch, "Genus") #107 genera total
 
 #Diptera 
 dip_coch<-subset_samples(coch, Family=="Diptera")
 dip_coch<-prune_taxa(taxa_sums(dip_coch)>0, dip_coch)
-ntaxa(dip_coch) #199
-nsamples(dip_coch) #6
+ntaxa(dip_coch) #192
+nsamples(dip_coch) #5
 
 get_taxa_unique(dip_coch, "Phylum") #6 phyla total
 get_taxa_unique(dip_coch, "Class") #10 Classes total
 get_taxa_unique(dip_coch, "Order") #38 orders total
-get_taxa_unique(dip_coch, "Family") #55 families total
-get_taxa_unique(dip_coch, "Genus") #89 genera total
+get_taxa_unique(dip_coch, "Family") #54 families total
+get_taxa_unique(dip_coch, "Genus") #88 genera total
 
 #Araneidae
 aran_coch<-subset_samples(coch, Family=="Araneidae")
 aran_coch<-prune_taxa(taxa_sums(aran_coch)>0, aran_coch)
-ntaxa(aran_coch) #267
+ntaxa(aran_coch) #266
 nsamples(aran_coch) #8
 
 get_taxa_unique(aran_coch, "Phylum") #8 phyla total
@@ -1037,7 +1044,7 @@ get_taxa_unique(aran_coch, "Genus") #109 genera total
 #Tetragnathidae 
 tetra_coch<-subset_samples(coch, Family=="Tetragnathidae")
 tetra_coch<-prune_taxa(taxa_sums(tetra_coch)>0, tetra_coch)
-ntaxa(tetra_coch) #175
+ntaxa(tetra_coch) #174
 nsamples(tetra_coch) #8
 
 get_taxa_unique(tetra_coch, "Phylum") #7 phyla total
@@ -1049,7 +1056,7 @@ get_taxa_unique(tetra_coch, "Genus") #92 genera total
 #Sunalta, n = 47
 sun<-subset_samples(sample_ps, Site=="Sunalta")
 sun<-prune_taxa(taxa_sums(sun) > 0, sun)
-ntaxa(sun) #2174
+ntaxa(sun) #2173
 nsamples(sun) #47
 
 get_taxa_unique(sun, "Phylum") #25 phyla total
@@ -1064,7 +1071,7 @@ sort((table(tax_table(sun)[,2]))/ntaxa(sun)*100)
 #Hydropsychidae 
 hydro_sun<-subset_samples(sun, Family=="Hydropsychidae")
 hydro_sun<-prune_taxa(taxa_sums(hydro_sun) > 0, hydro_sun)
-ntaxa(hydro_sun) #604
+ntaxa(hydro_sun) #603
 nsamples(hydro_sun) #7
 
 get_taxa_unique(hydro_sun, "Phylum") #17 phyla total
@@ -1076,7 +1083,7 @@ get_taxa_unique(hydro_sun, "Genus") #79 genera total
 #Heptageniidae 
 hep_sun<-subset_samples(sun, Family=="Heptageniidae")
 hep_sun<-prune_taxa(taxa_sums(hep_sun) > 0, hep_sun)
-ntaxa(hep_sun) #1246
+ntaxa(hep_sun) #1245
 nsamples(hep_sun) #8
 
 get_taxa_unique(hep_sun, "Phylum") #19 phyla total
@@ -1088,7 +1095,7 @@ get_taxa_unique(hep_sun, "Genus") #207 genera total
 #Trichoptera 
 trichop_sun<-subset_samples(sun, Family=="Trichoptera")
 trichop_sun<-prune_taxa(taxa_sums(trichop_sun) > 0, trichop_sun)
-ntaxa(trichop_sun) #428
+ntaxa(trichop_sun) #427
 nsamples(trichop_sun) #8
 
 get_taxa_unique(trichop_sun, "Phylum") #11 phyla total
@@ -1100,7 +1107,7 @@ get_taxa_unique(trichop_sun, "Genus") #152 genera total
 #Ephemeroptera 
 ephem_sun<-subset_samples(sun, Family=="Ephemeroptera")
 ephem_sun<-prune_taxa(taxa_sums(ephem_sun) > 0, ephem_sun)
-ntaxa(ephem_sun) #340
+ntaxa(ephem_sun) #339
 nsamples(ephem_sun) #8
 
 get_taxa_unique(ephem_sun, "Phylum") #8 phyla total
@@ -1112,7 +1119,7 @@ get_taxa_unique(ephem_sun, "Genus") #126 genera total
 #Araneidae
 aran_sun<-subset_samples(sun, Family=="Araneidae")
 aran_sun<-prune_taxa(taxa_sums(aran_sun) > 0, aran_sun)
-ntaxa(aran_sun) #342
+ntaxa(aran_sun) #341
 nsamples(aran_sun) #8
 
 get_taxa_unique(aran_sun, "Phylum") #8 phyla total
@@ -1124,7 +1131,7 @@ get_taxa_unique(aran_sun, "Genus") #131 genera total
 #Tetragnathidae
 tetra_sun<-subset_samples(sun, Family=="Tetragnathidae")
 tetra_sun<-prune_taxa(taxa_sums(tetra_sun) > 0, tetra_sun)
-ntaxa(tetra_sun) #58
+ntaxa(tetra_sun) #57
 nsamples(tetra_sun) #8
 
 get_taxa_unique(tetra_sun, "Phylum") #5 phyla total
@@ -1136,7 +1143,7 @@ get_taxa_unique(tetra_sun, "Genus") #25 genera total
 #Cushing Bridge, n = 63
 cushbr<-subset_samples(sample_ps, Site=="Cushing Bridge")
 cushbr<-prune_taxa(taxa_sums(cushbr) > 0, cushbr)
-ntaxa(cushbr) #2762
+ntaxa(cushbr) #2761
 nsamples(cushbr) #63
 
 get_taxa_unique(cushbr, "Phylum") #29 phyla total
@@ -1151,7 +1158,7 @@ sort((table(tax_table(cushbr)[,2]))/ntaxa(cushbr)*100)
 #Hydropsychidae
 hydro_cush<-subset_samples(cushbr, Family=="Hydropsychidae")
 hydro_cush<-prune_taxa(taxa_sums(hydro_cush) > 0, hydro_cush)
-ntaxa(hydro_cush) #593
+ntaxa(hydro_cush) #592
 nsamples(hydro_cush) #5
 
 get_taxa_unique(hydro_cush, "Phylum") #16 phyla total
@@ -1163,7 +1170,7 @@ get_taxa_unique(hydro_cush, "Genus") #93 genera total
 #Heptageniidae
 hep_cush<-subset_samples(cushbr, Family=="Heptageniidae")
 hep_cush<-prune_taxa(taxa_sums(hep_cush) > 0, hep_cush)
-ntaxa(hep_cush) #1168
+ntaxa(hep_cush) #1167
 nsamples(hep_cush) #8
 
 get_taxa_unique(hep_cush, "Phylum") #20 phyla total
@@ -1175,7 +1182,7 @@ get_taxa_unique(hep_cush, "Genus") #217 genera total
 #Chironomidae
 chiro_cush<-subset_samples(cushbr, Family=="Chironomidae")
 chiro_cush<-prune_taxa(taxa_sums(chiro_cush) > 0, chiro_cush)
-ntaxa(chiro_cush) #512
+ntaxa(chiro_cush) #511
 nsamples(chiro_cush) #6
 
 get_taxa_unique(chiro_cush, "Phylum") #15 phyla total
@@ -1187,7 +1194,7 @@ get_taxa_unique(chiro_cush, "Genus") #131 genera total
 #Perlidae
 perl_cush<-subset_samples(cushbr, Family=="Perlidae")
 perl_cush<-prune_taxa(taxa_sums(perl_cush) > 0, perl_cush)
-ntaxa(perl_cush) #1191
+ntaxa(perl_cush) #1190
 nsamples(perl_cush) #5
 
 get_taxa_unique(perl_cush, "Phylum") #20 phyla total
@@ -1199,7 +1206,7 @@ get_taxa_unique(perl_cush, "Genus") #201 genera total
 #Trichoptera
 trichop_cush<-subset_samples(cushbr, Family=="Trichoptera")
 trichop_cush<-prune_taxa(taxa_sums(trichop_cush) > 0, trichop_cush)
-ntaxa(trichop_cush) #612
+ntaxa(trichop_cush) #611
 nsamples(trichop_cush) #8
 
 get_taxa_unique(trichop_cush, "Phylum") #14 phyla total
@@ -1211,7 +1218,7 @@ get_taxa_unique(trichop_cush, "Genus") #175 genera total
 #Ephemeroptera 
 ephem_cush<-subset_samples(cushbr, Family=="Ephemeroptera")
 ephem_cush<-prune_taxa(taxa_sums(ephem_cush) > 0, ephem_cush)
-ntaxa(ephem_cush) #152
+ntaxa(ephem_cush) #151
 nsamples(ephem_cush) #8
 
 get_taxa_unique(ephem_cush, "Phylum") #5 phyla total
@@ -1223,7 +1230,7 @@ get_taxa_unique(ephem_cush, "Genus") #76 genera total
 #Diptera 
 dip_cush<-subset_samples(cushbr, Family=="Diptera")
 dip_cush<-prune_taxa(taxa_sums(dip_cush) > 0, dip_cush)
-ntaxa(dip_cush) #207
+ntaxa(dip_cush) #206
 nsamples(dip_cush) #8
 
 get_taxa_unique(dip_cush, "Phylum") #8 phyla total
@@ -1235,7 +1242,7 @@ get_taxa_unique(dip_cush, "Genus") #86 genera total
 #Araneidae
 aran_cush<-subset_samples(cushbr, Family=="Araneidae")
 aran_cush<-prune_taxa(taxa_sums(aran_cush) > 0, aran_cush)
-ntaxa(aran_cush) #302
+ntaxa(aran_cush) #301
 nsamples(aran_cush) #7
 
 get_taxa_unique(aran_cush, "Phylum") #8 phyla total
@@ -1247,7 +1254,7 @@ get_taxa_unique(aran_cush, "Genus") #120 genera total
 #Tetragnathidae
 tetra_cush<-subset_samples(cushbr, Family=="Tetragnathidae")
 tetra_cush<-prune_taxa(taxa_sums(tetra_cush) > 0, tetra_cush)
-ntaxa(tetra_cush) #318
+ntaxa(tetra_cush) #317
 nsamples(tetra_cush) #8
 
 get_taxa_unique(tetra_cush, "Phylum") #12 phyla total
@@ -1259,7 +1266,7 @@ get_taxa_unique(tetra_cush, "Genus") #138 genera total
 #Graves Bridge, n = 47
 grvbr<-subset_samples(sample_ps, Site=="Graves Bridge")
 grvbr<-prune_taxa(taxa_sums(grvbr) > 0, grvbr)
-ntaxa(grvbr) #2663
+ntaxa(grvbr) #2662
 nsamples(grvbr) #47
 
 get_taxa_unique(grvbr, "Phylum") #25 phyla total
@@ -1274,7 +1281,7 @@ sort((table(tax_table(grvbr)[,2]))/ntaxa(grvbr)*100)
 #Hydropsychidae
 hydro_grvbr<-subset_samples(grvbr, Family=="Hydropsychidae")
 hydro_grvbr<-prune_taxa(taxa_sums(hydro_grvbr) > 0, hydro_grvbr)
-ntaxa(hydro_grvbr) #1143
+ntaxa(hydro_grvbr) #1142
 nsamples(hydro_grvbr) #8
 
 get_taxa_unique(hydro_grvbr, "Phylum") #21 phyla total
@@ -1287,7 +1294,7 @@ get_taxa_unique(hydro_grvbr, "Genus") #137 genera total
 #Heptageniidae
 hep_grvbr<-subset_samples(grvbr, Family=="Heptageniidae")
 hep_grvbr<-prune_taxa(taxa_sums(hep_grvbr) > 0, hep_grvbr)
-ntaxa(hep_grvbr) #1316
+ntaxa(hep_grvbr) #1315
 nsamples(hep_grvbr) #8
 
 get_taxa_unique(hep_grvbr, "Phylum") #19 phyla total
@@ -1299,7 +1306,7 @@ get_taxa_unique(hydro_grvbr, "Genus") #137 genera total
 #Trichoptera at graves bridge
 trichop_grvbr<-subset_samples(grvbr, Family=="Trichoptera")
 trichop_grvbr<-prune_taxa(taxa_sums(trichop_grvbr) > 0, trichop_grvbr)
-ntaxa(trichop_grvbr) #510
+ntaxa(trichop_grvbr) #509
 nsamples(trichop_grvbr) #7
 
 get_taxa_unique(trichop_grvbr, "Phylum") #13 phyla total
@@ -1311,7 +1318,7 @@ get_taxa_unique(trichop_grvbr, "Genus") #160 genera total
 #Ephemeroptera
 ephem_grvbr<-subset_samples(grvbr, Family=="Ephemeroptera")
 ephem_grvbr<-prune_taxa(taxa_sums(ephem_grvbr) > 0, ephem_grvbr)
-ntaxa(ephem_grvbr) #194
+ntaxa(ephem_grvbr) #193
 nsamples(ephem_grvbr) #8
 
 get_taxa_unique(ephem_grvbr, "Phylum") #10 phyla total
@@ -1323,7 +1330,7 @@ get_taxa_unique(ephem_grvbr, "Genus") #88 genera total
 #Araneidae
 aran_grvbr<-subset_samples(grvbr, Family=="Araneidae")
 aran_grvbr<-prune_taxa(taxa_sums(aran_grvbr) > 0, aran_grvbr)
-ntaxa(aran_grvbr) #331
+ntaxa(aran_grvbr) #330
 nsamples(aran_grvbr) #8
 
 get_taxa_unique(aran_grvbr, "Phylum") #7 phyla total
@@ -1335,7 +1342,7 @@ get_taxa_unique(aran_grvbr, "Genus") #133 genera total
 #Tetragnathidae
 tetra_grvbr<-subset_samples(grvbr, Family=="Tetragnathidae")
 tetra_grvbr<-prune_taxa(taxa_sums(tetra_grvbr) > 0, tetra_grvbr)
-ntaxa(tetra_grvbr) #123
+ntaxa(tetra_grvbr) #122
 nsamples(tetra_grvbr) #8
 
 get_taxa_unique(tetra_grvbr, "Phylum") #8 phyla total
@@ -1348,14 +1355,14 @@ get_taxa_unique(tetra_grvbr, "Genus") #71 genera total
 #Policeman Flats, n = 60
 pmf<-subset_samples(sample_ps, Site=="Policeman Flats")
 pmf<-prune_taxa(taxa_sums(pmf) > 0, pmf)
-ntaxa(pmf) #3175
-nsamples(pmf) #60
+ntaxa(pmf) #3168
+nsamples(pmf) #58
 
 get_taxa_unique(pmf, "Phylum") #27 phyla total
 get_taxa_unique(pmf, "Class") #60 Classes total
 get_taxa_unique(pmf, "Order") #152 orders total
 get_taxa_unique(pmf, "Family") #217 families total
-get_taxa_unique(pmf, "Genus") #417 genera total
+get_taxa_unique(pmf, "Genus") #416 genera total
 
 sort((table(tax_table(pmf)[,2]))/ntaxa(pmf)*100)
 #Proteobacteria (37.4%), Bacteroidota (31.2%), Firmicutes (12.2%)
@@ -1363,7 +1370,7 @@ sort((table(tax_table(pmf)[,2]))/ntaxa(pmf)*100)
 #Hydropsychidae
 hydro_pmf<-subset_samples(pmf, Family=="Hydropsychidae")
 hydro_pmf<-prune_taxa(taxa_sums(hydro_pmf) > 0, hydro_pmf)
-ntaxa(hydro_pmf) #1196
+ntaxa(hydro_pmf) #1195
 nsamples(hydro_pmf) #8
 
 get_taxa_unique(hydro_pmf, "Phylum") #21 phyla total
@@ -1375,7 +1382,7 @@ get_taxa_unique(hydro_pmf, "Genus") #138 genera total
 #Heptageniidae
 hep_pmf<-subset_samples(pmf, Family=="Heptageniidae")
 hep_pmf<-prune_taxa(taxa_sums(hep_pmf) > 0, hep_pmf)
-ntaxa(hep_pmf) #1560
+ntaxa(hep_pmf) #1559
 nsamples(hep_pmf) #8
 
 get_taxa_unique(hep_pmf, "Phylum") #20 phyla total
@@ -1387,20 +1394,20 @@ get_taxa_unique(hep_pmf, "Genus") #233 genera total
 #Chironomidae
 chiro_pmf<-subset_samples(pmf, Family=="Chironomidae")
 chiro_pmf<-prune_taxa(taxa_sums(chiro_pmf) > 0, chiro_pmf)
-ntaxa(chiro_pmf) #712
-nsamples(chiro_pmf) #5
+ntaxa(chiro_pmf) #684
+nsamples(chiro_pmf) #4
 
 get_taxa_unique(chiro_pmf, "Phylum") #15 phyla total
 get_taxa_unique(chiro_pmf, "Class") #33 Classes total
-get_taxa_unique(chiro_pmf, "Order") #79 orders total
-get_taxa_unique(chiro_pmf, "Family") #113 families total
-get_taxa_unique(chiro_pmf, "Genus") #156 genera total
+get_taxa_unique(chiro_pmf, "Order") #78 orders total
+get_taxa_unique(chiro_pmf, "Family") #108 families total
+get_taxa_unique(chiro_pmf, "Genus") #151 genera total
 
 
 #Perlidae
 perl_pmf<-subset_samples(pmf, Family=="Perlidae")
 perl_pmf<-prune_taxa(taxa_sums(perl_pmf) > 0, perl_pmf)
-ntaxa(perl_pmf) #754
+ntaxa(perl_pmf) #753
 nsamples(perl_pmf) #8
 
 get_taxa_unique(perl_pmf, "Phylum") #17 phyla total
@@ -1412,7 +1419,7 @@ get_taxa_unique(perl_pmf, "Genus") #132 genera total
 #Ephemeroptera
 ephem_pmf<-subset_samples(pmf, Family=="Ephemeroptera")
 ephem_pmf<-prune_taxa(taxa_sums(ephem_pmf) > 0, ephem_pmf)
-ntaxa(ephem_pmf) #469
+ntaxa(ephem_pmf) #468
 nsamples(ephem_pmf) #8
 
 get_taxa_unique(ephem_pmf, "Phylum") #15 phyla total
@@ -1424,7 +1431,7 @@ get_taxa_unique(ephem_pmf, "Genus") #161 genera total
 #Diptera
 dippmf<-subset_samples(pmf, Family=="Diptera")
 dippmf<-prune_taxa(taxa_sums(dippmf) > 0, dippmf)
-ntaxa(dippmf) #225
+ntaxa(dippmf) #224
 nsamples(dippmf) #8
 
 get_taxa_unique(dippmf, "Phylum") #7 phyla total
@@ -1436,8 +1443,8 @@ get_taxa_unique(dippmf, "Genus") #98 genera total
 #Araneidae
 aranpmf<-subset_samples(pmf, Family=="Araneidae")
 aranpmf<-prune_taxa(taxa_sums(aranpmf) > 0, aranpmf)
-ntaxa(aranpmf) #390
-nsamples(aranpmf) #7
+ntaxa(aranpmf) #387
+nsamples(aranpmf) #6
 
 get_taxa_unique(aranpmf, "Phylum") #9 phyla total
 get_taxa_unique(aranpmf, "Class") #17 Classes total
@@ -1448,7 +1455,7 @@ get_taxa_unique(aranpmf, "Genus") #149 genera total
 #Tetragnathidae
 tetrapmf<-subset_samples(pmf, Family=="Tetragnathidae")
 tetrapmf<-prune_taxa(taxa_sums(tetrapmf) > 0, tetrapmf)
-ntaxa(tetrapmf) #328
+ntaxa(tetrapmf) #327
 nsamples(tetrapmf) #8
 
 get_taxa_unique(tetrapmf, "Phylum") #9 phyla total
@@ -1462,7 +1469,7 @@ get_taxa_unique(tetrapmf, "Genus") #143 genera total
 #REF (ACWA control), n = 8
 BRR2<-subset_samples(sample_ps, Site=="BRR2")
 BRR2<-prune_taxa(taxa_sums(BRR2) > 0, BRR2)
-ntaxa(BRR2) #1325
+ntaxa(BRR2) #1324
 nsamples(BRR2) #8
 
 get_taxa_unique(BRR2, "Phylum") #22 phyla total
@@ -1477,7 +1484,7 @@ sort((table(tax_table(BRR2)[,2]))/ntaxa(BRR2)*100)
 #EFF5 (ACWA 5% effluent stream), n = 24
 PCR1<-subset_samples(sample_ps, Site=="PCR1")
 PCR1<-prune_taxa(taxa_sums(PCR1) > 0, PCR1)
-ntaxa(PCR1) #2180
+ntaxa(PCR1) #2179
 nsamples(PCR1) #24
 
 get_taxa_unique(PCR1, "Phylum") #26 phyla total
@@ -1492,7 +1499,7 @@ sort((table(tax_table(PCR1)[,2]))/ntaxa(PCR1)*100)
 #Hydropsychidae
 hydro_EFF5<-subset_samples(PCR1, Family=="Hydropsychidae")
 hydro_EFF5<-prune_taxa(taxa_sums(hydro_EFF5) > 0, hydro_EFF5)
-ntaxa(hydro_EFF5) #1585
+ntaxa(hydro_EFF5) #1584
 nsamples(hydro_EFF5) #8
 
 get_taxa_unique(hydro_EFF5, "Phylum") #25 phyla total
@@ -1504,7 +1511,7 @@ get_taxa_unique(hydro_EFF5, "Genus") #204 genera total
 #Baetidae
 baetid_EFF5<-subset_samples(PCR1, Family=="Baetidae")
 baetid_EFF5<-prune_taxa(taxa_sums(baetid_EFF5) > 0, baetid_EFF5)
-ntaxa(baetid_EFF5) #1211
+ntaxa(baetid_EFF5) #1210
 nsamples(baetid_EFF5) #8
 
 get_taxa_unique(baetid_EFF5, "Phylum") #21 phyla total
@@ -1516,7 +1523,7 @@ get_taxa_unique(baetid_EFF5, "Genus") #216 genera total
 #Ephemeroptera
 ephem_EFF5<-subset_samples(PCR1, Family=="Ephemeroptera")
 ephem_EFF5<-prune_taxa(taxa_sums(ephem_EFF5) > 0, ephem_EFF5)
-ntaxa(ephem_EFF5) #181
+ntaxa(ephem_EFF5) #180
 nsamples(ephem_EFF5) #8
 
 get_taxa_unique(ephem_EFF5, "Phylum") #11 phyla total
@@ -1529,7 +1536,7 @@ get_taxa_unique(ephem_EFF5, "Genus") #74 genera total
 #PCR3 (ACWA 15% effluent stream), n = 15
 PCR3<-subset_samples(sample_ps, Site=="PCR3")
 PCR3<-prune_taxa(taxa_sums(PCR3) > 0, PCR3)
-ntaxa(PCR3) #2037
+ntaxa(PCR3) #2036
 nsamples(PCR3) #23
 
 get_taxa_unique(PCR3, "Phylum") #27 phyla total
@@ -1544,7 +1551,7 @@ sort((table(tax_table(PCR3)[,2]))/ntaxa(PCR3)*100)
 #Hydropsychidae
 hydro_EFF15<-subset_samples(PCR3, Family=="Hydropsychidae")
 hydro_EFF15<-prune_taxa(taxa_sums(hydro_EFF15) > 0, hydro_EFF15)
-ntaxa(hydro_EFF15) #1349
+ntaxa(hydro_EFF15) #1348
 nsamples(hydro_EFF15) #8
 
 get_taxa_unique(hydro_EFF15, "Phylum") #24 phyla total
@@ -1556,7 +1563,7 @@ get_taxa_unique(hydro_EFF15, "Genus") #181 genera total
 #Baetidae
 baetid_EFF15<-subset_samples(PCR3, Family=="Baetidae")
 baetid_EFF15<-prune_taxa(taxa_sums(baetid_EFF15) > 0, baetid_EFF15)
-ntaxa(baetid_EFF15) #1007
+ntaxa(baetid_EFF15) #1006
 nsamples(baetid_EFF15) #8
 
 get_taxa_unique(baetid_EFF15, "Phylum") #23 phyla total
@@ -1568,7 +1575,7 @@ get_taxa_unique(baetid_EFF15, "Genus") #185 genera total
 #Ephemeroptera
 ephem_EFF15<-subset_samples(PCR3, Family=="Ephemeroptera")
 ephem_EFF15<-prune_taxa(taxa_sums(ephem_EFF15) > 0, ephem_EFF15)
-ntaxa(ephem_EFF15) #212
+ntaxa(ephem_EFF15) #211
 nsamples(ephem_EFF15) #8
 
 get_taxa_unique(ephem_EFF15, "Phylum") #13 phyla total
@@ -2086,10 +2093,8 @@ chiro_coch_phy<-subset(coch_phylum, sample_Family=="Chironomidae")
 chiro_coch_phy<-subset(chiro_coch_phy, Mean > 0)
 chiro_coch_phy<-chiro_coch_phy[order(chiro_coch_phy$Mean, decreasing = TRUE),]  
 
-top3_phy_coch_chiro <- chiro_coch_phy$Phylum[1:3]
-  
 coch_phy_sum_chiro<- chiro_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, top3_phy_coch_chiro))
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
   
 top_means_phy_chiro_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_chiro, FUN = sum)
 top_SD_phy_chiro_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_chiro, FUN = sum)
@@ -2116,10 +2121,8 @@ chiro_pmf_phy<-subset(pmf_phylum, sample_Family=="Chironomidae")
 chiro_pmf_phy<-subset(chiro_pmf_phy, Mean > 0)
 chiro_pmf_phy<-chiro_pmf_phy[order(chiro_pmf_phy$Mean, decreasing = TRUE),]  
 
-top3_phy_pmf_chiro <- chiro_pmf_phy$Phylum[1:3]
-  
 pmf_phy_sum_chiro<- chiro_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, top3_phy_pmf_chiro))
+  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
   
 top_means_phy_chiro_pmf<-aggregate(Mean ~ Phylum + sample_Family, data = pmf_phy_sum_chiro, FUN = sum)
 top_SD_phy_chiro_pmf<-aggregate(SD ~ Phylum + sample_Family, data = pmf_phy_sum_chiro, FUN = sum)
@@ -9240,83 +9243,140 @@ endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" |
 endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
 endo #31 taxa
 
-endo_rel_abun<-transform_sample_counts(endo, function(x) {x * 100/sum(x)})
-
-
 #### Larval Hydropsychidae Bow River ####
 
-hydro_lar_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
-nsamples(hydro_lar_Bow) #36
-
-endo_lar_hydro_Bow<-subset_samples(endo, Family=="Hydropsychidae" & Stream_Type=="Bow River")
-endo_lar_hydro_Bow<-prune_taxa(taxa_sums(endo_lar_hydro_Bow) > 0, endo_lar_hydro_Bow) 
-
-endo_lar_hydro_Bow_rel_abun<-transform_sample_counts(endo_lar_hydro_Bow, function(x) {x * 100/sum(x)})
-
-endo_lar_hydro_Bow_df<-psmelt(endo_lar_hydro_Bow_rel_abun)
-
-sort((table(tax_table(endo_lar_hydro_Bow)[,6]))/sum(ntaxa(endo_lar_hydro_Bow))*100)
-sum(sample_sums(endo_lar_hydro_Bow))/sum(sample_sums(hydro_lar_Bow))*100
-
-#Endosymbionts comprise 3.59 % of the total microbiome in larval Hydropsychidae
-#All Rickettsia (100%)
+hydro_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
 
 #Cochrane 
 
-hydro_coch<-subset_samples(hydro_lar_Bow, Site=="Cochrane")
+hydro_coch<-subset_samples(hydro_Bow, Site=="Cochrane")
 
-endo_lar_hydro_Bow_coch<-subset_samples(endo_lar_hydro_Bow, Site=="Cochrane")
-endo_lar_hydro_Bow_coch<-prune_taxa(taxa_sums(endo_lar_hydro_Bow_coch) > 0, endo_lar_hydro_Bow_coch) 
-sort((table(tax_table(endo_lar_hydro_Bow_coch)[,6]))/sum(ntaxa(endo_lar_hydro_Bow_coch))*100)
-#Rickettsia: 100 %
-sum(sample_sums(endo_lar_hydro_Bow_coch))/sum(sample_sums(hydro_coch))*100
-#Ricketssia: 11.2%, non-endosymbionts: 88.8%
+hydro_coch_glom = tax_glom(hydro_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hydro_coch_glom<-prune_taxa(taxa_sums(hydro_coch_glom) > 0, hydro_coch_glom)
 
+hydro_coch_genus <- psmelt(hydro_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_hydro<- hydro_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_hydro$SD_squared ='^'(coch_endo_hydro$SD,2)
+coch_endo_hydro$SD_squared_divided =(coch_endo_hydro$SD_squared/8) 
+  
+top_means_endo_hydro_coch<-aggregate(Mean ~ Genus, data = coch_endo_hydro, FUN = sum)
+top_SD_endo_hydro_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_hydro, FUN = sum)
+
+top_endo_hydro_coch<-merge(top_means_endo_hydro_coch, top_SD_endo_hydro_coch, by=c("Genus"))
+top_endo_hydro_coch$SD_Final<-sqrt(top_endo_hydro_coch$SD_squared_divided)
+View(top_endo_hydro_coch)
 
 #Sunalta
-hydro_sun<-subset_samples(hydro_lar_Bow, Site=="Sunalta")
+hydro_sun<-subset_samples(hydro_Bow, Site=="Sunalta")
 
-endo_lar_hydro_Bow_sun<-subset_samples(endo_lar_hydro_Bow, Site=="Sunalta")
-endo_lar_hydro_Bow_sun<-prune_taxa(taxa_sums(endo_lar_hydro_Bow_sun) > 0, endo_lar_hydro_Bow_sun) 
-sort((table(tax_table(endo_lar_hydro_Bow_sun)[,6]))/sum(ntaxa(endo_lar_hydro_Bow_sun))*100)
-#Rickettsia:100%
-sum(sample_sums(endo_lar_hydro_Bow_sun))/sum(sample_sums(hydro_sun))*100
-#Rickettsia: 6.29 %, Non-endo: 93.7%
+hydro_sun_glom = tax_glom(hydro_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hydro_sun_glom<-prune_taxa(taxa_sums(hydro_sun_glom) > 0, hydro_sun_glom)
+
+hydro_sun_genus <- psmelt(hydro_sun_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+sun_endo_hydro<- hydro_sun_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+sun_endo_hydro$SD_squared ='^'(sun_endo_hydro$SD,2)
+sun_endo_hydro$SD_squared_divided =(sun_endo_hydro$SD_squared/7) 
+  
+top_means_endo_hydro_sun<-aggregate(Mean ~ Genus, data = sun_endo_hydro, FUN = sum)
+top_SD_endo_hydro_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_hydro, FUN = sum)
+
+top_endo_hydro_sun<-merge(top_means_endo_hydro_sun, top_SD_endo_hydro_sun, by=c("Genus"))
+top_endo_hydro_sun$SD_Final<-sqrt(top_endo_hydro_sun$SD_squared_divided)
+View(top_endo_hydro_sun)
 
 #Cushing Bridge
-hydro_cush<-subset_samples(hydro_lar_Bow, Site=="Cushing Bridge")
+hydro_cush<-subset_samples(hydro_Bow, Site=="Cushing Bridge")
 
-endo_lar_hydro_Bow_cush<-subset_samples(endo_lar_hydro_Bow, Site=="Cushing Bridge")
-endo_lar_hydro_Bow_cush<-prune_taxa(taxa_sums(endo_lar_hydro_Bow_cush) > 0, endo_lar_hydro_Bow_cush) 
-sort((table(tax_table(endo_lar_hydro_Bow_cush)[,6]))/sum(ntaxa(endo_lar_hydro_Bow_cush))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_hydro_Bow_cush))/sum(sample_sums(hydro_cush))*100
-#Rickettsia: 3.79 %, Non-endo: 96.2%
+hydro_cush_glom = tax_glom(hydro_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hydro_cush_glom<-prune_taxa(taxa_sums(hydro_cush_glom) > 0, hydro_cush_glom)
+
+hydro_cush_genus <- psmelt(hydro_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_hydro<- hydro_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_hydro$SD_squared ='^'(cush_endo_hydro$SD,2)
+cush_endo_hydro$SD_squared_divided =(cush_endo_hydro$SD_squared/5) 
+  
+top_means_endo_hydro_cush<-aggregate(Mean ~ Genus, data = cush_endo_hydro, FUN = sum)
+top_SD_endo_hydro_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_hydro, FUN = sum)
+
+top_endo_hydro_cush<-merge(top_means_endo_hydro_cush, top_SD_endo_hydro_cush, by=c("Genus"))
+top_endo_hydro_cush$SD_Final<-sqrt(top_endo_hydro_cush$SD_squared_divided)
+View(top_endo_hydro_cush)
 
 #Graves Bridge
-hydro_grv<-subset_samples(hydro_lar_Bow, Site=="Graves Bridge")
+hydro_grvbr<-subset_samples(hydro_Bow, Site=="Graves Bridge")
 
-endo_lar_hydro_Bow_grv<-subset_samples(endo_lar_hydro_Bow, Site=="Graves Bridge")
-endo_lar_hydro_Bow_grv<-prune_taxa(taxa_sums(endo_lar_hydro_Bow_grv) > 0, endo_lar_hydro_Bow_grv) 
-sort((table(tax_table(endo_lar_hydro_Bow_grv)[,6]))/sum(ntaxa(endo_lar_hydro_Bow_grv))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_hydro_Bow_grv))/sum(sample_sums(hydro_grv))*100
-#Rickettsia: 0.84 %, Non-endo: 99.2%
+hydro_grvbr_glom = tax_glom(hydro_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hydro_grvbr_glom<-prune_taxa(taxa_sums(hydro_grvbr_glom) > 0, hydro_grvbr_glom)
+
+hydro_grvbr_genus <- psmelt(hydro_grvbr_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+grvbr_endo_hydro<- hydro_grvbr_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+grvbr_endo_hydro$SD_squared ='^'(grvbr_endo_hydro$SD,2)
+grvbr_endo_hydro$SD_squared_divided =(grvbr_endo_hydro$SD_squared/8) 
+  
+top_means_endo_hydro_grvbr<-aggregate(Mean ~ Genus, data = grvbr_endo_hydro, FUN = sum)
+top_SD_endo_hydro_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_endo_hydro, FUN = sum)
+
+top_endo_hydro_grvbr<-merge(top_means_endo_hydro_grvbr, top_SD_endo_hydro_grvbr, by=c("Genus"))
+top_endo_hydro_grvbr$SD_Final<-sqrt(top_endo_hydro_grvbr$SD_squared_divided)
+View(top_endo_hydro_grvbr)
 
 #Policeman Flats
-hydro_pmf<-subset_samples(hydro_lar_Bow, Site=="Policeman Flats")
+hydro_pmf<-subset_samples(hydro_Bow, Site=="Policeman Flats")
 
-endo_lar_hydro_Bow_pmf<-subset_samples(endo_lar_hydro_Bow, Site=="Policeman Flats")
-endo_lar_hydro_Bow_pmf<-prune_taxa(taxa_sums(endo_lar_hydro_Bow_pmf) > 0, endo_lar_hydro_Bow_pmf) 
-sort((table(tax_table(endo_lar_hydro_Bow_pmf)[,6]))/sum(ntaxa(endo_lar_hydro_Bow_pmf))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_hydro_Bow_pmf))/sum(sample_sums(hydro_pmf))*100
-#Rickettsia: 0.12%, non-endo: 99.9%
+hydro_pmf_glom = tax_glom(hydro_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hydro_pmf_glom<-prune_taxa(taxa_sums(hydro_pmf_glom) > 0, hydro_pmf_glom)
+
+hydro_pmf_genus <- psmelt(hydro_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_hydro<- hydro_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_hydro$SD_squared ='^'(pmf_endo_hydro$SD,2)
+pmf_endo_hydro$SD_squared_divided =(pmf_endo_hydro$SD_squared/8) 
+  
+top_means_endo_hydro_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_hydro, FUN = sum)
+top_SD_endo_hydro_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_hydro, FUN = sum)
+
+top_endo_hydro_pmf<-merge(top_means_endo_hydro_pmf, top_SD_endo_hydro_pmf, by=c("Genus"))
+top_endo_hydro_pmf$SD_Final<-sqrt(top_endo_hydro_pmf$SD_squared_divided)
+View(top_endo_hydro_pmf)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
 hydro_Bow_genus <- tax_glom(hydro_lar_Bow, taxrank = "Genus")
-comp_hydro_Bow_genus <- microbiome::transform(hydro_Bow_genus, "compositional")
+comp_hydro_Bow_genus <- transform_sample_counts(hydro_Bow_genus, function(x) x/sum(x))
 
 hydro_Bow_genus_df <- psmelt(comp_hydro_Bow_genus)
 
@@ -9360,62 +9420,132 @@ endo_plot_hydro <- ggplot(endo_agg_df, aes(x=Site_code, y=Abundance, fill=Genus)
 endo_plot_hydro
 
 #### Larval Heptageniidae Bow River ####
-hep_lar_Bow<-subset_samples(sample_ps, Family=="Heptageniidae" & Stream_Type=="Bow River")
-nsamples(hep_lar_Bow) #40
-
-endo_lar_hep_Bow<-subset_samples(endo, Family=="Heptageniidae" & Stream_Type=="Bow River")
-endo_lar_hep_Bow<-prune_taxa(taxa_sums(endo_lar_hep_Bow) > 0, endo_lar_hep_Bow) 
-sort((table(tax_table(endo_lar_hep_Bow)[,6]))/sum(ntaxa(endo_lar_hep_Bow))*100)
-#Rickettsia 28.6%, Wolbachia 71.4%
-sum(sample_sums(endo_lar_hep_Bow))/sum(sample_sums(hep_lar_Bow))*100
-#0.012 % of total 
+hep<-subset_samples(sample_ps, Family=="Heptageniidae")
 
 #Cochrane 
-hep_coch<-subset_samples(hep_lar_Bow, Site=="Cochrane")
+hep_coch<-subset_samples(hep, Site=="Cochrane")
 
-endo_lar_hep_Bow_coch<-subset_samples(endo_lar_hep_Bow, Site=="Cochrane")
-endo_lar_hep_Bow_coch<-prune_taxa(taxa_sums(endo_lar_hep_Bow_coch) > 0, endo_lar_hep_Bow_coch) 
-sort((table(tax_table(endo_lar_hep_Bow_coch)[,6]))/sum(ntaxa(endo_lar_hep_Bow_coch))*100)
-#Rickettsia: 20 %, Wolbachia: 80%
-sum(sample_sums(endo_lar_hep_Bow_coch))/sum(sample_sums(hep_coch))*100
-#0.024 % of total: Rickettsia: 0.005%, Wolbachia: 0.02%, Non-endo:100
+hep_coch_glom = tax_glom(hep_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hep_coch_glom<-prune_taxa(taxa_sums(hep_coch_glom) > 0, hep_coch_glom)
+
+hep_coch_genus <- psmelt(hep_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_hep<- hep_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_hep$SD_squared ='^'(coch_endo_hep$SD,2)
+coch_endo_hep$SD_squared_divided =(coch_endo_hep$SD_squared/8) 
+  
+top_means_endo_hep_coch<-aggregate(Mean ~ Genus, data = coch_endo_hep, FUN = sum)
+top_SD_endo_hep_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_hep, FUN = sum)
+
+top_endo_hep_coch<-merge(top_means_endo_hep_coch, top_SD_endo_hep_coch, by=c("Genus"))
+top_endo_hep_coch$SD_Final<-sqrt(top_endo_hep_coch$SD_squared_divided)
+View(top_endo_hep_coch)
 
 #Sunalta
-hep_sun<-subset_samples(hep_lar_Bow, Site=="Sunalta")
+hep_sun<-subset_samples(hep, Site=="Sunalta")
 
-endo_lar_hep_Bow_sun<-subset_samples(endo_lar_hep_Bow, Site=="Sunalta")
-endo_lar_hep_Bow_sun<-prune_taxa(taxa_sums(endo_lar_hep_Bow_sun) > 0, endo_lar_hep_Bow_sun) 
-sort((table(tax_table(endo_lar_hep_Bow_sun)[,6]))/sum(ntaxa(endo_lar_hep_Bow_sun))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_hep_Bow_sun))/sum(sample_sums(hep_sun))*100
-#0.018 % of total, non endo: 100
+hep_sun_glom = tax_glom(hep_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hep_sun_glom<-prune_taxa(taxa_sums(hep_sun_glom) > 0, hep_sun_glom)
+
+hep_sun_genus <- psmelt(hep_sun_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+sun_endo_hep<- hep_sun_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+sun_endo_hep$SD_squared ='^'(sun_endo_hep$SD,2)
+sun_endo_hep$SD_squared_divided =(sun_endo_hep$SD_squared/8) 
+  
+top_means_endo_hep_sun<-aggregate(Mean ~ Genus, data = sun_endo_hep, FUN = sum)
+top_SD_endo_hep_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_hep, FUN = sum)
+
+top_endo_hep_sun<-merge(top_means_endo_hep_sun, top_SD_endo_hep_sun, by=c("Genus"))
+top_endo_hep_sun$SD_Final<-sqrt(top_endo_hep_sun$SD_squared_divided)
+View(top_endo_hep_sun)
 
 #Cushing Bridge
-hep_cush<-subset_samples(hep_lar_Bow, Site=="Cushing Bridge")
+hep_cush<-subset_samples(hep, Site=="Cushing Bridge")
 
-endo_lar_hep_Bow_cush<-subset_samples(endo_lar_hep_Bow, Site=="Cushing Bridge")
-endo_lar_hep_Bow_cush<-prune_taxa(taxa_sums(endo_lar_hep_Bow_cush) > 0, endo_lar_hep_Bow_cush) 
-sort((table(tax_table(endo_lar_hep_Bow_cush)[,6]))/sum(ntaxa(endo_lar_hep_Bow_cush))*100)
-#Rickettsia: 20%, Wolbachia: 80 %
-sum(sample_sums(endo_lar_hep_Bow_cush))/sum(sample_sums(hep_cush))*100
-#0.028 % of total; Rickettsia: 0.005, Wolbachia: 0.02, Non-endo: 100
+hep_cush_glom = tax_glom(hep_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hep_cush_glom<-prune_taxa(taxa_sums(hep_cush_glom) > 0, hep_cush_glom)
+
+hep_cush_genus <- psmelt(hep_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_hep<- hep_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_hep$SD_squared ='^'(cush_endo_hep$SD,2)
+cush_endo_hep$SD_squared_divided =(cush_endo_hep$SD_squared/8) 
+  
+top_means_endo_hep_cush<-aggregate(Mean ~ Genus, data = cush_endo_hep, FUN = sum)
+top_SD_endo_hep_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_hep, FUN = sum)
+
+top_endo_hep_cush<-merge(top_means_endo_hep_cush, top_SD_endo_hep_cush, by=c("Genus"))
+top_endo_hep_cush$SD_Final<-sqrt(top_endo_hep_cush$SD_squared_divided)
+View(top_endo_hep_cush)
 
 #Graves Bridge
-hep_grv<-subset_samples(hep_lar_Bow, Site=="Graves Bridge")
+hep_grvbr<-subset_samples(hep, Site=="Graves Bridge")
 
-endo_lar_hep_Bow_grv<-subset_samples(endo_lar_hep_Bow, Site=="Graves Bridge")
-endo_lar_hep_Bow_grv<-prune_taxa(taxa_sums(endo_lar_hep_Bow_grv) > 0, endo_lar_hep_Bow_grv) 
-sort((table(tax_table(endo_lar_hep_Bow_grv)[,6]))/sum(ntaxa(endo_lar_hep_Bow_grv))*100)
-#Rickettsia: 100 %
-sum(sample_sums(endo_lar_hep_Bow_grv))/sum(sample_sums(hep_grv))*100
-#0.001 % of total
+hep_grvbr_glom = tax_glom(hep_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hep_grvbr_glom<-prune_taxa(taxa_sums(hep_grvbr_glom) > 0, hep_grvbr_glom)
+
+hep_grvbr_genus <- psmelt(hep_grvbr_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+grvbr_endo_hep<- hep_grvbr_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+grvbr_endo_hep$SD_squared ='^'(grvbr_endo_hep$SD,2)
+grvbr_endo_hep$SD_squared_divided =(grvbr_endo_hep$SD_squared/8) 
+  
+top_means_endo_hep_grvbr<-aggregate(Mean ~ Genus, data = grvbr_endo_hep, FUN = sum)
+top_SD_endo_hep_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_endo_hep, FUN = sum)
+
+top_endo_hep_grvbr<-merge(top_means_endo_hep_grvbr, top_SD_endo_hep_grvbr, by=c("Genus"))
+top_endo_hep_grvbr$SD_Final<-sqrt(top_endo_hep_grvbr$SD_squared_divided)
+View(top_endo_hep_grvbr)
 
 #Policeman Flats
-hep_pmf<-subset_samples(hep_lar_Bow, Site=="Policeman Flats")
+hep_pmf<-subset_samples(hep, Site=="Policeman Flats")
 
-endo_lar_hep_Bow_pmf<-subset_samples(endo_lar_hep_Bow, Site=="Policeman Flats")
-endo_lar_hep_Bow_pmf<-prune_taxa(taxa_sums(endo_lar_hep_Bow_pmf) > 0, endo_lar_hep_Bow_pmf) 
-#Error means none
+hep_pmf_glom = tax_glom(hep_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hep_pmf_glom<-prune_taxa(taxa_sums(hep_pmf_glom) > 0, hep_pmf_glom)
+
+hep_pmf_genus <- psmelt(hep_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_hep<- hep_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_hep$SD_squared ='^'(pmf_endo_hep$SD,2)
+pmf_endo_hep$SD_squared_divided =(pmf_endo_hep$SD_squared/8) 
+  
+top_means_endo_hep_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_hep, FUN = sum)
+top_SD_endo_hep_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_hep, FUN = sum)
+
+top_endo_hep_pmf<-merge(top_means_endo_hep_pmf, top_SD_endo_hep_pmf, by=c("Genus"))
+top_endo_hep_pmf$SD_Final<-sqrt(top_endo_hep_pmf$SD_squared_divided)
+View(top_endo_hep_pmf)
 
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
@@ -9465,11 +9595,82 @@ endo_plot_hep <- ggplot(endo_agg_df_hep, aes(x=Site_code, y=Abundance, fill=Genu
 endo_plot_hep
 
 #### Larval Chironomidae Bow River ####
-chiro_lar_Bow<-subset_samples(sample_ps, Family=="Chironomidae" & Stream_Type=="Bow River")
+chiro<-subset_samples(sample_ps, Family=="Chironomidae")
 
-endo_lar_chiro_Bow<-subset_samples(endo, Family=="Chironomidae" & Stream_Type=="Bow River")
-endo_lar_chiro_Bow<-prune_taxa(taxa_sums(endo_lar_chiro_Bow) > 0, endo_lar_chiro_Bow) 
-#None
+#Cochrane 
+chiro_coch<-subset_samples(chiro, Site=="Cochrane")
+
+chiro_coch_glom = tax_glom(chiro_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+chiro_coch_glom<-prune_taxa(taxa_sums(chiro_coch_glom) > 0, chiro_coch_glom)
+
+chiro_coch_genus <- psmelt(chiro_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_chiro<- chiro_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_chiro$SD_squared ='^'(coch_endo_chiro$SD,2)
+coch_endo_chiro$SD_squared_divided =(coch_endo_chiro$SD_squared/4) 
+  
+top_means_endo_chiro_coch<-aggregate(Mean ~ Genus, data = coch_endo_chiro, FUN = sum)
+top_SD_endo_chiro_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_chiro, FUN = sum)
+
+top_endo_chiro_coch<-merge(top_means_endo_chiro_coch, top_SD_endo_chiro_coch, by=c("Genus"))
+top_endo_chiro_coch$SD_Final<-sqrt(top_endo_chiro_coch$SD_squared_divided)
+View(top_endo_chiro_coch)
+
+#Cushing Bridge
+chiro_cush<-subset_samples(chiro, Site=="Cushing Bridge")
+
+chiro_cush_glom = tax_glom(chiro_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+chiro_cush_glom<-prune_taxa(taxa_sums(chiro_cush_glom) > 0, chiro_cush_glom)
+
+chiro_cush_genus <- psmelt(chiro_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_chiro<- chiro_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_chiro$SD_squared ='^'(cush_endo_chiro$SD,2)
+cush_endo_chiro$SD_squared_divided =(cush_endo_chiro$SD_squared/6) 
+  
+top_means_endo_chiro_cush<-aggregate(Mean ~ Genus, data = cush_endo_chiro, FUN = sum)
+top_SD_endo_chiro_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_chiro, FUN = sum)
+
+top_endo_chiro_cush<-merge(top_means_endo_chiro_cush, top_SD_endo_chiro_cush, by=c("Genus"))
+top_endo_chiro_cush$SD_Final<-sqrt(top_endo_chiro_cush$SD_squared_divided)
+View(top_endo_chiro_cush)
+
+#Policeman Flats
+chiro_pmf<-subset_samples(chiro, Site=="Policeman Flats")
+
+chiro_pmf_glom = tax_glom(chiro_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+chiro_pmf_glom<-prune_taxa(taxa_sums(chiro_pmf_glom) > 0, chiro_pmf_glom)
+
+chiro_pmf_genus <- psmelt(chiro_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_chiro<- chiro_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_chiro$SD_squared ='^'(pmf_endo_chiro$SD,2)
+pmf_endo_chiro$SD_squared_divided =(pmf_endo_chiro$SD_squared/4) 
+  
+top_means_endo_chiro_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_chiro, FUN = sum)
+top_SD_endo_chiro_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_chiro, FUN = sum)
+
+top_endo_chiro_pmf<-merge(top_means_endo_chiro_pmf, top_SD_endo_chiro_pmf, by=c("Genus"))
+top_endo_chiro_pmf$SD_Final<-sqrt(top_endo_chiro_pmf$SD_squared_divided)
+View(top_endo_chiro_pmf)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
@@ -9518,12 +9719,82 @@ endo_plot_chiro
 
 
 #### Larval Perlidae Bow River ####
-perl_lar_Bow<-subset_samples(sample_ps, Family=="Perlidae" & Stream_Type=="Bow River")
+perl<-subset_samples(sample_ps, Family=="Perlidae")
 
-endo_lar_perl_Bow<-subset_samples(endo, Family=="Perlidae" & Stream_Type=="Bow River")
+#Cochrane 
+perl_coch<-subset_samples(perl, Site=="Cochrane")
 
-endo_lar_perl_Bow<-prune_taxa(taxa_sums(endo_lar_perl_Bow) > 0, endo_lar_perl_Bow) 
-#None
+perl_coch_glom = tax_glom(perl_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+perl_coch_glom<-prune_taxa(taxa_sums(perl_coch_glom) > 0, perl_coch_glom)
+
+perl_coch_genus <- psmelt(perl_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_perl<- perl_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_perl$SD_squared ='^'(coch_endo_perl$SD,2)
+coch_endo_perl$SD_squared_divided =(coch_endo_perl$SD_squared/8) 
+  
+top_means_endo_perl_coch<-aggregate(Mean ~ Genus, data = coch_endo_perl, FUN = sum)
+top_SD_endo_perl_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_perl, FUN = sum)
+
+top_endo_perl_coch<-merge(top_means_endo_perl_coch, top_SD_endo_perl_coch, by=c("Genus"))
+top_endo_perl_coch$SD_Final<-sqrt(top_endo_perl_coch$SD_squared_divided)
+View(top_endo_perl_coch)
+
+#Cushing Bridge
+perl_cush<-subset_samples(perl, Site=="Cushing Bridge")
+
+perl_cush_glom = tax_glom(perl_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+perl_cush_glom<-prune_taxa(taxa_sums(perl_cush_glom) > 0, perl_cush_glom)
+
+perl_cush_genus <- psmelt(perl_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_perl<- perl_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_perl$SD_squared ='^'(cush_endo_perl$SD,2)
+cush_endo_perl$SD_squared_divided =(cush_endo_perl$SD_squared/5) 
+  
+top_means_endo_perl_cush<-aggregate(Mean ~ Genus, data = cush_endo_perl, FUN = sum)
+top_SD_endo_perl_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_perl, FUN = sum)
+
+top_endo_perl_cush<-merge(top_means_endo_perl_cush, top_SD_endo_perl_cush, by=c("Genus"))
+top_endo_perl_cush$SD_Final<-sqrt(top_endo_perl_cush$SD_squared_divided)
+View(top_endo_perl_cush)
+
+#Policeman Flats
+perl_pmf<-subset_samples(perl, Site=="Policeman Flats")
+
+perl_pmf_glom = tax_glom(perl_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+perl_pmf_glom<-prune_taxa(taxa_sums(perl_pmf_glom) > 0, perl_pmf_glom)
+
+perl_pmf_genus <- psmelt(perl_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_perl<- perl_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_perl$SD_squared ='^'(pmf_endo_perl$SD,2)
+pmf_endo_perl$SD_squared_divided =(pmf_endo_perl$SD_squared/8) 
+  
+top_means_endo_perl_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_perl, FUN = sum)
+top_SD_endo_perl_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_perl, FUN = sum)
+
+top_endo_perl_pmf<-merge(top_means_endo_perl_pmf, top_SD_endo_perl_pmf, by=c("Genus"))
+top_endo_perl_pmf$SD_Final<-sqrt(top_endo_perl_pmf$SD_squared_divided)
+View(top_endo_perl_pmf)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
@@ -9571,313 +9842,575 @@ endo_plot_perl <- ggplot(endo_agg_df_perl, aes(x=Site_code, y=Abundance, fill=Ge
 endo_plot_perl
 
 #### Adult Trichoptera Bow River ####
-trichop_Bow<-subset_samples(sample_ps, Family=="Trichoptera" & Stream_Type=="Bow River")
+trichop<-subset_samples(sample_ps, Family=="Trichoptera")
 
-trichop_endo_rel_abun = transform_sample_counts(trichop_Bow, function(x) {x * 100/sum(x)})
+#Cochrane 
+trichop_coch<-subset_samples(trichop, Site=="Cochrane")
 
-endo_trichop_Bow<-subset_samples(trichop_endo_rel_abun, Family=="Trichoptera" & Stream_Type=="Bow River")
-nsamples(endo_trichop_Bow) #31
+trichop_coch_glom = tax_glom(trichop_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+trichop_coch_glom<-prune_taxa(taxa_sums(trichop_coch_glom) > 0, trichop_coch_glom)
 
-trichop_endo_glom<-prune_taxa(taxa_sums(trichop_endo_glom) > 0, trichop_endo_glom) 
-
-endo_trichop_df<-psmelt(trichop_endo_glom) #%>%
+trichop_coch_genus <- psmelt(trichop_coch_glom) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
-sort((table(tax_table(endo_trichop_Bow)[,6]))/sum(ntaxa(endo_trichop_Bow))*100)
-#Buchnera (16.7%) Spiroplasma (16.7) Rickettsia (66.7%)
-sum(sample_sums(endo_trichop_Bow))/sum(sample_sums(trichop_Bow))*100
-#36.7% 
+coch_endo_trichop<- trichop_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
 
+coch_endo_trichop$SD_squared ='^'(coch_endo_trichop$SD,2)
+coch_endo_trichop$SD_squared_divided =(coch_endo_trichop$SD_squared/8) 
+  
+top_means_endo_trichop_coch<-aggregate(Mean ~ Genus, data = coch_endo_trichop, FUN = sum)
+top_SD_endo_trichop_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_trichop, FUN = sum)
 
-# Cochrane #
+top_endo_trichop_coch<-merge(top_means_endo_trichop_coch, top_SD_endo_trichop_coch, by=c("Genus"))
+top_endo_trichop_coch$SD_Final<-sqrt(top_endo_trichop_coch$SD_squared_divided)
+View(top_endo_trichop_coch)
 
+#Sunalta 
+trichop_sun<-subset_samples(trichop, Site=="Sunalta")
 
-tetra_coch_phy<-subset(coch_phylum, sample_Family=="Tetragnathidae")
-tetra_coch_phy<-subset(tetra_coch_phy, Mean > 0)
-tetra_coch_phy<-tetra_coch_phy[order(tetra_coch_phy$Mean, decreasing = TRUE),]  
+trichop_sun_glom = tax_glom(trichop_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+trichop_sun_glom<-prune_taxa(taxa_sums(trichop_sun_glom) > 0, trichop_sun_glom)
 
-coch_phy_sum_tetra<- tetra_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+trichop_sun_genus <- psmelt(trichop_sun_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
-top_means_phy_tetra_coch<-aggregate(Mean ~ Phylum + sample_Family, data = coch_phy_sum_tetra, FUN = sum)
-top_SD_phy_tetra_coch<-aggregate(SD ~ Phylum + sample_Family, data = coch_phy_sum_tetra, FUN = sum)
+sun_endo_trichop<- trichop_sun_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
 
-top_phy_tetra_coch<-merge(top_means_phy_tetra_coch, top_SD_phy_tetra_coch, by=c("Phylum", "sample_Family"))
+sun_endo_trichop$SD_squared ='^'(sun_endo_trichop$SD,2)
+sun_endo_trichop$SD_squared_divided =(sun_endo_trichop$SD_squared/8) 
+  
+top_means_endo_trichop_sun<-aggregate(Mean ~ Genus, data = sun_endo_trichop, FUN = sum)
+top_SD_endo_trichop_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_trichop, FUN = sum)
 
-
-
-#Cochrane 
-trichop_coch<-subset_samples(trichop_lar_Bow, Site=="Cochrane")
-
-endo_lar_trichop_Bow_coch<-subset_samples(endo_lar_trichop_Bow, Site=="Cochrane")
-nsamples(endo_lar_trichop_Bow_coch) #8
-endo_lar_trichop_Bow_coch<-prune_taxa(taxa_sums(endo_lar_trichop_Bow_coch) > 0, endo_lar_trichop_Bow_coch) 
-sort((table(tax_table(endo_lar_trichop_Bow_coch)[,6]))/sum(ntaxa(endo_lar_trichop_Bow_coch))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_trichop_Bow_coch))/sum(sample_sums(trichop_coch))*100
-#37.4 % of total
-
-#Sunalta
-trichop_sun<-subset_samples(trichop_lar_Bow, Site=="Sunalta")
-
-endo_lar_trichop_Bow_sun<-subset_samples(endo_lar_trichop_Bow, Site=="Sunalta")
-endo_lar_trichop_Bow_sun<-prune_taxa(taxa_sums(endo_lar_trichop_Bow_sun) > 0, endo_lar_trichop_Bow_sun) 
-sort((table(tax_table(endo_lar_trichop_Bow_sun)[,6]))/sum(ntaxa(endo_lar_trichop_Bow_sun))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_trichop_Bow_sun))/sum(sample_sums(trichop_sun))*100
-#58.2 % of total
+top_endo_trichop_sun<-merge(top_means_endo_trichop_sun, top_SD_endo_trichop_sun, by=c("Genus"))
+top_endo_trichop_sun$SD_Final<-sqrt(top_endo_trichop_sun$SD_squared_divided)
+View(top_endo_trichop_sun)
 
 #Cushing Bridge
-trichop_cush<-subset_samples(trichop_lar_Bow, Site=="Cushing Bridge")
+trichop_cush<-subset_samples(trichop, Site=="Cushing Bridge")
 
-endo_lar_trichop_Bow_cush<-subset_samples(endo_lar_trichop_Bow, Site=="Cushing Bridge")
-endo_lar_trichop_Bow_cush<-prune_taxa(taxa_sums(endo_lar_trichop_Bow_cush) > 0, endo_lar_trichop_Bow_cush) 
-sort((table(tax_table(endo_lar_trichop_Bow_cush)[,6]))/sum(ntaxa(endo_lar_trichop_Bow_cush))*100)
-#Buchnera: 25%, Spiroplasma: 25%, Rickettsia: 50%
-sum(sample_sums(endo_lar_trichop_Bow_cush))/sum(sample_sums(trichop_cush))*100
-#28.1% of total
+trichop_cush_glom = tax_glom(trichop_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+trichop_cush_glom<-prune_taxa(taxa_sums(trichop_cush_glom) > 0, trichop_cush_glom)
+
+trichop_cush_genus <- psmelt(trichop_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_trichop<- trichop_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_trichop$SD_squared ='^'(cush_endo_trichop$SD,2)
+cush_endo_trichop$SD_squared_divided =(cush_endo_trichop$SD_squared/8) 
+  
+top_means_endo_trichop_cush<-aggregate(Mean ~ Genus, data = cush_endo_trichop, FUN = sum)
+top_SD_endo_trichop_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_trichop, FUN = sum)
+
+top_endo_trichop_cush<-merge(top_means_endo_trichop_cush, top_SD_endo_trichop_cush, by=c("Genus"))
+top_endo_trichop_cush$SD_Final<-sqrt(top_endo_trichop_cush$SD_squared_divided)
+View(top_endo_trichop_cush)
 
 #Graves Bridge
-trichop_grv<-subset_samples(trichop_lar_Bow, Site=="Graves Bridge")
+trichop_grvbr<-subset_samples(trichop, Site=="Graves Bridge")
 
-endo_lar_trichop_Bow_grv<-subset_samples(endo_lar_trichop_Bow, Site=="Graves Bridge")
-endo_lar_trichop_Bow_grv<-prune_taxa(taxa_sums(endo_lar_trichop_Bow_grv) > 0, endo_lar_trichop_Bow_grv) 
-sort((table(tax_table(endo_lar_trichop_Bow_grv)[,6]))/sum(ntaxa(endo_lar_trichop_Bow_grv))*100)
-#Rickettsia: 100 %
-sum(sample_sums(endo_lar_trichop_Bow_grv))/sum(sample_sums(trichop_grv))*100
-#0.053 % of total
+trichop_grvbr_glom = tax_glom(trichop_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+trichop_grvbr_glom<-prune_taxa(taxa_sums(trichop_grvbr_glom) > 0, trichop_grvbr_glom)
 
-#Policeman Flats
-endo_lar_trichop_Bow_pmf<-subset_samples(endo_lar_trichop_Bow, Site=="Policeman Flats") #none
+trichop_grvbr_genus <- psmelt(trichop_grvbr_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
+grvbr_endo_trichop<- trichop_grvbr_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+grvbr_endo_trichop$SD_squared ='^'(grvbr_endo_trichop$SD,2)
+grvbr_endo_trichop$SD_squared_divided =(grvbr_endo_trichop$SD_squared/7) 
+  
+top_means_endo_trichop_grvbr<-aggregate(Mean ~ Genus, data = grvbr_endo_trichop, FUN = sum)
+top_SD_endo_trichop_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_endo_trichop, FUN = sum)
+
+top_endo_trichop_grvbr<-merge(top_means_endo_trichop_grvbr, top_SD_endo_trichop_grvbr, by=c("Genus"))
+top_endo_trichop_grvbr$SD_Final<-sqrt(top_endo_trichop_grvbr$SD_squared_divided)
+View(top_endo_trichop_grvbr)
 
 #### Adult Ephemeroptera Bow River ####
 
 ephem_Bow<-subset_samples(sample_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
-ephem_Bow_df<-psmelt(ephem_Bow)
-
-endo_ephem_Bow<-subset_taxa(ephem_Bow, Genus=="Rickettsia" | Genus=="Buchnera" | Genus=="Candidatus cardinium" | Genus=="Spiroplasma" | Genus=="Wolbachia")
-
-endo_ephem_Bow<-prune_taxa(taxa_sums(endo_ephem_Bow) > 0, endo_ephem_Bow) 
-sort((table(tax_table(endo_ephem_Bow)[,6]))/sum(ntaxa(endo_ephem_Bow))*100)
-#Buchnera (14.3%) Spiroplasma (14.3) Wolbachia (14.3) Rickettsia (57.1%)
-sum(sample_sums(endo_ephem_Bow))/sum(sample_sums(ephem_Bow))*100
-#5.39% 
-
 
 #Cochrane 
-ephem_coch<-subset_samples(ephem_Bow, Site=="Cochrane")
-nsamples(ephem_coch) #8
+ephem_Bow_coch<-subset_samples(ephem_Bow, Site=="Cochrane")
 
-endo_ephem_Bow_coch<-subset_samples(endo_ephem_Bow, Site=="Cochrane")
-endo_ephem_Bow_coch<-prune_taxa(taxa_sums(endo_ephem_Bow_coch) > 0, endo_ephem_Bow_coch) 
-sort((table(tax_table(endo_ephem_Bow_coch)[,6]))/sum(ntaxa(endo_ephem_Bow_coch))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_ephem_Bow_coch))/sum(sample_sums(ephem_coch))*100
-#26.4 % of total
+ephem_Bow_coch_glom = tax_glom(ephem_Bow_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+ephem_Bow_coch_glom<-prune_taxa(taxa_sums(ephem_Bow_coch_glom) > 0, ephem_Bow_coch_glom)
+
+ephem_Bow_coch_genus <- psmelt(ephem_Bow_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_ephem_Bow<- ephem_Bow_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_ephem_Bow$SD_squared ='^'(coch_endo_ephem_Bow$SD,2)
+coch_endo_ephem_Bow$SD_squared_divided =(coch_endo_ephem_Bow$SD_squared/8) 
+  
+top_means_endo_ephem_Bow_coch<-aggregate(Mean ~ Genus, data = coch_endo_ephem_Bow, FUN = sum)
+top_SD_endo_ephem_Bow_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_ephem_Bow, FUN = sum)
+
+top_endo_ephem_Bow_coch<-merge(top_means_endo_ephem_Bow_coch, top_SD_endo_ephem_Bow_coch, by=c("Genus"))
+top_endo_ephem_Bow_coch$SD_Final<-sqrt(top_endo_ephem_Bow_coch$SD_squared_divided)
+View(top_endo_ephem_Bow_coch)
 
 #Sunalta
-ephem_sun<-subset_samples(ephem_lar_Bow, Site=="Sunalta")
+ephem_Bow_sun<-subset_samples(ephem_Bow, Site=="Sunalta")
 
-endo_lar_ephem_Bow_sun<-subset_samples(endo_lar_ephem_Bow, Site=="Sunalta")
-endo_lar_ephem_Bow_sun<-prune_taxa(taxa_sums(endo_lar_ephem_Bow_sun) > 0, endo_lar_ephem_Bow_sun) 
-sort((table(tax_table(endo_lar_ephem_Bow_sun)[,6]))/sum(ntaxa(endo_lar_ephem_Bow_sun))*100)
-#Rickettsia: 100%
-sum(sample_sums(endo_lar_ephem_Bow_sun))/sum(sample_sums(ephem_sun))*100
-#6.20 % of total
+ephem_Bow_sun_glom = tax_glom(ephem_Bow_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+ephem_Bow_sun_glom<-prune_taxa(taxa_sums(ephem_Bow_sun_glom) > 0, ephem_Bow_sun_glom)
+
+ephem_Bow_sun_genus <- psmelt(ephem_Bow_sun_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+sun_endo_ephem_Bow<- ephem_Bow_sun_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+sun_endo_ephem_Bow$SD_squared ='^'(sun_endo_ephem_Bow$SD,2)
+sun_endo_ephem_Bow$SD_squared_divided =(sun_endo_ephem_Bow$SD_squared/8) 
+  
+top_means_endo_ephem_Bow_sun<-aggregate(Mean ~ Genus, data = sun_endo_ephem_Bow, FUN = sum)
+top_SD_endo_ephem_Bow_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_ephem_Bow, FUN = sum)
+
+top_endo_ephem_Bow_sun<-merge(top_means_endo_ephem_Bow_sun, top_SD_endo_ephem_Bow_sun, by=c("Genus"))
+top_endo_ephem_Bow_sun$SD_Final<-sqrt(top_endo_ephem_Bow_sun$SD_squared_divided)
+View(top_endo_ephem_Bow_sun)
 
 #Cushing Bridge
-ephem_cush<-subset_samples(ephem_Bow, Site=="Cushing Bridge")
-ephem_cush_df<-psmelt(ephem_cush)
-sum(ephem_cush_df$Abundance)
+ephem_Bow_cush<-subset_samples(ephem_Bow, Site=="Cushing Bridge")
 
-endo_ephem_Bow_cush<-subset_taxa(ephem_cush, Genus=="Rickettsia" | Genus=="Buchnera" | Genus=="Candidatus cardinium" | Genus=="Spiroplasma" | Genus=="Wolbachia")
-endo_ephem_Bow_cush<-prune_taxa(taxa_sums(endo_ephem_Bow_cush) > 0, endo_ephem_Bow_cush) 
-sort((table(tax_table(endo_ephem_Bow_cush)[,6]))/sum(ntaxa(endo_ephem_Bow_cush))*100)
-#Buchnera: 33.3%, Spiroplasma: 33.3%, Rickettsia: 33.3%
-sum(sample_sums(endo_ephem_Bow_cush))/sum(sample_sums(ephem_cush))*100
-#0.085 % of total
+ephem_Bow_cush_glom = tax_glom(ephem_Bow_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+ephem_Bow_cush_glom<-prune_taxa(taxa_sums(ephem_Bow_cush_glom) > 0, ephem_Bow_cush_glom)
+
+ephem_Bow_cush_genus <- psmelt(ephem_Bow_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_ephem_Bow<- ephem_Bow_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_ephem_Bow$SD_squared ='^'(cush_endo_ephem_Bow$SD,2)
+cush_endo_ephem_Bow$SD_squared_divided =(cush_endo_ephem_Bow$SD_squared/8) 
+  
+top_means_endo_ephem_Bow_cush<-aggregate(Mean ~ Genus, data = cush_endo_ephem_Bow, FUN = sum)
+top_SD_endo_ephem_Bow_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_ephem_Bow, FUN = sum)
+
+top_endo_ephem_Bow_cush<-merge(top_means_endo_ephem_Bow_cush, top_SD_endo_ephem_Bow_cush, by=c("Genus"))
+top_endo_ephem_Bow_cush$SD_Final<-sqrt(top_endo_ephem_Bow_cush$SD_squared_divided)
+View(top_endo_ephem_Bow_cush)
 
 #Graves Bridge
-ephem_grv<-subset_samples(ephem_lar_Bow, Site=="Graves Bridge")
+ephem_Bow_grvbr<-subset_samples(ephem_Bow, Site=="Graves Bridge")
 
-endo_lar_ephem_Bow_grv<-subset_samples(endo_lar_ephem_Bow, Site=="Graves Bridge")
-endo_lar_ephem_Bow_grv<-prune_taxa(taxa_sums(endo_lar_ephem_Bow_grv) > 0, endo_lar_ephem_Bow_grv) 
-sort((table(tax_table(endo_lar_ephem_Bow_grv)[,6]))/sum(ntaxa(endo_lar_ephem_Bow_grv))*100)
-#Rickettsia: 50 % Wolbachia: 50 %
-sum(sample_sums(endo_lar_ephem_Bow_grv))/sum(sample_sums(ephem_grv))*100
-#0.085 % of total
+ephem_Bow_grvbr_glom = tax_glom(ephem_Bow_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+ephem_Bow_grvbr_glom<-prune_taxa(taxa_sums(ephem_Bow_grvbr_glom) > 0, ephem_Bow_grvbr_glom)
+
+ephem_Bow_grvbr_genus <- psmelt(ephem_Bow_grvbr_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+grvbr_endo_ephem_Bow<- ephem_Bow_grvbr_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+grvbr_endo_ephem_Bow$SD_squared ='^'(grvbr_endo_ephem_Bow$SD,2)
+grvbr_endo_ephem_Bow$SD_squared_divided =(grvbr_endo_ephem_Bow$SD_squared/8) 
+  
+top_means_endo_ephem_Bow_grvbr<-aggregate(Mean ~ Genus, data = grvbr_endo_ephem_Bow, FUN = sum)
+top_SD_endo_ephem_Bow_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_endo_ephem_Bow, FUN = sum)
+
+top_endo_ephem_Bow_grvbr<-merge(top_means_endo_ephem_Bow_grvbr, top_SD_endo_ephem_Bow_grvbr, by=c("Genus"))
+top_endo_ephem_Bow_grvbr$SD_Final<-sqrt(top_endo_ephem_Bow_grvbr$SD_squared_divided)
+View(top_endo_ephem_Bow_grvbr)
 
 #Policeman Flats
-ephem_pmf<-subset_samples(ephem_lar_Bow, Site=="Policeman Flats")
+ephem_Bow_pmf<-subset_samples(ephem_Bow, Site=="Policeman Flats")
 
-endo_lar_ephem_Bow_pmf<-subset_samples(endo_lar_ephem_Bow, Site=="Policeman Flats")
-endo_lar_ephem_Bow_pmf<-prune_taxa(taxa_sums(endo_lar_ephem_Bow_pmf) > 0, endo_lar_ephem_Bow_pmf) 
-sort((table(tax_table(endo_lar_ephem_Bow_pmf)[,6]))/sum(ntaxa(endo_lar_ephem_Bow_pmf))*100)
-#Rickettsia: 100
-sum(sample_sums(endo_lar_ephem_Bow_pmf))/sum(sample_sums(ephem_pmf))*100
-#0.0503 % of total
+ephem_Bow_pmf_glom = tax_glom(ephem_Bow_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+ephem_Bow_pmf_glom<-prune_taxa(taxa_sums(ephem_Bow_pmf_glom) > 0, ephem_Bow_pmf_glom)
+
+ephem_Bow_pmf_genus <- psmelt(ephem_Bow_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_ephem_Bow<- ephem_Bow_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_ephem_Bow$SD_squared ='^'(pmf_endo_ephem_Bow$SD,2)
+pmf_endo_ephem_Bow$SD_squared_divided =(pmf_endo_ephem_Bow$SD_squared/8) 
+  
+top_means_endo_ephem_Bow_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_ephem_Bow, FUN = sum)
+top_SD_endo_ephem_Bow_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_ephem_Bow, FUN = sum)
+
+top_endo_ephem_Bow_pmf<-merge(top_means_endo_ephem_Bow_pmf, top_SD_endo_ephem_Bow_pmf, by=c("Genus"))
+top_endo_ephem_Bow_pmf$SD_Final<-sqrt(top_endo_ephem_Bow_pmf$SD_squared_divided)
+View(top_endo_ephem_Bow_pmf)
 
 #### Adult Diptera Bow River ####
 
-dip_lar_Bow<-subset_samples(sample_ps, Family=="Diptera" & Stream_Type=="Bow River")
-
-endo_lar_dip_Bow<-subset_samples(endo, Family=="Diptera" & Stream_Type=="Bow River")
-
-endo_lar_dip_Bow<-prune_taxa(taxa_sums(endo_lar_dip_Bow) > 0, endo_lar_dip_Bow) 
-sort((table(tax_table(endo_lar_dip_Bow)[,6]))/sum(ntaxa(endo_lar_dip_Bow))*100)
-#Buchnera (7.14%) Spiroplasma (21.4) Wolbachia (35.7) Rickettsia (35.7%)
-sum(sample_sums(endo_lar_dip_Bow))/sum(sample_sums(dip_lar_Bow))*100
-#9.60% 
-
+dip_Bow<-subset_samples(sample_ps, Family=="Diptera")
 
 #Cochrane 
-dip_coch<-subset_samples(dip_lar_Bow, Site=="Cochrane")
+dip_coch<-subset_samples(dip_Bow, Site=="Cochrane")
 
-endo_lar_dip_Bow_coch<-subset_samples(endo_lar_dip_Bow, Site=="Cochrane")
-endo_lar_dip_Bow_coch<-prune_taxa(taxa_sums(endo_lar_dip_Bow_coch) > 0, endo_lar_dip_Bow_coch) 
-sort((table(tax_table(endo_lar_dip_Bow_coch)[,6]))/sum(ntaxa(endo_lar_dip_Bow_coch))*100)
-#Rickettsia: 33.3%, spiroplasma: 25, Wolbachia:41.7
-sum(sample_sums(endo_lar_dip_Bow_coch))/sum(sample_sums(dip_coch))*100
-#34.2 % of total
+dip_coch_glom = tax_glom(dip_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+dip_coch_glom<-prune_taxa(taxa_sums(dip_coch_glom) > 0, dip_coch_glom)
+
+dip_coch_genus <- psmelt(dip_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_dip<- dip_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_dip$SD_squared ='^'(coch_endo_dip$SD,2)
+coch_endo_dip$SD_squared_divided =(coch_endo_dip$SD_squared/5) 
+  
+top_means_endo_dip_coch<-aggregate(Mean ~ Genus, data = coch_endo_dip, FUN = sum)
+top_SD_endo_dip_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_dip, FUN = sum)
+
+top_endo_dip_coch<-merge(top_means_endo_dip_coch, top_SD_endo_dip_coch, by=c("Genus"))
+top_endo_dip_coch$SD_Final<-sqrt(top_endo_dip_coch$SD_squared_divided)
+View(top_endo_dip_coch)
 
 #Cushing Bridge
-dip_cush<-subset_samples(dip_lar_Bow, Site=="Cushing Bridge")
+dip_cush<-subset_samples(dip_Bow, Site=="Cushing Bridge")
 
-endo_lar_dip_Bow_cush<-subset_samples(endo_lar_dip_Bow, Site=="Cushing Bridge")
-endo_lar_dip_Bow_cush<-prune_taxa(taxa_sums(endo_lar_dip_Bow_cush) > 0, endo_lar_dip_Bow_cush) 
-sort((table(tax_table(endo_lar_dip_Bow_cush)[,6]))/sum(ntaxa(endo_lar_dip_Bow_cush))*100)
-#Buchnera: 50%, Rickettsia: 50%
-sum(sample_sums(endo_lar_dip_Bow_cush))/sum(sample_sums(dip_cush))*100
-#0.23 % of total
+dip_cush_glom = tax_glom(dip_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+dip_cush_glom<-prune_taxa(taxa_sums(dip_cush_glom) > 0, dip_cush_glom)
+
+dip_cush_genus <- psmelt(dip_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_dip<- dip_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_dip$SD_squared ='^'(cush_endo_dip$SD,2)
+cush_endo_dip$SD_squared_divided =(cush_endo_dip$SD_squared/8) 
+  
+top_means_endo_dip_cush<-aggregate(Mean ~ Genus, data = cush_endo_dip, FUN = sum)
+top_SD_endo_dip_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_dip, FUN = sum)
+
+top_endo_dip_cush<-merge(top_means_endo_dip_cush, top_SD_endo_dip_cush, by=c("Genus"))
+top_endo_dip_cush$SD_Final<-sqrt(top_endo_dip_cush$SD_squared_divided)
+View(top_endo_dip_cush)
 
 #Policeman Flats
-dip_pmf<-subset_samples(dip_lar_Bow, Site=="Policeman Flats")
+dip_pmf<-subset_samples(dip_Bow, Site=="Policeman Flats")
 
-endo_lar_dip_Bow_pmf<-subset_samples(endo_lar_dip_Bow, Site=="Policeman Flats")
-endo_lar_dip_Bow_pmf<-prune_taxa(taxa_sums(endo_lar_dip_Bow_pmf) > 0, endo_lar_dip_Bow_pmf) 
-sort((table(tax_table(endo_lar_dip_Bow_pmf)[,6]))/sum(ntaxa(endo_lar_dip_Bow_pmf))*100)
-#Rickettsia: 75, spiroplasma 25
-sum(sample_sums(endo_lar_dip_Bow_pmf))/sum(sample_sums(dip_pmf))*100
-#0.28 % of total
+dip_pmf_glom = tax_glom(dip_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+dip_pmf_glom<-prune_taxa(taxa_sums(dip_pmf_glom) > 0, dip_pmf_glom)
+
+dip_pmf_genus <- psmelt(dip_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_dip<- dip_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_dip$SD_squared ='^'(pmf_endo_dip$SD,2)
+pmf_endo_dip$SD_squared_divided =(pmf_endo_dip$SD_squared/8) 
+  
+top_means_endo_dip_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_dip, FUN = sum)
+top_SD_endo_dip_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_dip, FUN = sum)
+
+top_endo_dip_pmf<-merge(top_means_endo_dip_pmf, top_SD_endo_dip_pmf, by=c("Genus"))
+top_endo_dip_pmf$SD_Final<-sqrt(top_endo_dip_pmf$SD_squared_divided)
+View(top_endo_dip_pmf)
 
 
 #### Araneidae ####
-
-aran_Bow<-subset_samples(sample_ps, Family=="Araneidae" & Stream_Type=="Bow River")
-
-endo_aran_Bow<-subset_samples(endo, Family=="Araneidae" & Stream_Type=="Bow River")
-
-endo_aran_Bow<-prune_taxa(taxa_sums(endo_aran_Bow) > 0, endo_aran_Bow) 
-sort((table(tax_table(endo_aran_Bow)[,6]))/sum(ntaxa(endo_aran_Bow))*100)
-#Spiroplasma (45) Wolbachia (40) Rickettsia (15%)
-sum(sample_sums(endo_aran_Bow))/sum(sample_sums(aran_Bow))*100
-#10.21% 
-
+aran<-subset_samples(sample_ps, Family=="Araneidae")
 
 #Cochrane 
-aran_coch<-subset_samples(aran_Bow, Site=="Cochrane")
+aran_coch<-subset_samples(aran, Site=="Cochrane")
 
-endo_aran_Bow_coch<-subset_samples(endo_aran_Bow, Site=="Cochrane")
-endo_aran_Bow_coch<-prune_taxa(taxa_sums(endo_aran_Bow_coch) > 0, endo_aran_Bow_coch) 
-sort((table(tax_table(endo_aran_Bow_coch)[,6]))/sum(ntaxa(endo_aran_Bow_coch))*100)
-#Rickettsia: 10%, spiroplasma: 60, Wolbachia:30
-mean(sample_sums(endo_aran_Bow_coch))/sum(sample_sums(aran_coch))*100
-#34.0 % of total,  Rickettsia,  Spiroplasma,  Wolbachia
+aran_coch_glom = tax_glom(aran_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+aran_coch_glom<-prune_taxa(taxa_sums(aran_coch_glom) > 0, aran_coch_glom)
+
+aran_coch_genus <- psmelt(aran_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_aran<- aran_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_aran$SD_squared ='^'(coch_endo_aran$SD,2)
+coch_endo_aran$SD_squared_divided =(coch_endo_aran$SD_squared/8) 
+  
+top_means_endo_aran_coch<-aggregate(Mean ~ Genus, data = coch_endo_aran, FUN = sum)
+top_SD_endo_aran_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_aran, FUN = sum)
+
+top_endo_aran_coch<-merge(top_means_endo_aran_coch, top_SD_endo_aran_coch, by=c("Genus"))
+top_endo_aran_coch$SD_Final<-sqrt(top_endo_aran_coch$SD_squared_divided)
+View(top_endo_aran_coch)
 
 #Sunalta
-aran_sun<-subset_samples(aran_Bow, Site=="Sunalta")
+aran_sun<-subset_samples(aran, Site=="Sunalta")
 
-endo_aran_Bow_sun<-subset_samples(endo_aran_Bow, Site=="Sunalta")
-endo_aran_Bow_sun<-prune_taxa(taxa_sums(endo_aran_Bow_sun) > 0, endo_aran_Bow_sun) 
-sort((table(tax_table(endo_aran_Bow_sun)[,6]))/sum(ntaxa(endo_aran_Bow_sun))*100)
-#Rickettsia: 16.7, Spiroplasma: 16.7, Wolbachia: 66.7
-mean(sample_sums(endo_aran_Bow_sun))/sum(sample_sums(aran_sun))*100
-#0.15 % of total. 0.03 Rickettsia, 0.03 Spiroplasma, 0.1 Wolbachia
+aran_sun_glom = tax_glom(aran_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+aran_sun_glom<-prune_taxa(taxa_sums(aran_sun_glom) > 0, aran_sun_glom)
+
+aran_sun_genus <- psmelt(aran_sun_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+sun_endo_aran<- aran_sun_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+sun_endo_aran$SD_squared ='^'(sun_endo_aran$SD,2)
+sun_endo_aran$SD_squared_divided =(sun_endo_aran$SD_squared/8) 
+  
+top_means_endo_aran_sun<-aggregate(Mean ~ Genus, data = sun_endo_aran, FUN = sum)
+top_SD_endo_aran_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_aran, FUN = sum)
+
+top_endo_aran_sun<-merge(top_means_endo_aran_sun, top_SD_endo_aran_sun, by=c("Genus"))
+top_endo_aran_sun$SD_Final<-sqrt(top_endo_aran_sun$SD_squared_divided)
+View(top_endo_aran_sun)
 
 #Cushing Bridge
-aran_cush<-subset_samples(aran_Bow, Site=="Cushing Bridge")
+aran_cush<-subset_samples(aran, Site=="Cushing Bridge")
 
-endo_aran_Bow_cush<-subset_samples(endo_aran_Bow, Site=="Cushing Bridge")
-endo_aran_Bow_cush<-prune_taxa(taxa_sums(endo_aran_Bow_cush) > 0, endo_aran_Bow_cush) 
-sort((table(tax_table(endo_aran_Bow_cush)[,6]))/sum(ntaxa(endo_aran_Bow_cush))*100)
-#Rickettsia: 25%, spiroplasma: 25, wolbachia: 50
-mean(sample_sums(endo_aran_Bow_cush))/sum(sample_sums(aran_cush))*100
-#0.035 % of total
+aran_cush_glom = tax_glom(aran_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+aran_cush_glom<-prune_taxa(taxa_sums(aran_cush_glom) > 0, aran_cush_glom)
+
+aran_cush_genus <- psmelt(aran_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_aran<- aran_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_aran$SD_squared ='^'(cush_endo_aran$SD,2)
+cush_endo_aran$SD_squared_divided =(cush_endo_aran$SD_squared/7) 
+  
+top_means_endo_aran_cush<-aggregate(Mean ~ Genus, data = cush_endo_aran, FUN = sum)
+top_SD_endo_aran_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_aran, FUN = sum)
+
+top_endo_aran_cush<-merge(top_means_endo_aran_cush, top_SD_endo_aran_cush, by=c("Genus"))
+top_endo_aran_cush$SD_Final<-sqrt(top_endo_aran_cush$SD_squared_divided)
+View(top_endo_aran_cush)
 
 #Graves Bridge
-endo_aran_Bow_grv<-subset_samples(endo_aran_Bow, Site=="Graves Bridge")
-endo_aran_Bow_grv<-prune_taxa(taxa_sums(endo_aran_Bow_grv) > 0, endo_aran_Bow_grv) 
-sort((table(tax_table(endo_aran_Bow_grv)[,6]))/sum(ntaxa(endo_aran_Bow_grv))*100)
-#Rickettsia: 11.11%, spiroplasma: 44.44, wolbachia: 44.44
-sum(sample_sums(endo_aran_Bow_grv))/sum(sample_sums(aran_Bow))*100
-#0.066 % of total
+aran_grvbr<-subset_samples(aran, Site=="Graves Bridge")
+
+aran_grvbr_glom = tax_glom(aran_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+aran_grvbr_glom<-prune_taxa(taxa_sums(aran_grvbr_glom) > 0, aran_grvbr_glom)
+
+aran_grvbr_genus <- psmelt(aran_grvbr_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+grvbr_endo_aran<- aran_grvbr_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+grvbr_endo_aran$SD_squared ='^'(grvbr_endo_aran$SD,2)
+grvbr_endo_aran$SD_squared_divided =(grvbr_endo_aran$SD_squared/8) 
+  
+top_means_endo_aran_grvbr<-aggregate(Mean ~ Genus, data = grvbr_endo_aran, FUN = sum)
+top_SD_endo_aran_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_endo_aran, FUN = sum)
+
+top_endo_aran_grvbr<-merge(top_means_endo_aran_grvbr, top_SD_endo_aran_grvbr, by=c("Genus"))
+top_endo_aran_grvbr$SD_Final<-sqrt(top_endo_aran_grvbr$SD_squared_divided)
+View(top_endo_aran_grvbr)
 
 #Policeman Flats
 
-endo_aran_Bow_pmf<-subset_samples(endo_aran_Bow, Site=="Policeman Flats")
-endo_aran_Bow_pmf<-prune_taxa(taxa_sums(endo_aran_Bow_pmf) > 0, endo_aran_Bow_pmf) 
-sort((table(tax_table(endo_aran_Bow_pmf)[,6]))/sum(ntaxa(endo_aran_Bow_pmf))*100)
-#Rickettsia: 30, spiroplasma 50, wolbachia: 20
-sum(sample_sums(endo_aran_Bow_pmf))/sum(sample_sums(aran_Bow))*100
-#0.19 % of total
+aran_pmf<-subset_samples(aran, Site=="Policeman Flats")
+
+aran_pmf_glom = tax_glom(aran_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+aran_pmf_glom<-prune_taxa(taxa_sums(aran_pmf_glom) > 0, aran_pmf_glom)
+
+aran_pmf_genus <- psmelt(aran_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_aran<- aran_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_aran$SD_squared ='^'(pmf_endo_aran$SD,2)
+pmf_endo_aran$SD_squared_divided =(pmf_endo_aran$SD_squared/6) 
+  
+top_means_endo_aran_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_aran, FUN = sum)
+top_SD_endo_aran_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_aran, FUN = sum)
+
+top_endo_aran_pmf<-merge(top_means_endo_aran_pmf, top_SD_endo_aran_pmf, by=c("Genus"))
+top_endo_aran_pmf$SD_Final<-sqrt(top_endo_aran_pmf$SD_squared_divided)
+View(top_endo_aran_pmf)
 
 #### Tetragnathidae ####
 
-tetra_Bow<-subset_samples(sample_ps, Family=="Tetragnathidae" & Stream_Type=="Bow River")
-
-endo_tetra_Bow<-subset_samples(endo, Family=="Tetragnathidae" & Stream_Type=="Bow River")
-
-endo_tetra_Bow<-prune_taxa(taxa_sums(endo_tetra_Bow) > 0, endo_tetra_Bow) 
-sort((table(tax_table(endo_tetra_Bow)[,6]))/sum(ntaxa(endo_tetra_Bow))*100)
-#Candidatus cardinium: 3.85, Rickettsia: 15.4, Spiroplasma: 42.3, Wolbachia: 38.5
-sum(sample_sums(endo_tetra_Bow))/sum(sample_sums(tetra_Bow))*100
-#90.7% 
-
+tetra<-subset_samples(sample_ps, Family=="Tetragnathidae")
 
 #Cochrane 
-endo_tetra_Bow_coch<-subset_samples(endo_tetra_Bow, Site=="Cochrane")
-endo_tetra_Bow_coch<-prune_taxa(taxa_sums(endo_tetra_Bow_coch) > 0, endo_tetra_Bow_coch) 
-sort((table(tax_table(endo_tetra_Bow_coch)[,6]))/sum(ntaxa(endo_tetra_Bow_coch))*100)
-#Rickettsia: 26.7, spiroplasma: 46.7, Wolbachia:26.7
-sum(sample_sums(endo_tetra_Bow_coch))/sum(sample_sums(tetra_Bow))*100
-#17.1 % of total
+tetra_coch<-subset_samples(tetra, Site=="Cochrane")
+
+tetra_coch_glom = tax_glom(tetra_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+tetra_coch_glom<-prune_taxa(taxa_sums(tetra_coch_glom) > 0, tetra_coch_glom)
+
+tetra_coch_genus <- psmelt(tetra_coch_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+coch_endo_tetra<- tetra_coch_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+coch_endo_tetra$SD_squared ='^'(coch_endo_tetra$SD,2)
+coch_endo_tetra$SD_squared_divided =(coch_endo_tetra$SD_squared/8) 
+  
+top_means_endo_tetra_coch<-aggregate(Mean ~ Genus, data = coch_endo_tetra, FUN = sum)
+top_SD_endo_tetra_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_endo_tetra, FUN = sum)
+
+top_endo_tetra_coch<-merge(top_means_endo_tetra_coch, top_SD_endo_tetra_coch, by=c("Genus"))
+top_endo_tetra_coch$SD_Final<-sqrt(top_endo_tetra_coch$SD_squared_divided)
+View(top_endo_tetra_coch)
 
 #Sunalta
-endo_aran_Bow_sun<-subset_samples(endo_aran_Bow, Site=="Sunalta")
-endo_aran_Bow_sun<-prune_taxa(taxa_sums(endo_aran_Bow_sun) > 0, endo_aran_Bow_sun) 
-sort((table(tax_table(endo_aran_Bow_sun)[,6]))/sum(ntaxa(endo_aran_Bow_sun))*100)
-#Rickettsia: 16.7, Spiroplasma: 16.7, Wolbachia: 66.7
-sum(sample_sums(endo_aran_Bow_sun))/sum(sample_sums(aran_Bow))*100
-#0.027 % of total
+tetra_sun<-subset_samples(tetra, Site=="Sunalta")
+
+tetra_sun_glom = tax_glom(tetra_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+tetra_sun_glom<-prune_taxa(taxa_sums(tetra_sun_glom) > 0, tetra_sun_glom)
+
+tetra_sun_genus <- psmelt(tetra_sun_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+sun_endo_tetra<- tetra_sun_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+sun_endo_tetra$SD_squared ='^'(sun_endo_tetra$SD,2)
+sun_endo_tetra$SD_squared_divided =(sun_endo_tetra$SD_squared/8) 
+  
+top_means_endo_tetra_sun<-aggregate(Mean ~ Genus, data = sun_endo_tetra, FUN = sum)
+top_SD_endo_tetra_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_tetra, FUN = sum)
+
+top_endo_tetra_sun<-merge(top_means_endo_tetra_sun, top_SD_endo_tetra_sun, by=c("Genus"))
+top_endo_tetra_sun$SD_Final<-sqrt(top_endo_tetra_sun$SD_squared_divided)
+View(top_endo_tetra_sun)
 
 #Cushing Bridge
-endo_aran_Bow_cush<-subset_samples(endo_aran_Bow, Site=="Cushing Bridge")
-endo_aran_Bow_cush<-prune_taxa(taxa_sums(endo_aran_Bow_cush) > 0, endo_aran_Bow_cush) 
-sort((table(tax_table(endo_aran_Bow_cush)[,6]))/sum(ntaxa(endo_aran_Bow_cush))*100)
-#Rickettsia: 25%, spiroplasma: 25, wolbachia: 50
-sum(sample_sums(endo_aran_Bow_cush))/sum(sample_sums(aran_Bow))*100
-#0.035 % of total
+tetra_cush<-subset_samples(tetra, Site=="Cushing Bridge")
+
+tetra_cush_glom = tax_glom(tetra_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+tetra_cush_glom<-prune_taxa(taxa_sums(tetra_cush_glom) > 0, tetra_cush_glom)
+
+tetra_cush_genus <- psmelt(tetra_cush_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+cush_endo_tetra<- tetra_cush_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+cush_endo_tetra$SD_squared ='^'(cush_endo_tetra$SD,2)
+cush_endo_tetra$SD_squared_divided =(cush_endo_tetra$SD_squared/8) 
+  
+top_means_endo_tetra_cush<-aggregate(Mean ~ Genus, data = cush_endo_tetra, FUN = sum)
+top_SD_endo_tetra_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_tetra, FUN = sum)
+
+top_endo_tetra_cush<-merge(top_means_endo_tetra_cush, top_SD_endo_tetra_cush, by=c("Genus"))
+top_endo_tetra_cush$SD_Final<-sqrt(top_endo_tetra_cush$SD_squared_divided)
+View(top_endo_tetra_cush)
+
 
 #Graves Bridge
-endo_aran_Bow_grv<-subset_samples(endo_aran_Bow, Site=="Graves Bridge")
-endo_aran_Bow_grv<-prune_taxa(taxa_sums(endo_aran_Bow_grv) > 0, endo_aran_Bow_grv) 
-sort((table(tax_table(endo_aran_Bow_grv)[,6]))/sum(ntaxa(endo_aran_Bow_grv))*100)
-#Rickettsia: 11.11%, spiroplasma: 44.44, wolbachia: 44.44
-sum(sample_sums(endo_aran_Bow_grv))/sum(sample_sums(aran_Bow))*100
-#0.066 % of total
+tetra_grvbr<-subset_samples(tetra, Site=="Graves Bridge")
+
+tetra_grvbr_glom = tax_glom(tetra_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+tetra_grvbr_glom<-prune_taxa(taxa_sums(tetra_grvbr_glom) > 0, tetra_grvbr_glom)
+
+tetra_grvbr_genus <- psmelt(tetra_grvbr_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+grvbr_endo_tetra<- tetra_grvbr_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+grvbr_endo_tetra$SD_squared ='^'(grvbr_endo_tetra$SD,2)
+grvbr_endo_tetra$SD_squared_divided =(grvbr_endo_tetra$SD_squared/8) 
+  
+top_means_endo_tetra_grvbr<-aggregate(Mean ~ Genus, data = grvbr_endo_tetra, FUN = sum)
+top_SD_endo_tetra_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_endo_tetra, FUN = sum)
+
+top_endo_tetra_grvbr<-merge(top_means_endo_tetra_grvbr, top_SD_endo_tetra_grvbr, by=c("Genus"))
+top_endo_tetra_grvbr$SD_Final<-sqrt(top_endo_tetra_grvbr$SD_squared_divided)
+View(top_endo_tetra_grvbr)
 
 #Policeman Flats
+tetra_pmf<-subset_samples(tetra, Site=="Policeman Flats")
 
-endo_aran_Bow_pmf<-subset_samples(endo_aran_Bow, Site=="Policeman Flats")
-endo_aran_Bow_pmf<-prune_taxa(taxa_sums(endo_aran_Bow_pmf) > 0, endo_aran_Bow_pmf) 
-sort((table(tax_table(endo_aran_Bow_pmf)[,6]))/sum(ntaxa(endo_aran_Bow_pmf))*100)
-#Rickettsia: 30, spiroplasma 50, wolbachia: 20
-sum(sample_sums(endo_aran_Bow_pmf))/sum(sample_sums(aran_Bow))*100
-#0.19 % of total
+tetra_pmf_glom = tax_glom(tetra_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+tetra_pmf_glom<-prune_taxa(taxa_sums(tetra_pmf_glom) > 0, tetra_pmf_glom)
+
+tetra_pmf_genus <- psmelt(tetra_pmf_glom) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+
+pmf_endo_tetra<- tetra_pmf_genus %>%
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+
+pmf_endo_tetra$SD_squared ='^'(pmf_endo_tetra$SD,2)
+pmf_endo_tetra$SD_squared_divided =(pmf_endo_tetra$SD_squared/8) 
+  
+top_means_endo_tetra_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_tetra, FUN = sum)
+top_SD_endo_tetra_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_tetra, FUN = sum)
+
+top_endo_tetra_pmf<-merge(top_means_endo_tetra_pmf, top_SD_endo_tetra_pmf, by=c("Genus"))
+top_endo_tetra_pmf$SD_Final<-sqrt(top_endo_tetra_pmf$SD_squared_divided)
+View(top_endo_tetra_pmf)
 
 #### Plotting all taxa faceted ####
 
@@ -9894,7 +10427,7 @@ endo_Bow<-prune_taxa(taxa_sums(endo_Bow) > 0, endo_Bow)
 sort((table(tax_table(endo_Bow)[,6]))/sum(ntaxa(endo_Bow))*100)
 #Buchnera: 3.23%, Candidatus Cardinium: 3.23%, Rickettsia: 25.8%, Wolbachia: 32.3%, Spiroplasma: 35.5%
 sum(sample_sums(endo_Bow))/sum(sample_sums(Bow_ps))*100
-#Endosymbionts comprise 33.5% of the total microbiome in the Bow River (across all invertebrate types)
+#Endosymbionts comprise 37.1% of the total microbiome in the Bow River (across all invertebrate types)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
@@ -9962,7 +10495,7 @@ endo_ACWA<-prune_taxa(taxa_sums(endo_ACWA) > 0, endo_ACWA)
 sort((table(tax_table(endo_ACWA)[,6]))/sum(ntaxa(endo_ACWA))*100)
 #Rickettsia: 50, Wolbachia: 50
 sum(sample_sums(endo_ACWA))/sum(sample_sums(ACWA_ps))*100
-#Endosymbionts comprise 0.009% of the total microbiome in the Bow River (across all invertebrate types)
+#Endosymbionts comprise 0.009% of the total microbiome within ACWA streams (across all invertebrate types)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
@@ -9981,14 +10514,18 @@ sort_genus_ACWA <- ACWA_agg %>%
     arrange()
 sort_genus_ACWA
 
-endosymbionts_ACWA <- sort_genus_ACWA$Genus[c(190:192, 235:237, 1141:1143, 1246:1248, 1408:1410)]
+endosymbionts_ACWA <- sort_genus_ACWA$Genus[c(1141:1143, 1408:1410)]
+#Rickettsia              #Wolbachia 
+#BRR2: 0.0000345 %       #BRR2: 0 %
+#PCR1: 0.0000680 %       #PCR1: 0.0000547 %
+#PCR3: 0.000258 %        #PCR3: 0.0000229 %
   
 endo_df_ACWA <- ACWA_agg %>%
     mutate(Genus = fct_other(Genus, endosymbionts_ACWA))
 
 endo_agg_df_ACWA<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = endo_df_ACWA, FUN = sum)
 
-endo_agg_df_ACWA$Genus<-factor(endo_agg_df_ACWA$Genus, levels=c("Other", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"), labels=c("Non-endosymbionts", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"))
+endo_agg_df_ACWA$Genus<-factor(endo_agg_df_ACWA$Genus, levels=c("Other", "Rickettsia", "Wolbachia"), labels=c("Non-endosymbionts", "Rickettsia", "Wolbachia"))
 
 endo_agg_df_ACWA$Site_code <- factor(endo_agg_df_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
 
@@ -10008,7 +10545,7 @@ endo_plot_ACWA <- ggplot(endo_agg_df_ACWA, aes(x=Site_code, y=Abundance, fill=Ge
         axis.text.y=element_text(size=24, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
                         axis.title.x=element_text(size=30))+
-  scale_fill_manual(name="Genus", values=c("honeydew4", "tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
+  scale_fill_manual(name="Genus", values=c("honeydew4", "skyblue1","lightpink1"))+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
@@ -10019,8 +10556,10 @@ endo_plot_ACWA
 
 ```
 
-```{r Endosymbiont Analysis}
-#### Filtering for endosymbiont bacteria ####
+### Graphing Endosymbiont relative abundance across sites and taxa
+```{r}
+
+## Filtering for endosymbiont bacteria ##
 tax_select(sample_ps, tax_list="Buchnera") #1 taxa.
 tax_select(sample_ps, tax_list="Candidatus Cardinium") #1 taxa
 tax_select(sample_ps, tax_list="Rickettsia") #58 taxa. 
@@ -10029,63 +10568,18 @@ tax_select(sample_ps, tax_list="Wolbachia") #10 taxa.
 tax_select(sample_ps, tax_list="Spiroplasma") #11 taxa 
 tax_select(sample_ps, tax_list="Hamiltonella") #none matched
 tax_select(sample_ps, tax_list="Arsenophonus") #none matched
-tax_select(sample_ps, tax_list="Diplorickettsia") #1 taxa
-tax_select(sample_ps, tax_list="Arsenophonus") #no taxa matched
 
-
-endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia")
+endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma")
 endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
 endo #31 taxa 
 
-#Bow River
+#### Bow River ####
 
-Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-
-endo_Bow<-subset_taxa(Bow_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Hamiltonella" | Genus=="Rickettsia" | Genus=="Rickettsiella" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Arsenophonus"| Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella")
-
+endo_Bow<-subset_taxa(Bow_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma")
 endo_Bow<-prune_taxa(taxa_sums(endo_Bow) > 0, endo_Bow) 
-endo_Bow #31 taxa, 284 samples
+endo_Bow #31 taxa, 280 samples
 
-#Cochrane
-endo_coch<-subset_samples(endo_Bow, Site=="Cochrane")
-endo_coch<-prune_taxa(taxa_sums(endo_coch) > 0, endo_coch) 
-endo_coch #23 taxa, 67 samples
-
-sort((table(tax_table(endo_coch)[,6]))/sum(ntaxa(endo_coch))*100)
-
-
-#Sunalta
-endo_sun<-subset_samples(endo_Bow, Site=="Sunalta")
-endo_sun<-prune_taxa(taxa_sums(endo_sun) > 0, endo_sun) 
-endo_sun #23 taxa, 47 samples
-#33/47 = 70.2%
-
-sort((table(tax_table(endo_sun)[,6]))/sum(ntaxa(endo_sun))*100)
-
-#Cushing Bridge
-endo_cush<-subset_samples(endo_Bow, Site=="Cushing Bridge")
-endo_cush<-prune_taxa(taxa_sums(endo_cush) > 0, endo_cush) 
-endo_cush #18 taxa, 63 samples
-#40/63 = 63.5
-
-sort((table(tax_table(endo_cush)[,6]))/sum(ntaxa(endo_cush))*100)
-
-#Graves Bridge
-endo_grv<-subset_samples(endo_Bow, Site=="Graves Bridge")
-endo_grv<-prune_taxa(taxa_sums(endo_grv) > 0, endo_grv) 
-endo_grv #21 taxa, 47 samples
-#25/47=53.2%
-
-sort((table(tax_table(endo_grv)[,6]))/sum(ntaxa(endo_grv))*100)
-
-#Policeman Flats
-endo_pmf<-subset_samples(endo_Bow, Site=="Policeman Flats")
-endo_pmf<-prune_taxa(taxa_sums(endo_pmf) > 0, endo_pmf) 
-endo_pmf #20 taxa, 58 samples
-#23/58=39.7%
-
-sort((table(tax_table(endo_pmf)[,6]))/sum(ntaxa(endo_pmf))*100)
-
+## All samples plotted separately faceted by invert taxa and site ##
 
 endo_agglom_Bow_all <- speedyseq::tax_glom(endo_Bow, taxrank = "Genus")
 endo_rel_abun_Bow_all<- transform_sample_counts(endo_agglom_Bow_all, function(x) x/sum(x))
@@ -10093,9 +10587,9 @@ endo_df_Bow_all <- psmelt(endo_rel_abun_Bow_all)
 sample.df.agg.endo_phy_Bow_all <- aggregate(Abundance ~ Genus + Site_code + sample_Family+Sample_ID, data = endo_df_Bow_all, FUN = mean)
 
 #Faceted by site and invert family. Hard to see because there's not much going on.
-ggplot(sample.df.agg.endo_phy_Bow_all, aes(x=Sample_ID , y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
-  ylab("Mean relative abundance") +
-  facet_wrap(vars(Site_code, sample_Family), scales = "free")+
+ggplot(sample.df.agg.endo_phy_Bow_all, aes(x=Sample_ID , y=Abundance, fill=Genus, label=Sample_ID)) + geom_bar(stat="identity", color="black") + 
+  ylab("Mean relative abundance of endosymbionts") +
+  facet_nested_wrap(~Site_code + sample_Family, scales = "free", nrow=4, ncol=8)+
   theme(strip.text = element_text(size = 8, color="black")) + 
   theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
         legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8)) +
@@ -10106,19 +10600,20 @@ ggplot(sample.df.agg.endo_phy_Bow_all, aes(x=Sample_ID , y=Abundance, fill=Genus
         #axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Bacterial Genus", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
+  scale_fill_manual(name="Genus", values=c("tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
   rremove("grid")
 
+## Faceted by average relative abundance per invert taxa and site ##
 
-sample.df.agg.endo_phy_Bow_site <- aggregate(Abundance ~ Genus + Site_code +Stage, data = endo_df_Bow_all, FUN = mean)
+sample.df.agg.endo_phy_Bow_site <- aggregate(Abundance ~ Genus + Site_code + Stage + sample_Family, data = endo_df_Bow_all, FUN = mean)
 
+sample.df.agg.endo_phy_Bow_site$sample_Family<-factor(sample.df.agg.endo_phy_Bow_site$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
-#Just faceted by site and life stage
-Bow_endoplot<-ggplot(sample.df.agg.endo_phy_Bow_site, aes(x=Site_code , y=Abundance, fill=Genus)) + geom_bar(stat="identity", color="black") + 
+ggplot(sample.df.agg.endo_phy_Bow_site, aes(x=Site_code , y=Abundance, fill=Genus)) + geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
   theme_bw()+
   rremove("grid")+
-  facet_grid(~Stage, scales = "free_x")+
+  facet_nested_wrap(~Stage + sample_Family, scales = "free_x", nrow=1)+
   theme(strip.text = element_text(size = 8, color="black")) + 
   theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
         legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8)) +
@@ -10128,187 +10623,36 @@ Bow_endoplot<-ggplot(sample.df.agg.endo_phy_Bow_site, aes(x=Site_code , y=Abunda
         axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Genus", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
+  scale_fill_manual(name="Genus", values=c("tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
   xlab("Site")
 
 
-endoplot<-ggarrange(Bow_endoplot, ACWA_endoplot, nrow=2, ncol=1, common.legend = TRUE, legend="bottom")
-
-annotate_figure(endoplot, left = textGrob("Mean Relative Abundance", rot = 90, vjust = 1, gp = gpar(cex = 1.5)))
 
 #ggsave(filename="Microbiome_ED/Final analysis/Relative abundance/Endosymbionts/Bow River and ACWA stream endosymbionts.png", height=6, width=5, bg="white")
 
 
-# Bow River insects
-
-endo_Bow_insects<-subset_samples(endo, Stream_Type=="Bow River" & Order!="Araneae")
-
-endo_agglom_Bow <- speedyseq::tax_glom(endo_Bow_insects, taxrank = "Genus")
-endo_rel_abun_Bow<- transform_sample_counts(endo_agglom_Bow, function(x) x/sum(x))
-endo_df_Bow <- psmelt(endo_rel_abun_Bow)
-sample.df.agg.endo_phy_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Sample_ID, data = endo_df_Bow, FUN = mean)
-
-#Endosymbiont genera
-ggplot(sample.df.agg.endo_phy_Bow, aes(x=Sample_ID , y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
-  ylab("Mean relative abundance") +
-  facet_nested_wrap(~Site_code+ sample_Family, scales = "free")+
-  theme(strip.text = element_text(size = 8, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8)) +
-  guides(fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=8),
-        axis.text.y=element_text(size=8),
-        axis.text.x=element_blank(),
-        #axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Bacterial Genus", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
-  rremove("grid")
-
-#ggsave(filename="Microbiome_ED/Final analysis/Relative abundance/Endosymbionts/Relative abundance of endosymbionts across taxa type and Bow River sites.png", height=8, width=16)
-
-
-#Bow River spiders
-#Cochrane araneidae 
-coch_aran_endo<-subset_samples(endo_Bow_spiders, Site=="Cochrane" & Family=="Araneidae")
-sum(sample_sums(coch_aran_endo)) #134,417
-ntaxa(coch_aran_endo) #27
-
-sun_aran_endo<-subset_samples(endo_Bow_spiders, Site=="Sunalta" & Family=="Araneidae")
-sum(sample_sums(sun_aran_endo)) #362
-ntaxa(sun_aran_endo) #27
-
-cushbr_aran_endo<-subset_samples(endo_Bow_spiders, Site=="Cushing Bridge" & Family=="Araneidae")
-sum(sample_sums(cushbr_aran_endo)) #482
-ntaxa(cushbr_aran_endo)
-
-grvbr_aran_endo<-subset_samples(endo_Bow_spiders, Site=="Graves Bridge" & Family=="Araneidae")
-sum(sample_sums(grvbr_aran_endo)) #895
-
-pmf_aran_endo<-subset_samples(endo_Bow_spiders, Site=="Policeman Flats" & Family=="Araneidae")
-sum(sample_sums(pmf_aran_endo)) #2583
-
-endo_Bow_spiders<-subset_samples(endo_Bow, Stream_Type=="Bow River" & Order=="Araneae")
-endo_Bow_spiders<-prune_taxa(taxa_sums(endo_Bow_spiders)>0, endo_Bow_spiders)
-
-endo_agglom_spi <- speedyseq::tax_glom(endo_Bow_spiders, taxrank = "Genus")
-endo_rel_abun_spi<- transform_sample_counts(endo_agglom_spi, function(x) x/sum(x))
-endo_df_spi <- psmelt(endo_rel_abun_spi)
-sample.df.agg.endo_phy_spi <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Sample_ID, data = endo_df_spi, FUN = mean)
-
-#Endosymbiont genera
-ggplot(sample.df.agg.endo_phy_spi, aes(x=Sample_ID , y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
-  ylab("Mean relative abundance") +
-  facet_wrap(vars(Site_code, sample_Family), scales = "free")+
-  theme(strip.text = element_text(size = 8, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8)) +
-  guides(fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=8),
-        axis.text.y=element_text(size=8),
-        axis.text.x=element_blank(),
-        #axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Bacterial Genus", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
-  rremove("grid")+
-  facet_nested_wrap(~Site_code + sample_Family, nrow=3, scales="free")
-
-
-
-#Tetragnathidae
-tetraendo<-subset_samples(endo, Family=="Tetragnathidae")
-tetraendo<-prune_taxa(taxa_sums(tetraendo) > 0, tetraendo)
-tetraendo #25 taxa, 40 samples
-
-tetraagglom<-speedyseq::tax_glom(tetraendo, taxrank = "Genus")
-tetraendo_rel_abun<- transform_sample_counts(tetraagglom, function(x) x/sum(x))
-tetraendo_df <- psmelt(tetraendo_rel_abun)
-sample.df.agg.tetraendo <- aggregate(Abundance ~ Phylum + Family+ Genus + Site  + Order, data = tetraendo_df, FUN = mean)
-
-ggplot(sample.df.agg.tetraendo, aes(x=Site, y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
-  ylab("Mean relative abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=16),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Bacterial Phylum", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
-  rremove("grid")
-#Wolbachia is low at Cochrane and increases at Sunalta. Policeman Flats has increase in spiroplasma relative to other sites
-
-#Araneidae
-aranendo<-subset_samples(endo, Family=="Araneidae")
-aranendo<-prune_taxa(taxa_sums(aranendo) > 0, aranendo)
-aranendo #20 taxa, 37 samples
-
-aranagglom<-speedyseq::tax_glom(aranendo, taxrank = "Genus")
-aranendo_rel_abun<- transform_sample_counts(aranagglom, function(x) x/sum(x))
-aranendo_df <- psmelt(aranendo_rel_abun)
-sample.df.agg.aranendo <- aggregate(Abundance ~ Phylum + Family+ Genus + Site  + Order, data = aranendo_df, FUN = mean)
-
-ggplot(sample.df.agg.aranendo, aes(x=Site, y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
-  ylab("Mean relative abundance") +
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=4)) +
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=16),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title=element_text(size=18))+
-  scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Bacterial Phylum", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
-  rremove("grid")
-
-#Sunalta has much lower Wolbachia and increase in Rickettsia. Graves Bridge has presence of Buchnera. Cochrane and Policeman Flats look very similar in endosymbiont composition. 
-
-
-
-#ACWA
-
-ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
+#### ACWA ####
 
 endo_ACWA<-subset_taxa(ACWA_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Hamiltonella" | Genus=="Rickettsia" | Genus=="Rickettsiella" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Arsenophonus"| Genus=="Diplorickettsia")
 
 endo_ACWA<-prune_taxa(taxa_sums(endo_ACWA) > 0, endo_ACWA) 
 endo_ACWA #4 taxa, 55 samples
 
-sort(table(tax_table(endo_ACWA)[,6])) #only Rickettsia and Wolbachia
-
-endo_BRR2<-subset_samples(endo_ACWA, Site=="BRR2")
-endo_BRR2<-prune_taxa(taxa_sums(endo_BRR2) > 0, endo_BRR2) 
-endo_BRR2 #1 taxa
-
-sort((table(tax_table(endo_BRR2)[,6]))/sum(ntaxa(endo_BRR2))*100)
-
-endo_PCR1<-subset_samples(endo_ACWA, Site=="PCR1")
-endo_PCR1<-prune_taxa(taxa_sums(endo_PCR1) > 0, endo_PCR1) 
-endo_PCR1 #4 taxa
-
-sort((table(tax_table(endo_PCR1)[,6]))/sum(ntaxa(endo_PCR1))*100)
-
-endo_PCR3<-subset_samples(endo_ACWA, Site=="PCR3")
-endo_PCR3<-prune_taxa(taxa_sums(endo_PCR3) > 0, endo_PCR3) 
-endo_PCR3 #2 taxa
-
-sort((table(tax_table(endo_PCR3)[,6]))/sum(ntaxa(endo_PCR3))*100)
-
 endo_agglom_ACWA <- speedyseq::tax_glom(endo_ACWA, taxrank = "Genus")
 endo_rel_abun_ACWA<- transform_sample_counts(endo_agglom_ACWA, function(x) x/sum(x))
 endo_df_ACWA <- psmelt(endo_rel_abun_ACWA)
-sample.df.agg.endo_phy_ACWA <- aggregate(Abundance ~ Genus + Site_code + Stage, data = endo_df_ACWA, FUN = mean)
+sample.df.agg.endo_phy_ACWA <- aggregate(Abundance ~ Genus + Site_code + Stage + sample_Family, data = endo_df_ACWA, FUN = mean)
 
-#Endosymbiont genera
-ACWA_endoplot<-ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Site_code , y=Abundance, fill=Genus)) + geom_bar(stat="identity", color="black") + 
+sample.df.agg.endo_phy_ACWA$sample_Family<-factor(sample.df.agg.endo_phy_ACWA$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
+
+sample.df.agg.endo_phy_ACWA$Site_code<-factor(sample.df.agg.endo_phy_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
+
+#Endosymbiont genera across sites and taxa
+ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Site_code , y=Abundance, fill=Genus)) + geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
   xlab("ACWA Stream")+
   theme_bw()+
-  facet_grid(~Stage, scales="free_x")+
+  facet_nested_wrap(~Stage + sample_Family, scales="free_x")+
   #facet_wrap(vars(Stage, Site_code), scales = "free")+
   theme(strip.text = element_text(size = 8, color="black")) + 
   theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
@@ -10319,9 +10663,8 @@ ACWA_endoplot<-ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Site_code , y=Abundance
         axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
                         axis.title=element_text(size=14))+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Genus", values = c("#CBF0A6", "#FEA1B3"))+
+  scale_fill_manual(name="Genus", values = c("skyblue1", "lightpink1"))+
   rremove("grid")
-
 
 
 #ACWA streams
@@ -10334,26 +10677,30 @@ endo_rel_abun_ACWA<- transform_sample_counts(endo_agglom_ACWA, function(x) x/sum
 endo_df_ACWA <- psmelt(endo_rel_abun_ACWA)
 sample.df.agg.endo_phy_ACWA <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Sample_ID, data = endo_df_ACWA, FUN = mean)
 
+sample.df.agg.endo_phy_ACWA$sample_Family<-factor(sample.df.agg.endo_phy_ACWA$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
+
+sample.df.agg.endo_phy_ACWA$Site_code<-factor(sample.df.agg.endo_phy_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
+
 #Endosymbiont genera
 ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
   ylab("Mean relative abundance") +
-  facet_wrap(vars(Site_code, sample_Family), scales = "free")+
+  facet_nested_wrap(~Site_code + sample_Family, scales = "free")+
   theme(strip.text = element_text(size = 8, color="black")) + 
   theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8)) +
+        legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8), axis.text.x = element_blank()) +
   guides(fill=guide_legend(nrow=1)) +
   theme(axis.title.y=element_text(size=8),
         axis.text.y=element_text(size=8),
         axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Bacterial Genus", values = c(brewer.pal(12, "Paired"), "#43464B", "orange", "purple", "violetred2", "blue", "brown", "red"))+
+  scale_fill_manual(name="Genus", values = c("skyblue1", "lightpink1"))+
   rremove("grid")
 
 ```
 
-```{r Statistically testing the difference in endosymbiont relative abundance}
-
+### Statistically testing the difference in endosymbiont relative abundance
+```{r}
 #First transform the endosymbiont phyloseq data to a dataframe as we did with all the rel. abund. data
 
 #Metadata
