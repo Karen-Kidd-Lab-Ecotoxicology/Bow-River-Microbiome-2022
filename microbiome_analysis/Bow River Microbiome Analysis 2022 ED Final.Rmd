@@ -95,6 +95,8 @@ library(DAtest)
 #remotes::install_github("Russel88/MicEco")
 library(MicEco)
 library(readxl)
+library(rdacca.hp) #Used to determine importance of each explanatory variable in RDA
+library(GGally) #Used to plot Spearman correlations
 ```
 
 # Phyloseq object
@@ -4185,17 +4187,115 @@ cyano_ACWA #148 taxa, 55 samples
 
 ## Filtering for the cyanotoxin producing genera (Gugger et al., 2023 ; Millar et al., 2020; Zanchett and Oliveira-Filho, 2013) ##
 
-cyanotox_Bow<-subset_taxa(Bow_ps, Genus=="Dolichospermum" | Genus=="Anabaena" | Genus=="Planktothrix NIVA-CYA 15" | Genus=="Synechocytis" | Genus=="Synechococcus" | Genus=="Microcystis PCC-7914" | Genus=="Aphanizomenon MDT14a" | Genus=="Schizothrix LEGE 07164" | Genus=="Chroococus" | Genus=="Hydrocoleum" | Genus=="Aphanizomenon flos-aquae" | Genus=="Aphanizomenon" | Genus=="Fischerella" | Genus=="Planktothrix" | Genus=="Nostoc" | Genus=="Anabaenopsis" | Genus=="Nodularia" | Genus=="Cylindrospermopsis raciborskii" | Genus=="Aphanizomenon ovalisporum" | Genus=="Aphanizomenon zflos-aquae" | Genus=="Alexandrium" | Genus=="Pyrodinium" | Genus=="Gymnodinium" | Genus=="Lyngbya wollei" | Genus=="Lyngbya")
-cyanotox_Bow<-prune_taxa(taxa_sums(cyanotox_Bow) > 0, cyanotox_Bow)
-cyanotox_Bow #2 taxa, 284 samples
-sort(table(tax_table(cyanotox_Bow)[,6])) #1 genera: Planktothrix NIVA-CYA 15
-
-cyanotox_ACWA<-subset_taxa(ACWA_ps, Genus=="Dolichospermum" | Genus=="Anabaena" | Genus=="Planktothrix NIVA-CYA 15" | Genus=="Synechocytis" | Genus=="Synechococcus" | Genus=="Microcystis PCC-7914" | Genus=="Aphanizomenon MDT14a" | Genus=="Schizothrix LEGE 07164" | Genus=="Chroococus" | Genus=="Hydrocoleum" | Genus=="Aphanizomenon flos-aquae" | Genus=="Aphanizomenon" | Genus=="Fischerella" | Genus=="Planktothrix" | Genus=="Nostoc" | Genus=="Anabaenopsis" | Genus=="Nodularia" | Genus=="Cylindrospermopsis raciborskii" | Genus=="Aphanizomenon ovalisporum" | Genus=="Aphanizomenon zflos-aquae" | Genus=="Alexandrium" | Genus=="Pyrodinium" | Genus=="Gymnodinium" | Genus=="Lyngbya wollei" | Genus=="Lyngbya")
-cyanotox_ACWA<-prune_taxa(taxa_sums(cyanotox_ACWA) > 0, cyanotox_ACWA)
-cyanotox_ACWA #3 taxa, 55 samples
-sort(table(tax_table(cyanotox_ACWA)[,6])) #1 genera: Planktothrix NIVA-CYA 15
-
 #### Bow River only ####
+
+## Family level ##
+
+cyano_fam_Bow <- tax_glom(cyano_Bow, taxrank = "Family")
+cyano_fam_Bow #10 families
+
+rel_abun_cyano_fam_Bow <- transform_sample_counts(cyano_fam_Bow, function(x){x / sum(x)})
+
+cyano_fam_Bow_df <- psmelt(rel_abun_cyano_fam_Bow)
+
+cyano_fam_Bow_agg <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = cyano_fam_Bow_df, FUN = mean) 
+
+
+cyano_fam_Bow_agg$Site_code <- factor(cyano_fam_Bow_agg$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+cyano_fam_Bow_agg$Stage<-factor(cyano_fam_Bow_agg$Stage, levels=c("Larvae", "Adults", "Spiders"))
+
+cyano_fam_Bow_agg$sample_Family<-factor(cyano_fam_Bow_agg$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Chironomidae ", "Araneidae", "Tetragnathidae"))
+
+ggplot(cyano_fam_Bow_agg, aes(x=Site_code, y=Abundance, fill=Family)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage + sample_Family, scales="free_x", nrow=1) +  
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=24, face="italic"), legend.title=element_text(size=24)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria families across taxa and sites.png", height=12, width=26)
+
+## Plotting relative abundance of cyanobacteria compared to total ##
+
+sort(table(tax_table(cyano_Bow)[,5]))
+#Chamaesiphonaceae
+#Chroococcidiopsaceae
+#Cyanobiaceae
+#Leptolyngbyaceae
+#Nostocaceae
+#Obscuribacteraceae
+#Phormidiaceae
+#Pseudanabaenaceae
+#Xenococcaceae
+#Unknown Family
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+Bow_fam <- tax_glom(Bow_ps, taxrank = "Family")
+comp_Bow_fam <- transform_sample_counts(Bow_fam, function(x) x/sum(x))
+
+Bow_fam_df <- psmelt(comp_Bow_fam)
+
+Bow_agg_fam <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = Bow_fam_df, FUN = mean) 
+
+#Sort abundance of each genus by mean at each site
+sort_fam_Bow <- Bow_agg_fam %>%
+    group_by(Family, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+sort_fam_Bow
+
+cyanobacteria_Bow_fam <- sort_fam_Bow$Family[c(211:215, 246:250, 301:305, 626:630, 766:775, 841:845, 876:880, 1131:1135, 1186:1190)]
+  
+cyano_df_Bow_fam <- Bow_agg_fam %>%
+    mutate(Family = fct_other(Family, cyanobacteria_Bow_fam))
+
+cyano_agg_df_Bow_fam<-aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = cyano_df_Bow_fam, FUN = sum)
+
+
+cyano_agg_df_Bow_fam$Site_code <- factor(cyano_agg_df_Bow_fam$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+cyano_agg_df_Bow_fam$sample_Family<-factor(cyano_agg_df_Bow_fam$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+
+cyano_plot_Bow_fam <- ggplot(cyano_agg_df_Bow_fam, aes(x=Site_code, y=Abundance, fill=Family)) +
+  geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.8, "cm"),
+        legend.text=element_text(size=28, face="italic"), legend.title=element_text(size=28), legend.position = "right") +
+  guides(fill=guide_legend(nrow=17)) +
+  theme(axis.title.y=element_text(size=30),
+        axis.text.y=element_text(size=24, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
+                        axis.title.x=element_text(size=30))+
+  scale_fill_manual(name="Family", values=c("dodgerblue2", "#E31A1C","green4","#6A3D9A",  "#FF7F00","gold1","skyblue2", "#FB9A99", "palegreen2", "#CAB2D6", "#808080"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+cyano_plot_Bow_fam
+
+#ggsave(cyano_plot_Bow_fam, filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria composition across sites and taxa Bow only family level.png", height=12, width=26)
+
+
+
+## Genus level ##
 
 cyano_genus_Bow <- tax_glom(cyano_Bow, taxrank = "Genus")
 cyano_genus_Bow #16 genera
@@ -4303,10 +4403,7 @@ cyano_plot_Bow <- ggplot(cyano_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Ge
   rremove("grid")
 cyano_plot_Bow
 
-#Removes all the unclassified cyanobacteria...
-
-
-#ggsave(cyano_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria composition across sites and taxa Bow only.png", height=12, width=26)
+#ggsave(cyano_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria composition across sites and taxa Bow only genus level.png", height=12, width=26)
 
 
 #### ACWA streams only ####
@@ -4603,6 +4700,21 @@ dunnTest(Shannon~Site, data=div.df.Bow.tetra) #No differences across sites
 ### ACWA - Shannon index  (Stats and graph) faceted by taxa and sites
 
 ```{r}
+
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+  if (all(brave)) {                                         # if so
+    b_pos <- purrr::map_int(boulder, ~which(.==src_levels)) # then find out where they are
+    b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+    b_vec[b_pos] <- "bold"                                  # make our targets bold
+    b_vec                                                   # return the new vector
+  } else {
+    stop("All elements of 'boulder' must be in src")
+  }
+}
+
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 
 adiv_ACWA <- data.frame(
@@ -4610,23 +4722,25 @@ adiv_ACWA <- data.frame(
   "Family" = phyloseq::sample_data(ACWA_ps)$Family,
   "Stage" = phyloseq::sample_data(ACWA_ps)$Stage,
   "Site" = phyloseq::sample_data(ACWA_ps)$Site)
-head(adiv_ACWA)
+
+adiv_ACWA$Site<-factor(adiv_ACWA$Site, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
+adiv_ACWA$Family<-factor(adiv_ACWA$Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
 
 #Shannon index
-shan.plot.taxa.ACWA<-ggplot(adiv_ACWA, aes(x=factor(Site, labels=c("REF", "EXP5", "EXP15")), y=Shannon, fill=Site))+
-  facet_nested_wrap(~Stage+ factor(Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera")), scales= "free_x", nrow=1)+
+shan.plot.taxa.ACWA<-ggplot(adiv_ACWA, aes(x=Site, y=Shannon, fill=Site))+
+  facet_nested_wrap(~ Stage + Family, scales= "free_x", nrow=1)+
   geom_boxplot() +
   labs(x = "Site", y = "Shannon Diversity") +
   theme_bw()+
-  theme(legend.position="none", axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-        strip.text.x = element_text(size=20), 
-        axis.text.y = element_text(size=16, color="black"), axis.title.x = element_text(size=18), axis.title.y = element_text(size=18))+
+  theme(legend.position="none", axis.text.x=element_text(angle=45, hjust=1, size=22, color="black", face=colorado(adiv_ACWA$Site, c("EFF5", "EFF15"))),
+        strip.text.x = element_text(size=22), 
+        axis.text.y = element_text(size=22, color="black"), axis.title.x = element_text(size=24), axis.title.y = element_text(size=24))+
   rremove("grid")+
   scale_fill_manual(values=c("#7E8071", "#EDBC81", "#A76B56"))
 
 shan.plot.taxa.ACWA
 
-#ggsave(filename="Microbiome_ED/Final analysis/Alpha Diversity Graphs/Non rarefied shannon diversity ACWA.png", height=12, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Alpha Diversity Graphs/Non rarefied Shannon diversity ACWA.png", height=12, width=16)
 
 
                                     ### Statistical tests ###
@@ -4643,27 +4757,38 @@ kruskal.test(Shannon~Stage, data=adiv_ACWA) #p<0.001
 #Significant difference in Shannon index btw larvae and adults 
 
 #Diff btw families
-kruskal.test(Shannon~Family, data=adiv_ACWA)#p<0.001
+kruskal.test(Shannon~Family, data=adiv_ACWA)#p<0.001, chi-sq: 37.0
 dunnTest(Shannon~Family, data=adiv_ACWA) #All diff from each other
 
 #Hydropsychidae
 hydro_ACWA<-subset(adiv_ACWA, Family=="Hydropsychidae")
+
+hydro_ACWA %>%
+  summarize(mean = mean(Shannon), sd = sd(Shannon))
+
+
 shapiro.test(hydro_ACWA$Shannon) # normal
 leveneTest(data=hydro_ACWA, Shannon~Site) #0.197. homogeneity
 #Use ANOVA
-summary(hydro_ACWA_aov<-aov(data=hydro_ACWA, Shannon~Site)) #0.313 no diff
+summary(hydro_ACWA_aov<-aov(data=hydro_ACWA, Shannon~Site)) #P = 0.278, ANOVA F(2,21)=1.36
 #No difference between streams
 
 #Baetidae
 baetid_ACWA<-subset(adiv_ACWA, Family=="Baetidae")
-shapiro.test(baetid_ACWA$Shannon) # normal
-leveneTest(data=baetid_ACWA, Shannon~Site) #0.683. homogeneity
+baetid_ACWA %>%
+  summarize(mean = mean(Shannon), sd = sd(Shannon))
+
+shapiro.test(baetid_ACWA$Shannon) # normal p =0.096
+leveneTest(data=baetid_ACWA, Shannon~Site) #0.602. homogeneity
 #Use t test
-t.test(data=baetid_ACWA, Shannon~Site) #p=0.791
+t.test(data=baetid_ACWA, Shannon~Site) #p=0.795, t = -0.265, df=12.1
 #No difference between streams
 
 #Ephemeroptera
 ephem_ACWA<-subset(adiv_ACWA, Family=="Ephemeroptera")
+ephem_ACWA %>%
+  summarize(mean = mean(Shannon), sd = sd(Shannon))
+
 shapiro.test(ephem_ACWA$Shannon) #Not normal
 #Use Wilcoxon test
 wilcox.test(data=ephem_ACWA, Shannon~Site) # W = 19, p = 0.195
@@ -5059,7 +5184,7 @@ Transforming the data to proportions (relative abundance) is the best method of 
 blank_ps<-subset_samples(ps, Sample_Type=="Blank")
 
 exp_bl_ps<-merge_phyloseq(blank_ps, sample_ps)
-nsamples(exp_bl_ps) #362 (339 samples, 23 blanks)
+nsamples(exp_bl_ps) #358 (335 samples, 23 blanks)
 
 #Ordinating blanks with experimental samples to see how closely related they are
 
@@ -5078,34 +5203,39 @@ plot_ordination(ps_rel_abun, ordination_all, shape="Blank_collection_method", co
  
 set.seed(1)
 ord_NMDS_blanks = ordinate(ps_rel_abun, method="NMDS", distance=dist_all)
-ord_NMDS_blanks #stress=0.213
+ord_NMDS_blanks #stress=0.206
 
 
-blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks, color="Sample_Type", shape="Blank_Type") + 
+blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks) + 
+  geom_point(aes(colour=factor(Sample_Type), shape=factor(Blank_Type)), size=2)+
   theme_classic() +
   theme(strip.background = element_blank())+
-  theme(legend.key.size = unit(0.5, 'cm'), 
-        legend.title = element_text(size=10), 
-        legend.text = element_text(size=8), 
-        legend.position = "bottom")+
+  theme(legend.key.size = unit(1, 'cm'), 
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=16),
+        axis.text.x = element_text(size=18, color="black"),
+        axis.text.y = element_text(size=18, color="black"),
+        axis.title = element_text(size=20, color="black"),
+        legend.position = "right")+
+  guides(nrow=10)+
   scale_shape_manual(name="Blank type", values=c(1:7))+
-  scale_color_manual(name="Sample type", values=c("red", "blue"))
+  scale_colour_manual(name="Sample type", values=c("red", "blue"))
 
 newtab$Blank_Type <- factor(newtab$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Floating emergence trap","Buffer tube","DNA extraction reagent","Nested PCR negative"))
 blank_nmds$Blank_Type <- newtab
 print(blank_nmds)
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/blank and experimental samples.png", height=10, width=12)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples.png", height=10, width=12)
 
 metadata_blanks <- data.frame(sample_data(ps_rel_abun))
 
 adonis.blanks <- adonis2(dist_all ~ Sample_Type, data = metadata_blanks)
 adonis.blanks #p<0.001. Significant dissimilarity between blank samples and invertebrate samples
-#F(1, 360) = 6.91, P < 0.001
+#F(1, 356) = 4.73, P < 0.001
 
 #Testing variance (beta dispersion) differences between samples and blanks:
 bd_blanks<-betadisper(dist_all, metadata_blanks$Sample_Type)
-anova(bd_blanks) #Sig. dispersion F(1,360) = 17.7, p<0.001
+anova(bd_blanks) #Sig. dispersion F(1,356) = 58.0, p<0.001
 
 ## Separating out respective blanks for each sample type ##
 
@@ -5144,7 +5274,7 @@ emerg_trap_ps<-subset_samples(ps_rel_abun, Blank_collection_method=="Mesh")
 emerg_trap_bray<-phyloseq::distance(emerg_trap_ps, method="bray")
 metadata_emerg_trap<-data.frame(sample_data(emerg_trap_ps))
 adonis.blank.emerg_trap<-adonis2(emerg_trap_bray ~ Sample_Type, data = metadata_emerg_trap)
-adonis.blank.emerg_trap #p=0.043 sig. diff. 
+adonis.blank.emerg_trap #p=0.041 sig. diff. 
 
 bd_emerg_trap<-betadisper(emerg_trap_bray, metadata_emerg_trap$Sample_Type)
 anova(bd_emerg_trap) #no sig. dispersion
@@ -5162,12 +5292,27 @@ anova(bd_blanks_type) #Sig. dispersion
 ```
 
 ## Experimental samples {.tabset}
-
 ### Non-rarefied 
 
 #### Bow River 
 ```{r}
+
+#### Redundancy analysis (RDA) ####
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+Bow_ps_rel_abun<-transform_sample_counts(Bow_ps, function(x) x/sum(x)) #Transform Bow microbiome data to relative abundance
+Bow_bray<-phyloseq::distance(Bow_ps_rel_abun, method="bray") #convert to distance matrix
+
+t_otu_Bow_all <- t(abundances(Bow_bray)) #transpose distance matrix
+metadata_Bow_all <- meta(Bow_ps_rel_abun) #get sample data
+predictors_Bow<-metadata_Bow_all[,c(2,9)] #Select site and invertebrate columns to use as factors
+
+rdacca.hp(t_otu_Bow_all, predictors_Bow, method="RDA", type = "adjR2") #Run the RDA to see the percent explained by each factor
+#Total variation explained: 0.301%
+#Site explains 8.50% of the total variance explained whereas Family explained 91.5% of the total variation explained
+
 #### Beta Diversity Graphs + PERMANOVA ####
+
 #Normalize the filtered data by relative abundance 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 Bow_rel_abun  = transform_sample_counts(Bow_ps, function(x) x/sum(x)) 
@@ -5207,7 +5352,7 @@ plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") +
 # NMDS 
 set.seed(1)
 ord_NMDS_Bow = ordinate(Bow_rel_abun, method="NMDS", distance=Bow_bray)
-ord_NMDS_Bow #Stress=0.197
+ord_NMDS_Bow #Stress=0.204
 
 plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
   theme_classic() +
@@ -5220,9 +5365,9 @@ plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Fa
         axis.title = element_text(size=18, color="black"),
         legend.position = "right")+
   guides(color=guide_legend(title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  ylim(-0.5, 0.5)+
-  xlim(-0.5, 0.5)
+  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))
+ # ylim(-0.5, 0.5)+
+  #xlim(-0.5, 0.5)
 
 newtab1 = data.table(plotNMDS1$data)
 newtab1$Family <- ordered(newtab1$Family,
@@ -5230,7 +5375,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 plotNMDS1$data <- newtab1
 print(plotNMDS1)
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites Bow only relative abundance normalized.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS all data Bow only relative abundance.png", height=10, width=14)
 
 #Ellipses by taxa
 plotNMDStaxa<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shape="Site") + 
@@ -5245,9 +5390,9 @@ plotNMDStaxa<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shap
         legend.position = "right")+
   guides(color=guide_legend(title="Invertebrate Taxa")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  stat_ellipse(type="norm", alpha=1, aes(group=Family, color=Family))+
-  ylim(-0.5, 0.5)+
-  xlim(-0.5, 0.5)
+  stat_ellipse(type="norm", alpha=1, aes(group=Family, color=Family))
+  #ylim(-0.5, 0.5)+
+  #xlim(-0.5, 0.5)
 
 newtabtaxa = data.table(plotNMDStaxa$data)
 newtabtaxa$Family <- ordered(newtabtaxa$Family,
@@ -5271,9 +5416,9 @@ plotNMDSsite<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shap
         legend.position = "right")+
   guides(color=guide_legend(title="Invertebrate Taxa")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  stat_ellipse(type="norm", alpha=1, aes(group=Site))+
-   ylim(-0.5, 0.5)+
-  xlim(-0.5, 0.5)
+  stat_ellipse(type="norm", alpha=1, aes(group=Site))
+   #ylim(-0.5, 0.5)+
+  #xlim(-0.5, 0.5)
 
 newtabtaxa = data.table(plotNMDSsite$data)
 newtabtaxa$Family <- ordered(newtabtaxa$Family,
@@ -5309,7 +5454,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 p$data <- newtab
 print(p)
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS across Bow River invertebrates and sites.png", height=10, width=20)
+#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS across Bow River invertebrates and sites faceted.png", height=10, width=20)
 
 #Faceted by site
 p1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family") + 
@@ -5336,49 +5481,61 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 p1$data <- newtab2
 print(p1)
 
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa Bow only.png", height=10, width=16)
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa non-rarefied Bow only.png", height=10, width=16)
 
+# Faceted by site with spiders removed to see if it changes the graphs #
+Bow_rel_abun_no_spi<-subset_samples(Bow_rel_abun, Order!="Araneae")
+Bow_bray_no_spi<-phyloseq::distance(Bow_rel_abun_no_spi, method="bray") 
 
-#Faceted by life stage (Larvae, Adults, Spiders)
-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
+set.seed(1)
+ord_NMDS_Bow_no_spi = ordinate(Bow_rel_abun_no_spi, method="NMDS", distance=Bow_bray_no_spi)
+ord_NMDS_Bow_no_spi #Stress=0.174
+
+#Faceted by site
+p1_no_spi<-plot_ordination(Bow_rel_abun_no_spi, ord_NMDS_Bow_no_spi, color = "Family") + 
   theme_classic() +
   geom_point(size=2)+
-  facet_grid(~Stage, scales="free")+
+  facet_grid(~Site, scales="free")+
   theme_bw()+
   rremove("grid")+
   theme(legend.key.size = unit(0.7, 'cm'), 
-        legend.title = element_text(size=14), 
-        legend.text = element_text(size=12), 
-        legend.position = "right")+
-  stat_ellipse()
+        legend.title = element_text(size=20), 
+        legend.text = element_text(size=20), 
+        legend.position = "bottom", 
+        axis.text=element_text(size=18, color="black", angle=90, hjust=1, vjust=1),
+        axis.title = element_text(size=18, color="black"),
+        strip.text.x = element_text(size=20))+
+  stat_ellipse(linetype=1, type="norm")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE, title="Invertebrate Taxa")) +
+  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))
+ 
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites faceted by life stage rarefied Bow only.png", height=8, width=16)
+newtab2_no_spi = data.table(p1_no_spi$data)
+newtab2_no_spi$Family <- ordered(newtab2_no_spi$Family,
+levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Diptera", "Araneidae", "Tetragnathidae"))
+p1_no_spi$data <- newtab2_no_spi
+print(p1_no_spi)
+#Doesn't change too much when spiders are removed
+
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa Bow only no spiders.png", height=10, width=16)
 
 
-#PERMANOVA by Site and invertebrate taxa
+                                ## PERMANOVA by Site and invertebrate taxa ##
 
-test.adonis.Bow <- adonis2(Bow_bray ~ Site*Family, data = metadata_Bow)
-test.adonis.Bow #p<0.001. Significant dissimilarity between sites, families and significant interaction between the two.
-
-#Pairwise comparisons
-pairwise.adonis2(Bow_bray ~ Site, data = metadata_Bow)  
-#All sites except COCH-SUN are sig diff when invertebrate taxa are combined
-
-pairwise.adonis2(Bow_bray ~ Family, data = metadata_Bow)
-#All invertebrate taxa are sig diff when sites are combined
-
-#Testing variance (beta dispersion) differences between sites, and sample families:
-bd_all_site_Bow<-betadisper(Bow_bray, metadata_Bow$Site)
-anova(bd_all_site_Bow) #No significant beta dispersion (p=0.193)
-permutest(bd_all_site_Bow) #Gives the same result but based on a permutation test. 
-#PERMANOVA results could be more driven by the spread in the variance of samples rather than the means if it was significant. (p=0.201)
+test.adonis.Bow.all <- adonis2(Bow_bray ~ Site*Family, data = metadata_Bow)
+test.adonis.Bow.all
+#Site: F = 4.32, R2 = 0.0382, P<0.001
+#Family: F = 16.5, R2 = 0.293, P<0.001
 
 bd_all_fam_Bow<-betadisper(Bow_bray, metadata_Bow$Family) 
-anova(bd_all_fam_Bow) #significantly different p=0.0014
-permutest(bd_all_fam_Bow) #sig. different (same result)
-#Significant PERMANOVA could just be because of the variance within groups rather than between groups (groups = invertebrate taxa type)
+anova(bd_all_fam_Bow) #yes beta disper p < 0.001
 
+bd_all_site_Bow<-betadisper(Bow_bray, metadata_Bow$Site) 
+anova(bd_all_site_Bow) #no beta disper p = 0.313
+
+          
+              # Testing the difference in beta diversity across sites within each invert taxon #
 
 ## Hydropsychidae ##
 
@@ -5389,18 +5546,18 @@ Bow_bray_hydro = phyloseq::distance(Bow_rel_abun_hydro, method="bray")
 metadata_Bow_hydro <- data.frame(sample_data(Bow_rel_abun_hydro))
 
 test.adonis.Bow.hydro <- adonis2(Bow_bray_hydro ~ Site, data = metadata_Bow_hydro)
-test.adonis.Bow.hydro #p<0.001. 
+test.adonis.Bow.hydro #p<0.001, F(4,31)=4.30, R^2=0.357. 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_hydro ~ Site, data = metadata_Bow_hydro)
 #All sites except CUSHBR - SUN are sig diff
 
 bd_all_fam_Bow_hydro<-betadisper(Bow_bray_hydro, metadata_Bow_hydro$Site) 
-anova(bd_all_fam_Bow_hydro) #no beta dispersion p = 0.063
+anova(bd_all_fam_Bow_hydro) #no beta dispersion p = 0.079
 
 ## Heptageniidae ##
 
-hep_Bow<-subset_samples(ps_Bow, Family=="Heptageniidae")
+hep_Bow<-subset_samples(Bow_ps, Family=="Heptageniidae")
 Bow_rel_abun_hep  = transform_sample_counts(hep_Bow, function(x) x/sum(x)) 
 Bow_bray_hep = phyloseq::distance(Bow_rel_abun_hep, method="bray") 
 
@@ -5414,30 +5571,30 @@ pairwise.adonis2(Bow_bray_hep ~ Site, data = metadata_Bow_hep)
 #All sites are sig. diff from each other
 
 bd_all_fam_Bow_hep<-betadisper(Bow_bray_hep, metadata_Bow_hep$Site) 
-anova(bd_all_fam_Bow_hep) #sig beta dispersion p = 0.0126
+anova(bd_all_fam_Bow_hep) #sig beta dispersion p = 0.0085
 
 
 ## Chironomidae ##
 
-chiro_Bow<-subset_samples(ps_Bow, Family=="Chironomidae")
+chiro_Bow<-subset_samples(Bow_ps, Family=="Chironomidae")
 Bow_rel_abun_chiro  = transform_sample_counts(chiro_Bow, function(x) x/sum(x)) 
 Bow_bray_chiro = phyloseq::distance(Bow_rel_abun_chiro, method="bray") 
 
 metadata_Bow_chiro <- data.frame(sample_data(Bow_rel_abun_chiro))
 
 test.adonis.Bow.chiro <- adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
-test.adonis.Bow.chiro #p=0.002. 
+test.adonis.Bow.chiro #p=0.001. 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
 #Cochrane - Policeman Flats are not diff from each other
 
 bd_all_fam_Bow_chiro<-betadisper(Bow_bray_chiro, metadata_Bow_chiro$Site) 
-anova(bd_all_fam_Bow_chiro) #no beta dispersion p = 0.34
+anova(bd_all_fam_Bow_chiro) #no beta dispersion p = 0.673
 
 ## Perlidae ##
 
-perl_Bow<-subset_samples(ps_Bow, Family=="Perlidae")
+perl_Bow<-subset_samples(Bow_ps, Family=="Perlidae")
 Bow_rel_abun_perl  = transform_sample_counts(perl_Bow, function(x) x/sum(x)) 
 Bow_bray_perl = phyloseq::distance(Bow_rel_abun_perl, method="bray") 
 
@@ -5451,29 +5608,29 @@ pairwise.adonis2(Bow_bray_perl ~ Site, data = metadata_Bow_perl)
 #All sites were significantly different from each other
 
 bd_all_fam_Bow_perl<-betadisper(Bow_bray_perl, metadata_Bow_perl$Site) 
-anova(bd_all_fam_Bow_perl) #sig beta dispersion p = 0.0048
+anova(bd_all_fam_Bow_perl) #yes, sig beta dispersion p = 0.0161
 
-## Trichoptera (adult caddis) ##
+## Trichoptera ##
 
-trichop_Bow<-subset_samples(ps_Bow, Family=="Trichoptera")
+trichop_Bow<-subset_samples(Bow_ps, Family=="Trichoptera")
 Bow_rel_abun_trichop  = transform_sample_counts(trichop_Bow, function(x) x/sum(x)) 
 Bow_bray_trichop = phyloseq::distance(Bow_rel_abun_trichop, method="bray") 
 
 metadata_Bow_trichop <- data.frame(sample_data(Bow_rel_abun_trichop))
 
 test.adonis.Bow.trichop <- adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-test.adonis.Bow.trichop #p = 0.016 
+test.adonis.Bow.trichop #p = 0.037 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-#Only COCH - GRVBR and CUSHBR - GRVBR were different from each other (not all upstream sites were different from GRVBR)
+#Only COCH - GRVBR and CUSHBR - GRVBR were sig. different from each other (not all upstream sites were different from GRVBR)
 
 bd_all_fam_Bow_trichop<-betadisper(Bow_bray_trichop, metadata_Bow_trichop$Site) 
-anova(bd_all_fam_Bow_trichop) #beta dispersion p = 0.034
+anova(bd_all_fam_Bow_trichop) #no beta dispersion p = 0.896
 
-## Ephemeroptera (adult mayfly) ##
+## Ephemeroptera ##
 
-ephem_Bow<-subset_samples(ps_Bow, Family=="Ephemeroptera")
+ephem_Bow<-subset_samples(Bow_ps, Family=="Ephemeroptera")
 Bow_rel_abun_ephem = transform_sample_counts(ephem_Bow, function(x) x/sum(x)) 
 Bow_bray_ephem = phyloseq::distance(Bow_rel_abun_ephem, method="bray") 
 
@@ -5487,36 +5644,35 @@ pairwise.adonis2(Bow_bray_ephem ~ Site, data = metadata_Bow_ephem)
 #Sig diff btw sites include:
 #COCH - GRVBR
 #COCH - CUSHBR
-#COCH - PMF
 #GRVBR - CUSHBR
 #SUN - CUSHBR
 #CUSHBR - PMF
 
 bd_all_fam_Bow_ephem<-betadisper(Bow_bray_ephem, metadata_Bow_ephem$Site) 
-anova(bd_all_fam_Bow_ephem) #no beta dispersion p = 0.064
+anova(bd_all_fam_Bow_ephem) #yes beta dispersion p = 0.00394
 
 
-## Diptera (adult chironomidae) ##
-dip_Bow<-subset_samples(ps_Bow, Family=="Diptera")
+## Diptera ##
+dip_Bow<-subset_samples(Bow_ps, Family=="Diptera")
 Bow_rel_abun_dip = transform_sample_counts(dip_Bow, function(x) x/sum(x)) 
 Bow_bray_dip = phyloseq::distance(Bow_rel_abun_dip, method="bray") 
 
 metadata_Bow_dip <- data.frame(sample_data(Bow_rel_abun_dip))
 
 test.adonis.Bow.dip <- adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-test.adonis.Bow.dip #p = 0.122
+test.adonis.Bow.dip #p = 0.13
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
 #sig diff between COCH - CUSHBR
 
 bd_all_fam_Bow_dip<-betadisper(Bow_bray_dip, metadata_Bow_dip$Site) 
-anova(bd_all_fam_Bow_dip) #no beta dispersion p = 0.593
+anova(bd_all_fam_Bow_dip) #no beta dispersion p = 0.967
 
 
 ## Araneidae ##
 
-aran_Bow<-subset_samples(ps_Bow, Family=="Araneidae")
+aran_Bow<-subset_samples(Bow_ps, Family=="Araneidae")
 Bow_rel_abun_aran = transform_sample_counts(aran_Bow, function(x) x/sum(x)) 
 Bow_bray_aran = phyloseq::distance(Bow_rel_abun_aran, method="bray") 
 
@@ -5536,26 +5692,25 @@ pairwise.adonis2(Bow_bray_aran ~ Site, data = metadata_Bow_aran)
 #CUSHBR - PMF
 
 bd_all_fam_Bow_aran<-betadisper(Bow_bray_aran, metadata_Bow_aran$Site) 
-anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.825
+anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.973
 
 ## Tetragnathidae ##
 
-tetra_Bow<-subset_samples(ps_Bow, Family=="Tetragnathidae")
+tetra_Bow<-subset_samples(Bow_ps, Family=="Tetragnathidae")
 Bow_rel_abun_tetra = transform_sample_counts(tetra_Bow, function(x) x/sum(x)) 
 Bow_bray_tetra = phyloseq::distance(Bow_rel_abun_tetra, method="bray") 
 
 metadata_Bow_tetra <- data.frame(sample_data(Bow_rel_abun_tetra))
 
 test.adonis.Bow.tetra <- adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
-test.adonis.Bow.tetra #p = 0.541
+test.adonis.Bow.tetra #p = 0.505
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
 #No significant differences between any of the sites
 
-
 bd_all_fam_Bow_tetra<-betadisper(Bow_bray_tetra, metadata_Bow_tetra$Site) 
-anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.510
+anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.515
 
 ## Cochrane ##
 
@@ -5566,14 +5721,14 @@ coch_bray = phyloseq::distance(coch_rel_abun, method="bray")
 metadata_coch <- data.frame(sample_data(coch_rel_abun))
 
 test.adonis.Bow.coch <- adonis2(coch_bray ~ Family, data = metadata_coch)
-test.adonis.Bow.coch #p < 0.001
+test.adonis.Bow.coch #p < 0.001, F(8,56) = 5.59
 
 #Pairwise comparisons
 pairwise.adonis2(coch_bray ~ Family, data = metadata_coch)
 #Most inverts are diff. from each other
 
 bd_all_fam_Bow_coch<-betadisper(coch_bray, metadata_coch$Family) 
-anova(bd_all_fam_Bow_coch) #no beta dispersion p = 0.1559.
+anova(bd_all_fam_Bow_coch) #yes beta dispersion p = 0.0047.
 
 ## Sunalta ##
 
@@ -5584,14 +5739,14 @@ sun_bray = phyloseq::distance(sun_rel_abun, method="bray")
 metadata_sun <- data.frame(sample_data(sun_rel_abun))
 
 test.adonis.Bow.sun <- adonis2(sun_bray ~ Family, data = metadata_sun)
-test.adonis.Bow.sun #p < 0.001
+test.adonis.Bow.sun #p < 0.001, F(5,41) = 4.54
 
 #Pairwise comparisons
 pairwise.adonis2(sun_bray ~ Family, data = metadata_sun)
 #Most inverts are diff. from each other
 
 bd_all_fam_Bow_sun<-betadisper(sun_bray, metadata_sun$Family) 
-anova(bd_all_fam_Bow_sun) #yes beta dispersion p = 0.0057.
+anova(bd_all_fam_Bow_sun) #yes beta dispersion p = 0.00498.
 
 
 ## Cushing Bridge ##
@@ -5603,14 +5758,14 @@ cush_bray = phyloseq::distance(cush_rel_abun, method="bray")
 metadata_cush <- data.frame(sample_data(cush_rel_abun))
 
 test.adonis.Bow.cush <- adonis2(cush_bray ~ Family, data = metadata_cush)
-test.adonis.Bow.cush #p < 0.001
+test.adonis.Bow.cush #p < 0.001, F(8.54) = 5.96
 
 #Pairwise comparisons
 pairwise.adonis2(cush_bray ~ Family, data = metadata_cush)
-#Most inverts are diff. from each other
+#All inverts are diff. from each other
 
 bd_all_fam_Bow_cush<-betadisper(cush_bray, metadata_cush$Family) 
-anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.0068.
+anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.000469.
 
 
 ## Graves Bridge ##
@@ -5622,14 +5777,14 @@ grv_bray = phyloseq::distance(grv_rel_abun, method="bray")
 metadata_grv <- data.frame(sample_data(grv_rel_abun))
 
 test.adonis.Bow.grv <- adonis2(grv_bray ~ Family, data = metadata_grv)
-test.adonis.Bow.grv #p < 0.001
+test.adonis.Bow.grv #p < 0.001, F(5,41)=7.67
 
 #Pairwise comparisons
 pairwise.adonis2(grv_bray ~ Family, data = metadata_grv)
 #Most inverts are diff. from each other
 
 bd_all_fam_Bow_grv<-betadisper(grv_bray, metadata_grv$Family) 
-anova(bd_all_fam_Bow_grv) #no beta dispersion p = 0.335.
+anova(bd_all_fam_Bow_grv) #yes beta dispersion p = 0.0112.
 
 
 ## Policeman Flats ##
@@ -5641,98 +5796,21 @@ pmf_bray = phyloseq::distance(pmf_rel_abun, method="bray")
 metadata_pmf <- data.frame(sample_data(pmf_rel_abun))
 
 test.adonis.Bow.pmf <- adonis2(pmf_bray ~ Family, data = metadata_pmf)
-test.adonis.Bow.pmf #p < 0.001
+test.adonis.Bow.pmf #p < 0.001, F(7,50)=5.98
 
 #Pairwise comparisons
 pairwise.adonis2(pmf_bray ~ Family, data = metadata_pmf)
 #Most inverts are diff. from each other
 
 bd_all_fam_Bow_pmf<-betadisper(pmf_bray, metadata_pmf$Family) 
-anova(bd_all_fam_Bow_pmf) #no beta dispersion p = 0.0797.
+anova(bd_all_fam_Bow_pmf) #no beta dispersion p = 0.00102.
 
 
 #### Water quality variables Bow ####
 
-## EnvFit function ##
-
-#Graves Bridge does not have water quality info so we have to get rid of this site so that the NAs don't mess up the rest of the analysis.
-ps_Bow_no_grvbr<-subset_samples(sample_ps, Stream_Type=="Bow River" & Site!="Graves Bridge")
-
-#Transform to relative abundances to standardize
-Bow_rel_abun_no_grvbr  = transform_sample_counts(ps_Bow_no_grvbr, function(x) x/sum(x)) 
-
-env_Bow_no_grvbr<-data.frame(sample_data(Bow_rel_abun_no_grvbr))
-env_Bow_no_grvbr_2<-env_Bow_no_grvbr[ ,c("Water_Temp", "Dissolved_oxygen", "Conductivity", "Total_Phosphorus", "Total_Dissolved_Solids", "Total_Suspended_Solids", "Total_Organic_Carbon", "pH", "Nitrate")] #Selects only the numerical variables (water temp, conductivity, dissolved oxygen, etc). Ammonia and nitrite weren't selected since they did not differ at all between sites.
-
-env_Bow_no_grvbr_3<-as.data.frame(scale(env_Bow_no_grvbr_2))
-
-#All environmental data isn't normally distributed. Use Spearman correlations. 
-shapiro.test(env_Bow_no_grvbr_3$Water_Temp) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$Dissolved_oxygen) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Conductivity) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Phosphorus) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Dissolved_Solids) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Suspended_Solids) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Organic_Carbon) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$pH) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Nitrate) #non normal
-
-
-correlation_matrix_env<-as.data.frame(cor(env_Bow_no_grvbr_3), method="spearman") #Some variables are highly correlated. Test with all of them to see if any are significant then get rid of the correlated variable that is less significant based on p value. 
-
-#Transform to Bray Curtis distance
-Bow_bray_no_grvbr = phyloseq::distance(Bow_rel_abun_no_grvbr, method="bray") #Bray Curtis distance matrix
-
-#Convert to data frame so it can be used in vegan
-Bow_bray_df_no_grvbr<-as.matrix(Bow_bray_no_grvbr)
-Bow_bray_df_no_grvbr<-as.data.frame(Bow_bray_df_no_grvbr)
-
-#Ordinate with the bray curtis distance matrix
-set.seed(123)
-ord_Bow_mds_no_grvbr<-metaMDS(Bow_bray_df_no_grvbr) 
-ord_Bow_mds_no_grvbr #stress=0.198
-
-#install.packages("ggordiplots")
-library(ggordiplots)
-
-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, perm = 9999, pt.size = 2, alpha = 0.05)
-#Determines that TOC, pH, Conductivity, TDS, and TSS are significant predictors of microbiome composition. But some of these variables are highly correlated.
-
-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, permutations = 9999)
-#Same conclusions here as above.
-
-#Check correlations between significant variables:
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Dissolved_Solids) #0.998 Highly correlated. One variable must be removed. 
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Suspended_Solids) #0.733 Correlated
-cor(env_Bow_no_grvbr_3$Total_Dissolved_Solids, env_Bow_no_grvbr_3$Total_Suspended_Solids) #0.763 Correlated. 
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Organic_Carbon) #0.0944. Not correlated. These can both stay.
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$pH) #-0.692 #Somewhat correlated
-cor(env_Bow_no_grvbr_3$pH, env_Bow_no_grvbr_3$Total_Organic_Carbon) #0.276. Not correlated
-#Remove Total dissolved solids and total suspended solids
-
-env_Bow_no_grvbr_4<-env_Bow_no_grvbr_3[ , c("Conductivity", "pH", "Total_Organic_Carbon")]
-
-envfit_2<-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, permutations = 9999)
-envfit_2 #All significant but have low R squared.
-
-#Plotting ordination with sites as colours
-ggenvfit_Bow_Sites<-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, perm = 9999, groups = env_Bow_no_grvbr$Site, pt.size = 2, alpha = 0.05, len=0.05, unit="cm")
-ggenvfit_Bow_Sites
-
-#ggsave(file="microbiome_analysis/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River sites.png", height=8, width=12)
-
-#Plotting ordination with invertebrate taxa as colours
-ggenvfit_Bow_taxa<-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, perm = 9999, groups = env_Bow_no_grvbr$Family, pt.size = 2, alpha = 0.2)
-
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River invert taxa.png", height=8, width=12)
-
-ggarrange(ggenvfit_Bow_Sites, ggenvfit_Bow_taxa, nrow=1, ncool=2)
-
-
 ## Mantel correlations ##
 
 #Abundance distance matrix
-#Bow River without GRVBR
 #Subset out Graves Bridge because there was no environmental data for that site
 ps_Bow_no_grvbr<-subset_samples(sample_ps, Stream_Type=="Bow River" & Site!="Graves Bridge")
 
@@ -5745,8 +5823,114 @@ Bow_bray_no_grvbr = phyloseq::distance(Bow_rel_abun_no_grvbr, method="bray")
 Bow_bray_df_no_grvbr<-as.matrix(Bow_bray_no_grvbr)
 Bow_bray_df_no_grvbr<-as.data.frame(Bow_bray_df_no_grvbr)
 
+#Make environmental variable distance matrix
+env<-sample_data(Bow_rel_abun_no_grvbr)
+env_data<-env[,16:29] #Subset out only the water quality variables
 
-#Bow River with GRVBR included for geographic matrix
+# Environmental data all together # 
+
+env_scale<-scale(env_data) #Water chem is on different scales so you have to scale it to the same one for comparison
+env_dist<-dist(env_scale, method="euclidean") #Turn into a distance matrix
+
+abund_env = mantel(Bow_bray_df_no_grvbr, env_dist, method = "spearman", permutations = 999, na.rm = TRUE)
+#We're using Spearman correlations because we have non-parametric data (abundance data is usually highly skewed)
+abund_env #r = 0.00805, p = 0.290. Environment not selecting for the microbiome composition. Not sig. 
+
+
+# Environmental data run separately #
+
+#Water temperature
+temp <-env_data$Water_Temp
+dist.temp = dist(temp, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_temp = mantel(Bow_bray_df_no_grvbr, dist.temp, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_temp # Mantel r=0.0127, p=0.186
+
+#Dissolved oxygen
+DO<-env_data$Dissolved_oxygen
+
+dist.DO = dist(DO, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_DO = mantel(Bow_bray_df_no_grvbr, dist.DO, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_DO # Mantel r=0.00905, p=0.248
+
+#Conductivity
+cond<-env_data$Conductivity
+
+dist.cond = dist(cond, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_cond = mantel(Bow_bray_df_no_grvbr, dist.cond, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_cond # Mantel r=0.0224, p=0.017
+
+#Conductivity significantly selects for the microbiome community
+
+#Total Phosphorus
+TP<-env_data$Total_Phosphorus
+
+dist.TP = dist(TP, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_TP = mantel(Bow_bray_df_no_grvbr, dist.TP, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_TP # Mantel r=0.0150, p=0.218
+
+#Total Dissolved Solids
+TDS<-env_data$Total_Dissolved_Solids
+
+dist.TDS = dist(TDS, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_TDS = mantel(Bow_bray_df_no_grvbr, dist.TDS, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_TDS # Mantel r=0.0224, p=0.02
+
+#Total dissolved solids is a significant predictor of microbiome composition
+
+#Total Suspended Solids
+TSS<-env_data$Total_Suspended_Solids
+
+dist.TSS = dist(TSS, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_TSS = mantel(Bow_bray_df_no_grvbr, dist.TSS, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_TSS # Mantel r=0.01127, p=0.248
+
+#Total Organic Carbon
+TOC<-env_data$Total_Organic_Carbon
+
+dist.TOC = dist(TOC, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_TOC = mantel(Bow_bray_df_no_grvbr, dist.TOC, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_TOC # Mantel r=0.0494, p=0.007
+
+#Total organic carbon is a significant predictor of microbiome composition
+
+#pH
+pH<-env_data$pH
+
+dist.pH = dist(pH, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_pH = mantel(Bow_bray_df_no_grvbr, dist.pH, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_pH # Mantel r=0.0040, p=0.426
+
+#NO3
+NO3<-env_data$Nitrate
+
+dist.NO3 = dist(NO3, method = "euclidean")
+
+#Mantel test with Spearman non parametric correlations
+abund_NO3 = mantel(Bow_bray_df_no_grvbr, dist.NO3, method = "spearman", permutations = 999, na.rm = TRUE)
+abund_NO3 # Mantel r=0.01127, p=0.259
+
+#Total organic carbon, total dissolved solids, and conductivity were significant predictors of microbiome composition in the Bow River
+
+
+## Correlating the geographic information to microbiome data ##
+
+#All data can be used here since we have coordinates for all the sites
 #Transform to relative abundances to standardize
 Bow_rel_abun  = transform_sample_counts(Bow_ps, function(x) x/sum(x)) 
 
@@ -5770,153 +5954,25 @@ d.geo.Bow = distm(geo_coord_Bow, fun = distHaversine)
 dist.geo.Bow = as.dist(d.geo.Bow)
 
 abund_geo  = mantel(Bow_bray_df, dist.geo.Bow, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_geo #r = -0.00207, p = 0.842
-
-
-#Make environmental variable distance matrix
-env<-sample_data(Bow_rel_abun_no_grvbr)
-env_data<-env[,16:29]
-
-# Environmental data all together # 
-
-env_scale<-scale(env_data)
-env_dist<-dist(env_scale, method="euclidean")
-
-abund_env = mantel(Bow_bray_df_no_grvbr, env_dist, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_env #r = -0.0004722, p = 0.481. Environment not selecting for the microbiome composition
-
-# Environmental data separated #
-
-#Water temperature
-temp <-env_data$Water_Temp
-dist.temp = dist(temp, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_temp = mantel(Bow_bray_df_no_grvbr, dist.temp, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_temp # Mantel r=0.00564, p=0.342
-
-#Dissolved oxygen
-DO<-env_data$Dissolved_oxygen
-
-dist.DO = dist(DO, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_DO = mantel(Bow_bray_df_no_grvbr, dist.DO, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_DO # Mantel r=-0.01185, p=0.718
-
-#Conductivity
-cond<-env_data$Conductivity
-
-dist.cond = dist(cond, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_cond = mantel(Bow_bray_df_no_grvbr, dist.cond, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_cond # Mantel r=0.00988, p=0.213
-
-#Total Phosphorus
-TP<-env_data$Total_Phosphorus
-
-dist.TP = dist(TP, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_TP = mantel(Bow_bray_df_no_grvbr, dist.TP, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TP # Mantel r=0.00502, p=0.381
-
-#Total Dissolved Solids
-TDS<-env_data$Total_Dissolved_Solids
-
-dist.TDS = dist(TDS, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_TDS = mantel(Bow_bray_df_no_grvbr, dist.TDS, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TDS # Mantel r=0.00988, p=0.197
-
-#Total Suspended Solids
-TSS<-env_data$Total_Suspended_Solids
-
-dist.TSS = dist(TSS, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_TSS = mantel(Bow_bray_df_no_grvbr, dist.TSS, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TSS # Mantel r=0.01127, p=0.22
-
-#Total Organic Carbon
-TOC<-env_data$Total_Organic_Carbon
-
-dist.TOC = dist(TOC, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_TOC = mantel(Bow_bray_df_no_grvbr, dist.TOC, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TOC # Mantel r=0.0503, p=0.023
-
-#pH
-pH<-env_data$pH
-
-dist.pH = dist(pH, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_pH = mantel(Bow_bray_df_no_grvbr, dist.pH, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_pH # Mantel r=0.0102, p=0.346
-
-#NO3
-NO3<-env_data$Nitrate
-
-dist.NO3 = dist(NO3, method = "euclidean")
-
-#Mantel test with Spearman non parametric correlations
-abund_NO3 = mantel(Bow_bray_df_no_grvbr, dist.NO3, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_NO3 # Mantel r=0.01127, p=0.221
-
-#Total organic carbon was a significant predictor of microbiome composition in the Bow River
-
-
-#Plot scatterplot of abundance Bray Curtis dissimilarity matrix and environmental variables
-
-#Abundance variable distance matrix
-Bow_rel_abun  = transform_sample_counts(Bow_ps, function(x) x/sum(x)) 
-Bow_bray = phyloseq::distance(Bow_rel_abun, method="bray")
-Bow_bray_mat<-as.matrix(Bow_bray)
-Bow_bray_df<-as.data.frame(Bow_bray_mat)
-
-#Geographic variable distance matrix
-geo_Bow<-sample_data(Bow_rel_abun)
-geo_loc_Bow<-geo_Bow[ ,4:5]
-geo_Bow_df<-as.data.frame(geo_loc_Bow)
-
-d.geo.Bow = distm(geo_Bow_df, fun = distHaversine)
-
-
-#temperature - Euclidean
-temp_Bow<-sample_data[ ,16]
-temp_Bow_df<-as.data.frame(temp_Bow)
-
-dist.temp = dist(temp_Bow_df, method = "euclidean")
-
-
-#Combine distances matricies into vectors in one combined matrix
-aa = as.vector(Bow_bray)
-tt = as.vector(dist.temp)
-gg = as.vector(d.geo.Bow)
-
-#new data frame with vectorized distance matrices
-mat = data.frame(aa,tt)
-
-#Plotting difference in temp with dissimilarity matrix
-mm = ggplot(mat, aes(y = aa, x = tt)) + 
-    geom_point(size = 3, alpha = 0.5) + 
-    labs(x = "Difference in Temperature (C)", y = "Bray-Curtis Dissimilarity") + 
-    theme( axis.text.x = element_text(face = "bold",colour = "black", size = 12), 
-        axis.text.y = element_text(face = "bold", size = 11, colour = "black"), 
-        axis.title= element_text(face = "bold", size = 14, colour = "black"), 
-        panel.background = element_blank(), 
-        panel.border = element_rect(fill = NA, colour = "black"))
-mm
-
-
+abund_geo #r = 0.0053, p = 0.358
 ```
 
 #### ACWA
 ```{r}
+#### Redundancy analysis (RDA) ####
+ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
+ACWA_ps_rel_abun<-transform_sample_counts(ACWA_ps, function(x) x/sum(x)) #Transform Bow microbiome data to relative abundance
+ACWA_bray<-phyloseq::distance(ACWA_ps_rel_abun, method="bray") #convert to distance matrix
+
+t_otu_ACWA_all <- t(abundances(ACWA_bray)) #transpose distance matrix
+metadata_ACWA_all <- meta(ACWA_ps_rel_abun) #get sample data
+predictors_ACWA<-metadata_ACWA_all[,c(2,9)] #Select site and invertebrate columns to use as factors
+
+rdacca.hp(t_otu_ACWA_all, predictors_ACWA, method="RDA", type = "adjR2") #Run the RDA to see the percent explained by each factor
+#Total variation explained: 0.471%
+#Site explains 4.39% of the total variance explained whereas Family explained 42.7% of the total variation explained
+
+
 #### Beta Diversity Graphs + PERMANOVA ####
 
 ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
@@ -5933,7 +5989,6 @@ ord_ACWA = ordinate(ACWA_rel_abun, method="PCoA", distance="ACWA_bray")
 scree <- plot_scree(ord_ACWA)
 scree + theme(axis.text.x=element_text(size=8, color="black"), axis.text.y=element_text(size=18, color="black"), 
         axis.text=element_text(size=18, color="black"), axis.title=element_text(size=18)) 
-#axis 1, 2, and 3 account for most variation explained (mostly axis 1 and 2)
 
 metadata_ACWA <- data.frame(sample_data(ACWA_rel_abun))
 
@@ -5953,13 +6008,11 @@ plot_ordination(ACWA_rel_abun, ord_ACWA, color="Site", shape="Family") + #Plots 
   ylab("PC2 [17.9%]")+
   stat_ellipse()
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/PCoA by site and invertebrate family faceted by life stage ACWA Streams.png", height = 7, width=8)
-
 
 # NMDS 
 set.seed(1)
 ord_NMDS_ACWA = ordinate(ACWA_rel_abun, method="NMDS", distance=ACWA_bray)
-ord_NMDS_ACWA #Stress=0.111
+ord_NMDS_ACWA #Stress=0.099
 
 
 plot_ACWA<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", color="Family") + 
@@ -5972,17 +6025,15 @@ plot_ACWA<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", color="
         legend.position = "right")+
   labs(color="Family")+
   guides(color=guide_legend(nrow=3, byrow=TRUE, title="Invertebrate Taxa")) +
-  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  ylim(-0.65, 0.45)+
-  xlim(-0.85, 0.95)
+  scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))
+  #ylim(-0.65, 0.45)+
+  #xlim(-0.85, 0.95)
   
 newtab3 = data.table(plot_ACWA$data)
 newtab3$Family <- ordered(newtab3$Family,
 levels = c("Hydropsychidae", "Baetidae", "Ephemeroptera"), labels=c("Larval Hydropsychidae", "Larval Baetidae", "Adult Baetidae"))
 plot_ACWA$data <- newtab3
 print(plot_ACWA)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites and taxa ACWA only.png", height=8, width=10)
 
 
 plot_ACWA_sites<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", color="Family") + 
@@ -5996,9 +6047,9 @@ plot_ACWA_sites<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, shape = "Site", c
   labs(color="Family")+
   guides(color=guide_legend(nrow=3, byrow=TRUE, title="Invertebrate Taxa")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
-  stat_ellipse(type="norm", alpha=1, aes(group=Site))+
-  ylim(-0.65, 0.45)+
-   xlim(-0.85, 0.95)
+  stat_ellipse(type="norm", alpha=1, aes(group=Site))
+  #ylim(-0.65, 0.45)+
+   #xlim(-0.85, 0.95)
   
 newtab3 = data.table(plot_ACWA_sites$data)
 newtab3$Family <- ordered(newtab3$Family,
@@ -6006,7 +6057,6 @@ levels = c("Hydropsychidae", "Baetidae", "Ephemeroptera"), labels=c("Larval Hydr
 plot_ACWA_sites$data <- newtab3
 print(plot_ACWA_sites)
 
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across sites ACWA only.png", height=8, width=10)
 
 plot_ACWA_taxa<-plot_ordination(ACWA_rel_abun, ord_NMDS_ACWA, color="Site") +
   theme_bw() +
@@ -6027,13 +6077,11 @@ plot_ACWA_taxa
 
 newtab5 = data.table(plot_ACWA_taxa$data)
 newtab5$Site <- ordered(newtab5$Site,
-levels = c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
+levels = c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
 newtab5$Family <- ordered(newtab5$Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
 plot_ACWA_taxa$data <- newtab5
 print(plot_ACWA_taxa)
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa and sites with ellipses ACWA only.png", height=8, width=10)
-
-#ggsave(filename="Microbiome_ED/Final analysis/Beta Diversity Graphs/All samples combined/NMDS across taxa ACWA only.png", height=8, width=10)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/All samples combined/NMDS faceted by inverts ACWA only.png", height=8, width=10)
 
 
 #PERMANOVA by Site and invertebrate taxa
@@ -6099,216 +6147,112 @@ anova(bd_ephem_ACWA) #p=0.07
 ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
 
 #Transform to relative abundance to standardize data
-ACWA_rel_abun  = transform_sample_counts(ACWA_ps, function(x) x/sum(x)) #log transforming the data 
+ACWA_rel_abun  = transform_sample_counts(ACWA_ps, function(x) x/sum(x)) 
 
 #Bray Curtis distance matrix
 ACWA_bray = phyloseq::distance(ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
 #Convert to dataframe
 ACWA_bray_df<-as.matrix(ACWA_bray)
 ACWA_bray_df<-as.data.frame(ACWA_bray_df)
-
-set.seed(1)
-ord_ACWA_mds = metaMDS(ACWA_bray_df) #Ordinate using NDMS
-ord_ACWA_mds #0.111
-
-#Extract environmental variables to correlate with
-env_ACWA<-data.frame(sample_data(ACWA_rel_abun))
-env_ACWA_2<-env_ACWA[ ,c("Water_Temp", "Dissolved_oxygen", "Conductivity", "Ammonia", "pH", "Dissolved_Nitrogen", "Nitrate", "Nitrite", "Dissolved_Organic_Carbon", "Orthophosphate")] #Selects only the numerical variables (water temp, conductivity, dissolved oxygen, etc)
-
-correlation_matrix_env_ACWA<-as.data.frame(cor(env_ACWA_2), method="spearman") #Some variables are highly correlated. Test with all of them to see if any are significant then get rid of the correlated variable that is less significant based on p value. 
-
-#Sites as colours
-
-env_ACWA$Site<-factor(env_ACWA$Site, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
-
-gg_envfit(ord = ord_ACWA_mds, env = env_ACWA_2, perm = 9999, pt.size = 2, alpha = 0.05, groups=env_ACWA$Site)
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality ACWA sites.png", height=8, width=12)
-
-#Invertebrate type as colours
-gg_envfit(ord = ord_ACWA_mds, env = env_ACWA_2, perm = 9999, pt.size = 2, alpha = 0.05, groups=env_ACWA$Family)
-
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality ACWA invert taxa.png", height=8, width=12)
-
-#Fits all environmental variables together
-envfit(ord_ACWA_mds, env = env_ACWA_2, permutations = 9999)
-
-#Fitting environmental variables individually (dropping non significant terms)
-fit_all_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + Ammonia + pH + Dissolved_Nitrogen + Nitrate + Nitrite + Dissolved_Organic_Carbon + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_all_ACWA
-
-fit_1_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + Ammonia + pH + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_1_ACWA
-
-fit_2_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + pH + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_2_ACWA
-
-fit_3_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_3_ACWA
-
-fit_4_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_4_ACWA
-
-fit_5_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Dissolved_Nitrogen + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_5_ACWA
-
-fit_6_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Dissolved_Nitrogen + Nitrite, data = env_ACWA_2, perm = 999)
-fit_6_ACWA
-
-fit_7_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Nitrite, data = env_ACWA_2, perm = 999)
-fit_7_ACWA
-
-fit_8_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity, data = env_ACWA_2, perm = 999)
-fit_8_ACWA
-
-fit_9_ACWA <- envfit(ord_ACWA_mds ~ Conductivity, data = env_ACWA_2, perm = 999)
-fit_9_ACWA 
-
-
-#Conductivity is a significant predictor of microbiome community structure (p=0.005, r^2=0.184)
-
-#Plotting conductivity on microbiome ordination
-
-plot(fit_9_ACWA)
-
-NMDS_ACWA <- metaMDS(ACWA_bray_df, k = 2, trymax = 100, trace = F, autotransform = FALSE, distance="bray")
-NMDS_ACWA
-
-arrowmat <- vegan::scores(fit_9_ACWA, display = "bp")
-arrowmat #NMDS1 (0.339), NDMS2(-0.262)
-
-arrowdf <- data.frame(labels = rownames(arrowmat), arrowmat)
-# Define the arrow aesthetic mapping
-arrow_map = aes(xend = NMDS1, yend = NMDS2, x = 0, y = 0, shape = NULL, color = NULL, 
-    label = labels)
-label_map = aes(x = 0.339 * NMDS1, y = -0.262 * NMDS2, shape = NULL, color = NULL, 
-    label = labels)
-# Make a new graphic
-arrowhead = arrow(length = unit(0.05, "npc"))
-p1 = NMDS_ACWA + geom_segment(arrow_map, linewidth = 0.5, data = arrowdf, color = "gray", 
-    arrow = arrowhead) + geom_text(label_map, size = 2, data = arrowdf)
-p1
 
 ## Mantel correlations ##
 
-#Bray Curtis distance matrix
-ACWA_bray = phyloseq::distance(ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
-#Convert to dataframe
-ACWA_bray_df<-as.matrix(ACWA_bray)
-ACWA_bray_df<-as.data.frame(ACWA_bray_df)
-
 #Make environmental variable distance matrix
-env_ACWA<-sample_data(ACWA_rel_abun)
+meta_ACWA<-sample_data(ACWA_rel_abun)
 
 #Water temperature
-temp_ACWA <-env_ACWA$Water_Temp
+temp_ACWA <-meta_ACWA$Water_Temp
 dist.temp.ACWA = dist(temp_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_temp_ACWA = mantel(ACWA_bray_df, dist.temp.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_temp_ACWA # Mantel r=0.0282, p=0.146
+abund_temp_ACWA # Mantel r=0.0472, p=0.065
 
 #Dissolved oxygen
-DO_ACWA <-env_ACWA$Dissolved_oxygen
+DO_ACWA <-meta_ACWA$Dissolved_oxygen
 dist.DO.ACWA = dist(DO_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_DO_ACWA = mantel(ACWA_bray_df, dist.DO.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_DO_ACWA # Mantel r=0.0282, p=0.139
+abund_DO_ACWA # Mantel r=0.0472, p=0.063
 
 #Conductivity
-cond_ACWA <-env_ACWA$Conductivity
+cond_ACWA <-meta_ACWA$Conductivity
 dist.cond.ACWA = dist(cond_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_cond_ACWA = mantel(ACWA_bray_df, dist.cond.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_cond_ACWA # Mantel r=0.0554, p=0.088
+abund_cond_ACWA # Mantel r=0.0723, p=0.036
+
+#Significant predictor of beta diversity
 
 #Ammonia
-NH3_ACWA <-env_ACWA$Ammonia
+NH3_ACWA <-meta_ACWA$Ammonia
 dist.NH3.ACWA = dist(NH3_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_NH3_ACWA = mantel(ACWA_bray_df, dist.NH3.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_NH3_ACWA # Mantel r=0.0282, p=0.173
+abund_NH3_ACWA # Mantel r=0.0472, p=0.065
 
 #pH
-pH_ACWA <-env_ACWA$pH
+pH_ACWA <-meta_ACWA$pH
 dist.pH.ACWA = dist(pH_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_pH_ACWA = mantel(ACWA_bray_df, dist.pH.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_pH_ACWA # Mantel r=0.00598, p=0.314
+abund_pH_ACWA # Mantel r=0.0201, p=0.159
 
 
 #Dissolved nitrogen
-DN_ACWA <-env_ACWA$Dissolved_Nitrogen
+DN_ACWA <-meta_ACWA$Dissolved_Nitrogen
 dist.DN.ACWA = dist(DN_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_DN_ACWA = mantel(ACWA_bray_df, dist.DN.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_DN_ACWA # Mantel r=0.0282, p=0.152
+abund_DN_ACWA # Mantel r=0.0472, p=0.075
 
 
 #Nitrate
-NO3_ACWA <-env_ACWA$Nitrate
+NO3_ACWA <-meta_ACWA$Nitrate
 dist.NO3.ACWA = dist(NO3_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_NO3_ACWA = mantel(ACWA_bray_df, dist.NO3.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_NO3_ACWA # Mantel r=0.0282, p=0.149
+abund_NO3_ACWA # Mantel r=0.0472, p=0.049
+
+#Significant predictor of microbiome composition
 
 
 #Nitrite
-NO2_ACWA <-env_ACWA$Nitrite
+NO2_ACWA <-meta_ACWA$Nitrite
 dist.NO2.ACWA = dist(NO2_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_NO2_ACWA = mantel(ACWA_bray_df, dist.NO2.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_NO2_ACWA # Mantel r=0.0282, p=0.142
+abund_NO2_ACWA # Mantel r=0.04719, p=0.064
 
 
 #Dissolved organic carbon
-DOC_ACWA <-env_ACWA$Dissolved_Organic_Carbon
+DOC_ACWA <-meta_ACWA$Dissolved_Organic_Carbon
 dist.DOC.ACWA = dist(DOC_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_DOC_ACWA = mantel(ACWA_bray_df, dist.DOC.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_DOC_ACWA # Mantel r=0.0195, p=0.161
-
+abund_DOC_ACWA # Mantel r=0.0257, p=0.129
 
 #Orthophosphate
-PO4_ACWA <-env_ACWA$Orthophosphate
+PO4_ACWA <-meta_ACWA$Orthophosphate
 dist.PO4.ACWA = dist(PO4_ACWA, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_PO4_ACWA = mantel(ACWA_bray_df, dist.PO4.ACWA, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_PO4_ACWA # Mantel r=0.0282, p=0.147
+abund_PO4_ACWA # Mantel r=0.0472, p=0.063
 
 # Plotting Spearman correlations
 
 ACWA_rel_abun_df <- psmelt(ACWA_rel_abun)
 
 ACWA_rel_abun_df_subset<-subset(ACWA_rel_abun_df, select = -c(Total_Phosphorus, Total_Dissolved_Solids, Total_Suspended_Solids, Total_Organic_Carbon))
-
-cor(ACWA_rel_abun_df$Abundance, ACWA_rel_abun_df$Water_Temp, method="spearman")
-#-0.044
-
-cor(ACWA_rel_abun_df$Abundance, ACWA_rel_abun_df$Dissolved_oxygen, method="spearman")
-#0.044
-
-cor(ACWA_rel_abun_df$Abundance, ACWA_rel_abun_df$Conductivity, method="spearman")
-#-0.044
-
-cor(ACWA_rel_abun_df$Abundance, ACWA_rel_abun_df$Ammonia, method="spearman")
-#0.044
-
-cor(ACWA_rel_abun_df$Abundance, ACWA_rel_abun_df$Dissolved_Organic_Carbon, method="spearman")
-#-0.0107
-
-cor(ACWA_rel_abun_df$Abundance, ACWA_rel_abun_df$Orthophosphate, method="spearman")
-#-0.044
-
-library(GGally)
 
 ACWA_cor_plot<-ggcorr(ACWA_rel_abun_df_subset, method =c("everything" ,"spearman"), label=TRUE, hjust = 0.9, size = 3, layout.exp=1)
 ACWA_cor_plot
@@ -6318,6 +6262,7 @@ ACWA_cor_plot
 
 #### Bow River 
 ```{r}
+#### PERMANOVAs and graphs ####
 #Normalize the filtered data by relative abundance 
 Bow_ps_rare<-subset_samples(ps_rare, Stream_Type=="Bow River")
 Bow_rel_abun_rare  = transform_sample_counts(Bow_ps_rare, function(x) x/sum(x)) 
@@ -6673,82 +6618,6 @@ anova(bd_all_fam_Bow_pmf_rare) #no beta dispersion p = 0.163.
 
 #### Water quality variables Bow ####
 
-## EnvFit function ##
-
-#Graves Bridge does not have water quality info so we have to get rid of this site so that the NAs don't mess up the rest of the analysis.
-ps_Bow_no_grvbr<-subset_samples(sample_ps, Stream_Type=="Bow River" & Site!="Graves Bridge")
-
-#Transform to relative abundances to standardize
-Bow_rel_abun_no_grvbr  = transform_sample_counts(ps_Bow_no_grvbr, function(x) x/sum(x)) 
-
-env_Bow_no_grvbr<-data.frame(sample_data(Bow_rel_abun_no_grvbr))
-env_Bow_no_grvbr_2<-env_Bow_no_grvbr[ ,c("Water_Temp", "Dissolved_oxygen", "Conductivity", "Total_Phosphorus", "Total_Dissolved_Solids", "Total_Suspended_Solids", "Total_Organic_Carbon", "pH", "Nitrate")] #Selects only the numerical variables (water temp, conductivity, dissolved oxygen, etc). Ammonia and nitrite weren't selected since they did not differ at all between sites.
-
-env_Bow_no_grvbr_3<-as.data.frame(scale(env_Bow_no_grvbr_2))
-
-#All environmental data isn't normally distributed. Use Spearman correlations. 
-shapiro.test(env_Bow_no_grvbr_3$Water_Temp) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$Dissolved_oxygen) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Conductivity) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Phosphorus) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Dissolved_Solids) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Suspended_Solids) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$Total_Organic_Carbon) #Non normal
-shapiro.test(env_Bow_no_grvbr_3$pH) #non normal
-shapiro.test(env_Bow_no_grvbr_3$Nitrate) #non normal
-
-
-correlation_matrix_env<-as.data.frame(cor(env_Bow_no_grvbr_3), method="spearman") #Some variables are highly correlated. Test with all of them to see if any are significant then get rid of the correlated variable that is less significant based on p value. 
-
-#Transform to Bray Curtis distance
-Bow_bray_no_grvbr = phyloseq::distance(Bow_rel_abun_no_grvbr, method="bray") #Bray Curtis distance matrix
-
-#Convert to data frame so it can be used in vegan
-Bow_bray_df_no_grvbr<-as.matrix(Bow_bray_no_grvbr)
-Bow_bray_df_no_grvbr<-as.data.frame(Bow_bray_df_no_grvbr)
-
-#Ordinate with the bray curtis distance matrix
-set.seed(123)
-ord_Bow_mds_no_grvbr<-metaMDS(Bow_bray_df_no_grvbr) 
-ord_Bow_mds_no_grvbr #stress=0.198
-
-#install.packages("ggordiplots")
-library(ggordiplots)
-
-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, perm = 9999, pt.size = 2, alpha = 0.05)
-#Determines that TOC, pH, Conductivity, TDS, and TSS are significant predictors of microbiome composition. But some of these variables are highly correlated.
-
-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_3, permutations = 9999)
-#Same conclusions here as above.
-
-#Check correlations between significant variables:
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Dissolved_Solids) #0.998 Highly correlated. One variable must be removed. 
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Suspended_Solids) #0.733 Correlated
-cor(env_Bow_no_grvbr_3$Total_Dissolved_Solids, env_Bow_no_grvbr_3$Total_Suspended_Solids) #0.763 Correlated. 
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$Total_Organic_Carbon) #0.0944. Not correlated. These can both stay.
-cor(env_Bow_no_grvbr_3$Conductivity, env_Bow_no_grvbr_3$pH) #-0.692 #Somewhat correlated
-cor(env_Bow_no_grvbr_3$pH, env_Bow_no_grvbr_3$Total_Organic_Carbon) #0.276. Not correlated
-#Remove Total dissolved solids and total suspended solids
-
-env_Bow_no_grvbr_4<-env_Bow_no_grvbr_3[ , c("Conductivity", "pH", "Total_Organic_Carbon")]
-
-envfit_2<-envfit(ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, permutations = 9999)
-envfit_2 #All significant but have low R squared.
-
-#Plotting ordination with sites as colours
-ggenvfit_Bow_Sites<-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, perm = 9999, groups = env_Bow_no_grvbr$Site, pt.size = 2, alpha = 0.05, len=0.05, unit="cm")
-ggenvfit_Bow_Sites
-
-#ggsave(file="microbiome_analysis/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River sites.png", height=8, width=12)
-
-#Plotting ordination with invertebrate taxa as colours
-ggenvfit_Bow_taxa<-gg_envfit(ord = ord_Bow_mds_no_grvbr, env = env_Bow_no_grvbr_4, perm = 9999, groups = env_Bow_no_grvbr$Family, pt.size = 2, alpha = 0.2)
-
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality Bow River invert taxa.png", height=8, width=12)
-
-ggarrange(ggenvfit_Bow_Sites, ggenvfit_Bow_taxa, nrow=1, ncool=2)
-
-
 ## Mantel correlations ##
 
 #Abundance distance matrix
@@ -6937,7 +6806,7 @@ mm
 
 #### ACWA
 ```{r}
-#### ACWA streams ####
+#### PERMANOVAs and graphs ####
 
 ACWA_ps_rare<-subset_samples(ps_rare, Stream_Type=="ACWA Streams")
 
@@ -7025,98 +6894,6 @@ anova(bd_ephem_ACWA_rare) #p=0.072
 
 
 #### Water quality variables ACWA ####
-
-ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
-
-#Transform to relative abundance to standardize data
-ACWA_rel_abun  = transform_sample_counts(ACWA_ps, function(x) x/sum(x)) #log transforming the data 
-
-#Bray Curtis distance matrix
-ACWA_bray = phyloseq::distance(ACWA_rel_abun, method="bray") #Bray Curtis distance matrix
-#Convert to dataframe
-ACWA_bray_df<-as.matrix(ACWA_bray)
-ACWA_bray_df<-as.data.frame(ACWA_bray_df)
-
-set.seed(1)
-ord_ACWA_mds = metaMDS(ACWA_bray_df) #Ordinate using NDMS
-ord_ACWA_mds #0.111
-
-#Extract environmental variables to correlate with
-env_ACWA<-data.frame(sample_data(ACWA_rel_abun))
-env_ACWA_2<-env_ACWA[ ,c("Water_Temp", "Dissolved_oxygen", "Conductivity", "Ammonia", "pH", "Dissolved_Nitrogen", "Nitrate", "Nitrite", "Dissolved_Organic_Carbon", "Orthophosphate")] #Selects only the numerical variables (water temp, conductivity, dissolved oxygen, etc)
-
-correlation_matrix_env_ACWA<-as.data.frame(cor(env_ACWA_2), method="spearman") #Some variables are highly correlated. Test with all of them to see if any are significant then get rid of the correlated variable that is less significant based on p value. 
-
-#Sites as colours
-
-env_ACWA$Site<-factor(env_ACWA$Site, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EXP5", "EXP15"))
-
-gg_envfit(ord = ord_ACWA_mds, env = env_ACWA_2, perm = 9999, pt.size = 2, alpha = 0.05, groups=env_ACWA$Site)
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality ACWA sites.png", height=8, width=12)
-
-#Invertebrate type as colours
-gg_envfit(ord = ord_ACWA_mds, env = env_ACWA_2, perm = 9999, pt.size = 2, alpha = 0.05, groups=env_ACWA$Family)
-
-#ggsave(file="Microbiome_ED/Final analysis/Beta Diversity Graphs/Envfit water quality ACWA invert taxa.png", height=8, width=12)
-
-#Fits all environmental variables together
-envfit(ord_ACWA_mds, env = env_ACWA_2, permutations = 9999)
-
-#Fitting environmental variables individually (dropping non significant terms)
-fit_all_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + Ammonia + pH + Dissolved_Nitrogen + Nitrate + Nitrite + Dissolved_Organic_Carbon + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_all_ACWA
-
-fit_1_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + Ammonia + pH + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_1_ACWA
-
-fit_2_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + pH + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_2_ACWA
-
-fit_3_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Dissolved_oxygen + Conductivity + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_3_ACWA
-
-fit_4_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Dissolved_Nitrogen + Nitrate + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_4_ACWA
-
-fit_5_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Dissolved_Nitrogen + Nitrite + Orthophosphate, data = env_ACWA_2, perm = 999)
-fit_5_ACWA
-
-fit_6_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Dissolved_Nitrogen + Nitrite, data = env_ACWA_2, perm = 999)
-fit_6_ACWA
-
-fit_7_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity + Nitrite, data = env_ACWA_2, perm = 999)
-fit_7_ACWA
-
-fit_8_ACWA <- envfit(ord_ACWA_mds ~ Water_Temp + Conductivity, data = env_ACWA_2, perm = 999)
-fit_8_ACWA
-
-fit_9_ACWA <- envfit(ord_ACWA_mds ~ Conductivity, data = env_ACWA_2, perm = 999)
-fit_9_ACWA 
-
-
-#Conductivity is a significant predictor of microbiome community structure (p=0.005, r^2=0.184)
-
-#Plotting conductivity on microbiome ordination
-
-plot(fit_9_ACWA)
-
-NMDS_ACWA <- metaMDS(ACWA_bray_df, k = 2, trymax = 100, trace = F, autotransform = FALSE, distance="bray")
-NMDS_ACWA
-
-arrowmat <- vegan::scores(fit_9_ACWA, display = "bp")
-arrowmat #NMDS1 (0.339), NDMS2(-0.262)
-
-arrowdf <- data.frame(labels = rownames(arrowmat), arrowmat)
-# Define the arrow aesthetic mapping
-arrow_map = aes(xend = NMDS1, yend = NMDS2, x = 0, y = 0, shape = NULL, color = NULL, 
-    label = labels)
-label_map = aes(x = 0.339 * NMDS1, y = -0.262 * NMDS2, shape = NULL, color = NULL, 
-    label = labels)
-# Make a new graphic
-arrowhead = arrow(length = unit(0.05, "npc"))
-p1 = NMDS_ACWA + geom_segment(arrow_map, linewidth = 0.5, data = arrowdf, color = "gray", 
-    arrow = arrowhead) + geom_text(label_map, size = 2, data = arrowdf)
-p1
 
 ## Mantel correlations ##
 
