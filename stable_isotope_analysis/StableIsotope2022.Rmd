@@ -13,6 +13,7 @@ Loading packages and data
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
 par(mar = c(1, 1, 1, 1))
 ```
 
@@ -35,6 +36,7 @@ library(pairwiseAdonis)
 
 isotope<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022.csv")
 isotope$Site<-factor(isotope$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
+
 isotope$Aqu_Terr<-factor(isotope$Aqu_Terr, levels=c("Leaves", "biofilm", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Riparian Leaves", "Biofilm", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"))
 
 inverts<-subset(isotope, Tissue.Type=="Whole Invertebrate")
@@ -58,7 +60,6 @@ grvbr_ad<-subset(inverts, Site=="Graves Bridge" & Aqu_Terr=="Ad_aquatic") #12
 pmf_ad<-subset(inverts, Site=="Policeman Flats" & Aqu_Terr=="Ad_aquatic")#12
 
 #Spiders n = 3/family/site
-
 ```
 
 Preliminary data checks (carbonates/lipid effect)
@@ -142,7 +143,7 @@ Biplots of averaged /median data
 ```{r}
 
 #Summarizing a dataframe with mean and sd C and N values
-data.sum<-ddply(isotope, c("Site", "Taxa", "sample_group"), summarise,
+data.sum<-ddply(isotope, c("Site", "Taxa", "FFG"), summarise,
                 d13Cmn=mean(d13C), #mean
                 d13Csd=sd(d13C), #standard deviation
                 d13Cse=sd(d13C)/sqrt(length(d13C)), #standard error
@@ -150,7 +151,7 @@ data.sum<-ddply(isotope, c("Site", "Taxa", "sample_group"), summarise,
                 d15Nsd=sd(d15N), #standard deviation
                 d15Nse=sd(d15N)/sqrt(length(d15N))) #standard error
 
-data.sum1<-ddply(isotope, c("Taxa", "sample_group"), summarise,
+data.sum1<-ddply(isotope, c("Site", "Taxa", "FFG"), summarise,
                 d13Cmn=mean(d13C), #mean
                 d13Csd=sd(d13C), #standard deviation
                 #d13Cse=sd(d13C)/sqrt(length(d13C)), #standard error
@@ -164,7 +165,7 @@ Xlims<-aes(xmax=d13Cmn+d13Csd, xmin=d13Cmn-d13Csd)
 
 #All sites together
 
-ggplot(data.sum1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=sample_group))+
+ggplot(data.sum1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
   geom_point(size=3)+
   geom_errorbar(Ylims, width=0.2)+
   geom_errorbarh(Xlims, height=0.2)+
@@ -175,8 +176,6 @@ ggplot(data.sum1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=sample_group))+
 #All sites (faceted)
 
 data.sum$Taxa<-factor(data.sum$Taxa, levels= c("Terrestrial Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"), labels=c("Riparian Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
-
-#data.sum$Aqu_Terr<-factor(data.sum$Aqu_Terr, levels=c("biofilm", "Leaves", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Biofilm", "Riparian Leaves", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"))
 
 data.sum$sample_group<-factor(data.sum$sample_group, levels=c("Basal Food Source", "Aquatic Larvae ", "Aquatic Adult ", "Terrestrial Prey", "Spider"))
 
@@ -193,87 +192,7 @@ ggplot(data.sum, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=sample_group))+
   rremove("grid")
 
 
-#ggsave(filename="Stable_isotope_ED/Figures/Median biplot d13C d15N faceted by site, taxa, and taxa group.png", height=7, width=12)
-
-#Sites separated
-ggplot(subset(data.sum, Site=="Cochrane"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
-  geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
-  ylab(expression(delta^15~N))+
-  xlab(expression(delta^13~C))+
-  theme_classic()
-
-ggplot(subset(data.sum, Site=="Sunalta"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
-  geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
-  ylab(expression(delta^15~N))+
-  xlab(expression(delta^13~C))+
-  theme_classic()
-
-ggplot(subset(data.sum, Site=="Cushing Bridge"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
-  geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
-  ylab(expression(delta^15~N))+
-  xlab(expression(delta^13~C))+
-  theme_classic()
-
-ggplot(subset(data.sum, Site=="Graves Bridge"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
-  geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
-  ylab(expression(delta^15~N))+
-  xlab(expression(delta^13~C))+
-  theme_classic()
-
-ggplot(subset(data.sum, Site=="Policeman Flats"), aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
-  geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
-  ylab(expression(delta^15~N))+
-  xlab(expression(delta^13~C))+
-  theme_classic()
-
-
-### Median N and C values ###
-
-data.median<-ddply(isotope, c("Site", "Taxa", "FFG"), summarise,
-                d13Cmed=median(d13C), #mean
-                d13CIQR=IQR(d13C), #standard deviation
-                d15Nmed=median(d15N), #mean
-                d15NIQR=IQR(d15N)) #standard deviation
-
-data.median1<-ddply(isotope, c("Taxa", "FFG"), summarise,
-                d13Cmed=median(d13C), #mean
-                d13CIQR=IQR(d13C), #standard deviation
-                d15Nmed=median(d15N), #mean
-                d15NIQR=IQR(d15N))
-                
-
-#Making errorbars
-Ylims<-aes(ymax=d15Nmed +d15NIQR, ymin=d15Nmed-d15NIQR)
-Xlims<-aes(xmax=d13Cmed+d13CIQR, xmin=d13Cmed-d13CIQR)
-
-#All sites (faceted by taxa)
-
-data.median$Taxa<-factor(data.median$Taxa, levels= c("Terrestrial Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"), labels=c("Riparian Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
-
-ggplot(data.median, aes(x=d13Cmed, y=d15Nmed, colour=Taxa, shape=FFG))+
-  geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
-  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.x = element_text(size=16, color="black"), axis.text.y =  element_text(size=16, color="black"))+
-  facet_grid(~Site)+
-  theme_bw()+
-  labs(color="Invertebrate Taxa", shape="Functional Feeding Group")+
-  rremove("grid")
-
-
-#ggsave(filename="stable_isotope_analysis/Figures/Median and IQR biplot d13C d15N faceted by site.png", height=8, width=12)
+#ggsave(filename="stable_isotope_analysis/Figures/Mean SD biplot d13C d15N faceted by site.png", height=7, width=12)
 
 ```
 
@@ -755,6 +674,29 @@ emmeans(spiders_lm, specs = pairwise ~ Site)
 #SUN - PMF
 #CUSHBR - GRVBR
 #CUSHBR - PMF
+
+```
+
+C slope correlations (consumers to biofilm)
+```{r}
+pri_consumer<-subset(isotope, Consumer=="Primary Consumer")
+consumers_no_shrub<-subset(pri_basal_consumer, Tissue.Type!="Shrub")
+biofilm<-subset(isotope, Taxa=="Biofilm")
+
+Primary_consumer<-subset(isotope, Consumer=="Primary Consumer")
+Primary_consumer<-Primary_consumer[,c(5,6,21)]%>%
+  dplyr::rename(d13C_pri = d13C)
+
+Biofilm<-subset(isotope, Taxa=="Biofilm")
+Biofilm<-Biofilm[,c(5,6,21)]%>%
+  dplyr::rename(d13C_biofilm = d13C)
+
+pri_bio_con<-cbind(Primary_consumer, Biofilm)
+
+ggplot(aes(x=biofilm$d13C, y=pri_consumer$d13C))+
+  geom_point()+
+  geom_abline(slope=1, intercept=0, size=1) +theme_bw()+ theme(axis.line=element_line(colour="black", size=1))
+
 
 ```
 

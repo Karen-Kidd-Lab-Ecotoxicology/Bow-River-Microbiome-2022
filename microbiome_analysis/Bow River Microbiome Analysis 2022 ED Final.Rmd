@@ -175,143 +175,6 @@ Rarefying: Results from statistical analysis (alpha and beta diversity) will be 
 
 In total, ~85 % of the taxa (ASVs) were filtered out but only 0.32 % of the entire dataset (reads) were filtered out from the original decontaminated dataset. This may have consequences for diversity measures but ensures sequencing errors and potential contaminants are removed. 
 
-### Decontamination Steps using 'Decontam'
-```{r}
-## Subsetting the blanks from each invert collection method and decontaminating with a threshold of 0.1 and merging them back together ##
-
-ps #31,556 taxa, 380 samples
-
-## Adult mayfly from ACWA ##
-
-ad_mesh_bl<-subset_samples(ps, Blank_collection_method=="Mesh") #Subsets all mayflies and blanks that were collected from the floating emergence traps
-ad_mesh_bl<-prune_taxa(taxa_sums(ad_mesh_bl) > 0, ad_mesh_bl)
-ad_mesh_bl #837 taxa, 19 samples
-
-#Decontam steps for removing floating emergence trap contaminants from ACWA adult mayflies
-ad_mesh_bl_df <- as.data.frame(sample_data(ad_mesh_bl))
-
-sample_data(ad_mesh_bl)$is.neg <- sample_data(ad_mesh_bl)$Sample_Type == "Blank" #Specifies that the negative control are the blank samples
-contamdf.prev.ad.mesh <- isContaminant(ad_mesh_bl, method="prevalence", neg="is.neg", threshold=0.1)
-#Runs the decontamination with a threshold of 0.1. 
-hist(contamdf.prev.ad.mesh$p) 
-table(contamdf.prev.ad.mesh$contaminant)
-#Threshold of 0.1: FALSE = 822, TRUE=15. Identifies 15 potential contaminants.
-
-#Prune samples to get rid of contaminants and continue with filtering steps
-ps.noncontam.ad.mesh <- prune_taxa(!contamdf.prev.ad.mesh$contaminant, ad_mesh_bl) #Keeps the 822 taxa that were not ID as contaminants
-ps.noncontam.ad.mesh 
-
-
-## Larvae from ACWA ##
-
-lar_ACWA_bl<-subset_samples(ps, Blank_collection_method=="Water September")
-lar_ACWA_bl<-prune_taxa(taxa_sums(lar_ACWA_bl) > 0, lar_ACWA_bl)
-lar_ACWA_bl #6556 taxa, 42 samples
-
-#Decontam steps for removing floating emergence trap contaminants from ACWA adult mayflies
-lar_ACWA_bl_df <- as.data.frame(sample_data(lar_ACWA_bl))
-
-sample_data(lar_ACWA_bl)$is.neg <- sample_data(lar_ACWA_bl)$Sample_Type == "Blank" 
-contamdf.prev.lar.ACWA <- isContaminant(lar_ACWA_bl, method="prevalence", neg="is.neg", threshold=0.1)
- 
-table(contamdf.prev.lar.ACWA$contaminant)
-#Threshold of 0.1: FALSE = 6517, TRUE=39
-
-#Prune samples to get rid of contaminants and continue with filtering steps
-ps.noncontam.lar.ACWA <- prune_taxa(!contamdf.prev.lar.ACWA$contaminant, lar_ACWA_bl)
-ps.noncontam.lar.ACWA #6517 taxa and 42 samples
-
-
-## Adults from Bow River ##
-
-ad_Bow_bl<-subset_samples(ps, Blank_collection_method=="Sheet")
-ad_Bow_bl<-prune_taxa(taxa_sums(ad_Bow_bl) > 0, ad_Bow_bl)
-ad_Bow_bl #9877 taxa, 107 samples
-
-#Decontam steps for removing floating emergence trap contaminants from ACWA adult mayflies
-ad_Bow_bl_df <- as.data.frame(sample_data(ad_Bow_bl))
-
-sample_data(ad_Bow_bl)$is.neg <- sample_data(ad_Bow_bl)$Sample_Type == "Blank" 
-contamdf.prev.ad.Bow <- isContaminant(ad_Bow_bl, method="prevalence", neg="is.neg", threshold=0.1)
- 
-table(contamdf.prev.ad.Bow$contaminant)
-#Threshold of 0.1: FALSE = 9552, TRUE=325
-
-#Prune samples to get rid of contaminants and continue with filtering steps
-ps.noncontam.ad.Bow <- prune_taxa(!contamdf.prev.ad.Bow$contaminant, ad_Bow_bl)
-ps.noncontam.ad.Bow #9552 taxa and 107 samples
-
-#Adult caddis at Policeman Flats need to be decontaminated with extraction reagents too since they were on the last extraction plate that was contaminated from the lab
-contam.caddis<-subset_samples(ps.noncontam.ad.Bow, Sample_ID %in% c("POLFLT_1_Ad_Caddis_MB_2", "POLFLT_1_Ad_Caddis_MB_3", "POLFLT_1_Ad_Caddis_MB_4", "POLFLT_1_Ad_Caddis_MB_5", "POLFLT_1_Ad_Caddis_MB_6", "POLFLT_1_Ad_Caddis_MB_7", "POLFLT_1_Ad_Caddis_MB_8"))
-
-#Separate extraction reagents so I can combine the POLFLT caddis dataframe together
-ext.reag<-subset_samples(ps, Blank_collection_method=="Extraction_neg_4")
-#Merge them together
-polflt.caddis<-merge_phyloseq(contam.caddis, ext.reag)
-
-sample_data(polflt.caddis)$is.neg <- sample_data(polflt.caddis)$Sample_Type == "Blank"
-contamdf.prev.caddis <- isContaminant(polflt.caddis, method="prevalence", neg="is.neg", threshold=0.1)
-
-table(contamdf.prev.caddis$contaminant)
-#Threshold of 0.1: FALSE = 31,523, TRUE=33
-
-#Prune samples to get rid of contaminants and continue with filtering steps
-ps.noncontam.caddis <- prune_taxa(!contamdf.prev.caddis$contaminant, polflt.caddis)
-ps.noncontam.caddis #31,523 taxa and 9 samples
-
-ps.noncontam.caddis<-subset_samples(ps.noncontam.caddis, Sample_Type!="Blank")
-nsamples(ps.noncontam.caddis) #7
-
-ps.noncontam.ad.Bow <- subset_samples(ps.noncontam.ad.Bow, Sample_ID != "POLFLT_1_Ad_Caddis_MB_2" & Sample_ID != "POLFLT_1_Ad_Caddis_MB_3" & Sample_ID !="POLFLT_1_Ad_Caddis_MB_4" & Sample_ID != "POLFLT_1_Ad_Caddis_MB_5" & Sample_ID !="POLFLT_1_Ad_Caddis_MB_6" & Sample_ID !="POLFLT_1_Ad_Caddis_MB_7" & Sample_ID != "POLFLT_1_Ad_Caddis_MB_8")
-
-
-## Larvae Bow River ##
-
-lar_Bow_bl<-subset_samples(ps, Blank_collection_method=="Water July")
-lar_Bow_bl<-prune_taxa(taxa_sums(lar_Bow_bl) > 0, lar_Bow_bl)
-lar_Bow_bl #16688 taxa, 122 samples
-
-#Decontam steps for removing floating emergence trap contaminants from ACWA adult mayflies
-lar_Bow_bl_df <- as.data.frame(sample_data(lar_Bow_bl))
-
-sample_data(lar_Bow_bl)$is.neg <- sample_data(lar_Bow_bl)$Sample_Type == "Blank" 
-contamdf.prev.lar.Bow <- isContaminant(lar_Bow_bl, method="prevalence", neg="is.neg", threshold=0.1)
- 
-table(contamdf.prev.lar.Bow$contaminant)
-#Threshold of 0.1: FALSE = 16629, TRUE=59
-
-#Prune samples to get rid of contaminants and continue with filtering steps
-ps.noncontam.lar.Bow <- prune_taxa(!contamdf.prev.lar.Bow$contaminant, lar_Bow_bl)
-ps.noncontam.lar.Bow 
-
-
-## All data merged back together ##
-
-#Rest of data that wasn't decontaminated
-rest_of_data<-subset_samples(ps, Blank_collection_method == "No_blank")
-rest_of_data<-prune_taxa(taxa_sums(rest_of_data) > 0, rest_of_data)
-rest_of_data #4026 taxa, 80 samples (spiders)
-#Merge back together
-final_merge<-merge_phyloseq(ps.noncontam.ad.mesh, ps.noncontam.ad.Bow, ps.noncontam.lar.ACWA, ps.noncontam.lar.Bow, rest_of_data)
-
-decontam_sample_ps<-subset_samples(final_merge, Sample_Type == "Sample") 
-
-decontam_sample_ps_0 <- subset_taxa(decontam_sample_ps, Kingdom != "Eukaryota")
-
-decontam_sample_ps_1<-subset_taxa(decontam_sample_ps_0, !is.na(Phylum) & !Phylum %in% c("","uncharacterized")) 
-
-decontam_sample_ps_2<-ps_prune(decontam_sample_ps_1, min.samples = 4, min.reads = 6)
-others = c("Others")
-allTaxa_decontam = taxa_names(decontam_sample_ps_2)
-allTaxa_decontam <- allTaxa_decontam[!(allTaxa_decontam %in% others)] #removes others from taxa names
-decontam_sample_ps_2 = prune_taxa(allTaxa_decontam, decontam_sample_ps_2)
-decontam_sample_ps_2 #4520, 350 samples
-
-decontam_ps <- subset_samples(decontam_sample_ps_2, sample_sums(decontam_sample_ps_2) > 2000) 
-decontam_ps #4520 taxa, 332 samples. 
-#Removed 44 potential contaminants from original dataset.
-```
-
 ### Removing low confidence taxa
 ```{r}
 #Need to remove PMF adult caddis because they were contaminated with contaminated laboratory reagents.
@@ -335,8 +198,15 @@ ntaxa(psexp)-ntaxa(ps0) #Got rid of 39 ASVs
 table(tax_table(ps0)[,"Phylum"],exclude=NULL)
 ps1<-subset_taxa(ps0, !is.na(Phylum) & !Phylum %in% c("","uncharacterized")) #Removes the phyla characterized as NA
 ntaxa(ps0) - ntaxa(ps1) #Got rid of 403 ASVs
-ps1 #29,776 taxa, 349 samples
-sort(sample_sums(ps1)) #Reads/sample range from 59 - 222,956
+table(tax_table(ps1)[,"Phylum"],exclude=NULL) #Removed NAs
+
+#Removing mitochondria and chloroplasts since they are not part of the microbiome
+ps2<-subset_taxa(ps1, !Order %in% c("","Chloroplast"))
+ntaxa(ps1) - ntaxa(ps2) #Got rid of 914 ASVs
+table(tax_table(ps2)[,"Order"],exclude=NULL) #Removed Chloroplasts. No Mitochondria present.
+
+ps2 #28,862 taxa, 349 samples
+sort(sample_sums(ps2)) #Reads/sample range from 46 - 222,777
 ```
 
 ### Finding a good prevalence threshold
@@ -345,25 +215,25 @@ sort(sample_sums(ps1)) #Reads/sample range from 59 - 222,956
 ##Prevalence threshold pruning ##
 #Define prevalence of each taxa (in how many samples did each taxa appear at least once)
 #2%
-prev0 = apply(X = otu_table(ps1),
-                MARGIN = ifelse(taxa_are_rows(ps1), yes = 1, no = 2),
+prev0 = apply(X = otu_table(ps2),
+                MARGIN = ifelse(taxa_are_rows(ps2), yes = 1, no = 2),
                 FUN = function(x){sum(x > 0)})
 prevdf = data.frame(Prevalence = prev0,
-                      TotalAbundance = taxa_sums(ps1),
-                      tax_table(ps1))
+                      TotalAbundance = taxa_sums(ps2),
+                      tax_table(ps2))
 keepPhyla = table(prevdf$Phylum)[(table(prevdf$Phylum) > 2)] #Keeping phyla with a prevalence greater than 2
 prevdf1 = subset(prevdf, Phylum %in% names(keepPhyla))
 # Define prevalence threshold as 2% of total samples
 prevalenceThreshold = 0.02 * nsamples(ps1)
-prevalenceThreshold #We are keeping phyla that occur at least 6.78 samples (2% of samples) with a prevalence of 2 or greater 
+prevalenceThreshold #We are keeping phyla that occur at least 6.98 (7) samples (2% of samples) with a prevalence of 2 or greater 
 
-psprune = prune_taxa((prev0 > prevalenceThreshold), ps1)
-psprune #2823 taxa. Cut out a very large portion of the data. Probably too high of a threshold.  
+psprune = prune_taxa((prev0 > prevalenceThreshold), ps2)
+psprune #2663 taxa. Cut out a very large portion of the data. Probably too high of a threshold.  
 
 reads_pruned <- taxa_sums(psprune)
-print(sum(reads_pruned)) #11,202,901 total reads left after pruning
-reads_per_OTU <- taxa_sums(psexp) 
-(1-(sum(reads_pruned))/(sum(reads_per_OTU)))*100 #14.6% of the total read data was removed by pruning. A decently large portion of the data was cut out from additional pruning
+print(sum(reads_pruned)) 
+reads_total <- taxa_sums(psexp) 
+(1-(sum(reads_pruned))/(sum(reads_total)))*100 #28.9% of the total read data was removed by pruning. Very large portion of the data was cut out from additional pruning
 
 #Graphs prevalence of each bacterial Phylum with dotted line indicating the prevalence threshold so you get an idea of how much data would be lost.
 ggplot(prevdf1, aes(TotalAbundance, Prevalence, color = Phylum)) +
@@ -375,29 +245,29 @@ ggplot(prevdf1, aes(TotalAbundance, Prevalence, color = Phylum)) +
 #Prevalence threshold looks too high, cutting out a lot of the variation in microbial communities. I will try a lower threshold value. 
 
 
-#Lowering the prevalence threshold to 1%
+#Lowering the prevalence threshold to 0.5%
 
 # Define prevalence of each taxa
 # (in how many samples did each taxa appear at least once)
-prev1 = apply(X = otu_table(ps1),
-                MARGIN = ifelse(taxa_are_rows(ps1), yes = 1, no = 2),
+prev1 = apply(X = otu_table(ps2),
+                MARGIN = ifelse(taxa_are_rows(ps2), yes = 1, no = 2),
                 FUN = function(x){sum(x > 0)})
 prevdf2 = data.frame(Prevalence = prev1,
-                      TotalAbundance = taxa_sums(ps1),
-                      tax_table(ps1))
-keepPhyla1 = table(prevdf2$Phylum)[(table(prevdf2$Phylum) > 2)]
+                      TotalAbundance = taxa_sums(ps2),
+                      tax_table(ps2))
+keepPhyla1 = table(prevdf2$Phylum)[(table(prevdf2$Phylum) > 0.05)]
 prevdf3 = subset(prevdf2, Phylum %in% names(keepPhyla))
 # Define prevalence threshold as 1% of total samples
-prevalenceThreshold1 = 0.01 * nsamples(ps1)
-prevalenceThreshold1 #3.49. Present in at least 3.49 samples (round up to 4)
+prevalenceThreshold1 = 0.005 * nsamples(ps2)
+prevalenceThreshold1 #1.75 (2). Present in at least 2 samples
 
-psprune1 = prune_taxa((prev1 > prevalenceThreshold1), ps1)
-psprune1 #4572 taxa. Still a very large percentage of taxa removed but we need to look at the amount of total reads removed to understand the implications to the data.
+psprune1 = prune_taxa((prev1 > prevalenceThreshold1), ps2)
+psprune1 #8698 taxa. Still a very large percentage of taxa removed but we need to look at the amount of total reads removed to understand the implications to the data.
 
 reads_pruned1 <- taxa_sums(psprune1)
-print(sum(reads_pruned1)) #11,981,219 total reads left after pruning
+print(sum(reads_pruned1)) #10,601,592 total reads left after pruning
 reads_per_OTU <- taxa_sums(psexp) 
-(1-(sum(reads_pruned1))/(sum(reads_per_OTU)))*100 #8.68% of the total data was removed. Still a decnetly large percentage 
+(1-(sum(reads_pruned1))/(sum(reads_per_OTU)))*100 #19.2% of the total data was removed. Still a decently large percentage 
 
 #Plot prevalence of each Phylum
 ggplot(prevdf2, aes(TotalAbundance, Prevalence, color = Phylum)) +
@@ -408,7 +278,7 @@ ggplot(prevdf2, aes(TotalAbundance, Prevalence, color = Phylum)) +
   facet_wrap(~Phylum)
 #This threshold of filtering looks a lot better and I can be more confidence that we are not removing true taxa from samples. Looks like the ones that are removed are just artifacts of sampling or sequencing errors. 
 
-#I will use a prevalence threshold of 1 % meaning that the bacteria has to be present in at least 4 samples 
+#I will use a prevalence threshold of 0.5 % meaning that the bacteria has to be present in at least 2 samples 
 ```
 
 ### Filtering by abundance and prevalence threshold
@@ -4189,23 +4059,240 @@ cyano_ACWA #148 taxa, 55 samples
 
 #### Bow River only ####
 
+## Class level ##
+
+cyano_Bow_na<-subset_taxa(Bow_ps, (Phylum=="Cyanobacteria") | is.na(Class)) 
+
+cyano_class_Bow <- tax_glom(cyano_Bow_na, taxrank = "Class", NArm = F)
+cyano_class_Bow #12 classes
+
+rel_abun_cyano_class_Bow <- transform_sample_counts(cyano_class_Bow, function(x){x / sum(x)})
+
+cyano_class_Bow_df <- psmelt(rel_abun_cyano_class_Bow)
+
+cyano_class_Bow_agg <- aggregate(Abundance ~ Class + Site_code + sample_Family + Stage, data = cyano_class_Bow_df, FUN = mean, na.action=na.pass) 
+
+
+cyano_class_Bow_agg$Site_code <- factor(cyano_class_Bow_agg$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+cyano_class_Bow_agg$Stage<-factor(cyano_class_Bow_agg$Stage, levels=c("Larvae", "Adults", "Spiders"))
+
+cyano_class_Bow_agg$sample_Family<-factor(cyano_class_Bow_agg$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+ggplot(cyano_class_Bow_agg, aes(x=Site_code, y=Abundance, fill=Class)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage + sample_Family, scales="free_x", nrow=1) +  
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=24, face="italic"), legend.title=element_text(size=24)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Class", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria classes across taxa and sites na included.png", height=12, width=26)
+
+## Plotting relative abundance of cyanobacteria compared to total ##
+
+sort(table(tax_table(cyano_Bow)[,5]))
+#Chamaesiphonaceae
+#Chroococcidiopsaceae
+#Cyanobiaceae
+#Leptolyngbyaceae
+#Nostocaceae
+#Obscuribacteraceae
+#Phormidiaceae
+#Pseudanabaenaceae
+#Xenococcaceae
+#Unknown Family
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+Bow_fam <- tax_glom(Bow_ps, taxrank = "Family")
+comp_Bow_fam <- transform_sample_counts(Bow_fam, function(x) x/sum(x))
+
+Bow_fam_df <- psmelt(comp_Bow_fam)
+
+Bow_agg_fam <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = Bow_fam_df, FUN = mean) 
+
+#Sort abundance of each genus by mean at each site
+sort_fam_Bow <- Bow_agg_fam %>%
+    group_by(Family, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+sort_fam_Bow
+
+cyanobacteria_Bow_fam <- sort_fam_Bow$Family[c(211:215, 246:250, 301:305, 626:630, 766:775, 841:845, 876:880, 1131:1135, 1186:1190)]
+  
+cyano_df_Bow_fam <- Bow_agg_fam %>%
+    mutate(Family = fct_other(Family, cyanobacteria_Bow_fam))
+
+cyano_agg_df_Bow_fam<-aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = cyano_df_Bow_fam, FUN = sum)
+
+
+cyano_agg_df_Bow_fam$Site_code <- factor(cyano_agg_df_Bow_fam$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+cyano_agg_df_Bow_fam$sample_Family<-factor(cyano_agg_df_Bow_fam$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+
+cyano_plot_Bow_fam <- ggplot(cyano_agg_df_Bow_fam, aes(x=Site_code, y=Abundance, fill=Family)) +
+  geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.8, "cm"),
+        legend.text=element_text(size=28, face="italic"), legend.title=element_text(size=28), legend.position = "right") +
+  guides(fill=guide_legend(nrow=17)) +
+  theme(axis.title.y=element_text(size=30),
+        axis.text.y=element_text(size=24, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
+                        axis.title.x=element_text(size=30))+
+  scale_fill_manual(name="Family", values=c("dodgerblue2", "#E31A1C","green4","#6A3D9A",  "#FF7F00","gold1","skyblue2", "#FB9A99", "palegreen2", "#CAB2D6", "#808080"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+cyano_plot_Bow_fam
+
+#ggsave(cyano_plot_Bow_fam, filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria composition across sites and taxa Bow only family level.png", height=12, width=26)
+
+
+## Order level ##
+
+cyano_Bow_na<-subset_taxa(Bow_ps, (Phylum=="Cyanobacteria") | is.na(Order)) 
+
+cyano_order_Bow <- tax_glom(cyano_Bow_na, taxrank = "Order", NArm = F)
+cyano_order_Bow #37 classes
+
+rel_abun_cyano_order_Bow <- transform_sample_counts(cyano_order_Bow, function(x){x / sum(x)})
+
+cyano_order_Bow_df <- psmelt(rel_abun_cyano_order_Bow)
+
+cyano_order_Bow_agg <- aggregate(Abundance ~ Order + Site_code + sample_Family + Stage, data = cyano_order_Bow_df, FUN = mean, na.action=na.pass) 
+
+
+cyano_order_Bow_agg$Site_code <- factor(cyano_order_Bow_agg$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+cyano_order_Bow_agg$Stage<-factor(cyano_order_Bow_agg$Stage, levels=c("Larvae", "Adults", "Spiders"))
+
+cyano_order_Bow_agg$sample_Family<-factor(cyano_order_Bow_agg$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+ggplot(cyano_order_Bow_agg, aes(x=Site_code, y=Abundance, fill=Order)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage + sample_Family, scales="free_x", nrow=1) +  
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=24, face="italic"), legend.title=element_text(size=24)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Order", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria orders across taxa and sites na included.png", height=12, width=26)
+
+## Plotting relative abundance of cyanobacteria compared to total ##
+
+sort(table(tax_table(cyano_Bow_na)[,4]))
+#Chamaesiphonaceae
+#Chroococcidiopsaceae
+#Cyanobiaceae
+#Leptolyngbyaceae
+#Nostocaceae
+#Obscuribacteraceae
+#Phormidiaceae
+#Pseudanabaenaceae
+#Xenococcaceae
+#Unknown Family
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+Bow_fam <- tax_glom(Bow_ps, taxrank = "Family")
+comp_Bow_fam <- transform_sample_counts(Bow_fam, function(x) x/sum(x))
+
+Bow_fam_df <- psmelt(comp_Bow_fam)
+
+Bow_agg_fam <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = Bow_fam_df, FUN = mean) 
+
+#Sort abundance of each genus by mean at each site
+sort_fam_Bow <- Bow_agg_fam %>%
+    group_by(Family, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+sort_fam_Bow
+
+cyanobacteria_Bow_fam <- sort_fam_Bow$Family[c(211:215, 246:250, 301:305, 626:630, 766:775, 841:845, 876:880, 1131:1135, 1186:1190)]
+  
+cyano_df_Bow_fam <- Bow_agg_fam %>%
+    mutate(Family = fct_other(Family, cyanobacteria_Bow_fam))
+
+cyano_agg_df_Bow_fam<-aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = cyano_df_Bow_fam, FUN = sum)
+
+
+cyano_agg_df_Bow_fam$Site_code <- factor(cyano_agg_df_Bow_fam$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+cyano_agg_df_Bow_fam$sample_Family<-factor(cyano_agg_df_Bow_fam$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+
+cyano_plot_Bow_fam <- ggplot(cyano_agg_df_Bow_fam, aes(x=Site_code, y=Abundance, fill=Family)) +
+  geom_bar(stat="identity", color="black") + 
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.8, "cm"),
+        legend.text=element_text(size=28, face="italic"), legend.title=element_text(size=28), legend.position = "right") +
+  guides(fill=guide_legend(nrow=17)) +
+  theme(axis.title.y=element_text(size=30),
+        axis.text.y=element_text(size=24, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
+                        axis.title.x=element_text(size=30))+
+  scale_fill_manual(name="Family", values=c("dodgerblue2", "#E31A1C","green4","#6A3D9A",  "#FF7F00","gold1","skyblue2", "#FB9A99", "palegreen2", "#CAB2D6", "#808080"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+cyano_plot_Bow_fam
+
+#ggsave(cyano_plot_Bow_fam, filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria composition across sites and taxa Bow only family level.png", height=12, width=26)
+
+
+
 ## Family level ##
 
-cyano_fam_Bow <- tax_glom(cyano_Bow, taxrank = "Family")
-cyano_fam_Bow #10 families
+cyano_Bow_na<-subset_taxa(Bow_ps, (Phylum=="Cyanobacteria") | is.na(Family)) 
+
+cyano_fam_Bow <- tax_glom(cyano_Bow_na, taxrank = "Family", NArm = F)
+cyano_fam_Bow #11 families + 97 NA groups
 
 rel_abun_cyano_fam_Bow <- transform_sample_counts(cyano_fam_Bow, function(x){x / sum(x)})
 
 cyano_fam_Bow_df <- psmelt(rel_abun_cyano_fam_Bow)
 
-cyano_fam_Bow_agg <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = cyano_fam_Bow_df, FUN = mean) 
+cyano_fam_Bow_agg <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = cyano_fam_Bow_df, FUN = mean, na.action=na.pass) 
 
 
 cyano_fam_Bow_agg$Site_code <- factor(cyano_fam_Bow_agg$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 cyano_fam_Bow_agg$Stage<-factor(cyano_fam_Bow_agg$Stage, levels=c("Larvae", "Adults", "Spiders"))
 
-cyano_fam_Bow_agg$sample_Family<-factor(cyano_fam_Bow_agg$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Chironomidae ", "Araneidae", "Tetragnathidae"))
+cyano_fam_Bow_agg$sample_Family<-factor(cyano_fam_Bow_agg$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
 ggplot(cyano_fam_Bow_agg, aes(x=Site_code, y=Abundance, fill=Family)) +
   geom_bar(stat="identity", color="black") + 
@@ -4221,12 +4308,12 @@ ggplot(cyano_fam_Bow_agg, aes(x=Site_code, y=Abundance, fill=Family)) +
         axis.text.y=element_text(size=22, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
                         axis.title=element_text(size=26))+
-  scale_fill_manual(name="Genus", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
-  scale_y_continuous(label = scales::percent)+
+  scale_fill_manual(name="Family", values=c(as.vector(stepped(20)),"#C8BC78", "#D5CE9D", "#F7F2CE", "#43464B"))+
+  scale_y_continuous(label = scales::percent, limits = c(0,1))+
   xlab("Site")+
   rremove("grid")
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria families across taxa and sites.png", height=12, width=26)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Cyanobacteria/Cyanobacteria families across taxa and sites na included.png", height=12, width=26)
 
 ## Plotting relative abundance of cyanobacteria compared to total ##
 
