@@ -1636,7 +1636,7 @@ hydro_Bow_phylum <- psmelt(hydro_Bow_glom) %>% #Transform to dataframe and summa
   summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
   order(hydro_Bow_phylum$Mean, decreasing = TRUE)
 View(hydro_Bow_phylum)
-#Top 3 across all Hydropsychidae: Bacteroidota, Proteobacteria, Firmicutes
+#Bacteroidota, Proteobacteria, Firmicutes
 
 # Cochrane #
 hydro_coch_phy<-subset(coch_phylum, sample_Family=="Hydropsychidae") 
@@ -1756,7 +1756,7 @@ hydro_ACWA_phylum <- psmelt(hydro_ACWA_glom) %>% #Transform to dataframe and sum
   dplyr::select(c("Abundance", "Phylum")) %>%
   summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup  
 View(hydro_ACWA_phylum)
-#Top 3 most abundant phyla across all sites (Bacteroidota, Proteobacteria, Firmicutes)
+#Bacteroidota, Proteobacteria, Firmicutes
 
 # REF #
 hydro_REF_phy<-subset(REF_phylum, sample_Family=="Hydropsychidae")
@@ -1833,6 +1833,8 @@ hep_phylum <- psmelt(hep_glom) %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
   summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup
+View(hep_phylum) 
+#Proteobacteria, Firmicutes, Bacteroidota
 
 # Cochrane #
 hep_coch_phy<-subset(coch_phylum, sample_Family=="Heptageniidae")
@@ -1840,8 +1842,9 @@ hep_coch_phy<-subset(hep_coch_phy, Mean > 0)
 hep_coch_phy<-hep_coch_phy[order(hep_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_hep<- hep_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Proteobacteria", "Firmicutes")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Proteobacteria", "Firmicutes")))
 #Use these standard deviations for the phyla that were kept (the top phyla)
+View(top_coch_phy_hep)
 
 top_coch_phy_hep$SD_squared ='^'(top_coch_phy_hep$SD,2)
 top_coch_phy_hep$SD_squared_divided =(top_coch_phy_hep$SD_squared/8) 
@@ -1859,8 +1862,9 @@ hep_sun_phy<-subset(hep_sun_phy, Mean > 0)
 hep_sun_phy<-hep_sun_phy[order(hep_sun_phy$Mean, decreasing = TRUE),]  
 
 top_sun_phy_hep<- hep_sun_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Proteobacteria", "Firmicutes")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Proteobacteria", "Firmicutes")))
 #Use these standard deviations for the phyla that were kept (the top phyla)
+View(top_sun_phy_hep)
 
 top_sun_phy_hep$SD_squared ='^'(top_sun_phy_hep$SD,2)
 top_sun_phy_hep$SD_squared_divided =(top_sun_phy_hep$SD_squared/8) 
@@ -1878,8 +1882,9 @@ hep_cush_phy<-subset(hep_cush_phy, Mean > 0)
 hep_cush_phy<-hep_cush_phy[order(hep_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_hep<- hep_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Proteobacteria", "Firmicutes")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Proteobacteria", "Firmicutes")))
 #Use these standard deviations for the phyla that were kept (the top phyla)
+View(top_cush_phy_hep)
 
 top_cush_phy_hep$SD_squared ='^'(top_cush_phy_hep$SD,2)
 top_cush_phy_hep$SD_squared_divided =(top_cush_phy_hep$SD_squared/8) 
@@ -1898,8 +1903,9 @@ hep_grvbr_phy<-hep_grvbr_phy[order(hep_grvbr_phy$Mean, decreasing = TRUE),]
 
 
 top_grvbr_phy_hep<- hep_grvbr_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Proteobacteria", "Firmicutes")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Proteobacteria", "Firmicutes")))
 #Use these standard deviations for the phyla that were kept (the top phyla)
+View(top_grvbr_phy_hep)
 
 top_grvbr_phy_hep$SD_squared ='^'(top_grvbr_phy_hep$SD,2)
 top_grvbr_phy_hep$SD_squared_divided =(top_grvbr_phy_hep$SD_squared/8) 
@@ -1918,8 +1924,9 @@ hep_pmf_phy<-hep_pmf_phy[order(hep_pmf_phy$Mean, decreasing = TRUE),]
 
 
 top_pmf_phy_hep<- hep_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Proteobacteria", "Firmicutes")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Proteobacteria", "Firmicutes")))
 #Use these standard deviations for the phyla that were kept (the top phyla)
+View(top_pmf_phy_hep)
 
 top_pmf_phy_hep$SD_squared ='^'(top_pmf_phy_hep$SD,2)
 top_pmf_phy_hep$SD_squared_divided =(top_pmf_phy_hep$SD_squared/8) 
@@ -1943,6 +1950,8 @@ chiro_phylum <- psmelt(chiro_glom) %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
   summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(chiro_phylum)
+#Proteobacteria, Bacteroidota, Firmicutes
 
 # Cochrane #
 chiro_coch_phy<-subset(coch_phylum, sample_Family=="Chironomidae")
@@ -1950,7 +1959,8 @@ chiro_coch_phy<-subset(chiro_coch_phy, Mean > 0)
 chiro_coch_phy<-chiro_coch_phy[order(chiro_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_chiro<- chiro_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_coch_phy_chiro)
   
 top_coch_phy_chiro$SD_squared ='^'(top_coch_phy_chiro$SD,2)
 top_coch_phy_chiro$SD_squared_divided =(top_coch_phy_chiro$SD_squared/4) 
@@ -1969,7 +1979,8 @@ chiro_cush_phy<-subset(chiro_cush_phy, Mean > 0)
 chiro_cush_phy<-chiro_cush_phy[order(chiro_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_chiro<- chiro_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_cush_phy_chiro)
   
 top_cush_phy_chiro$SD_squared ='^'(top_cush_phy_chiro$SD,2)
 top_cush_phy_chiro$SD_squared_divided =(top_cush_phy_chiro$SD_squared/4) 
@@ -1987,7 +1998,8 @@ chiro_pmf_phy<-subset(chiro_pmf_phy, Mean > 0)
 chiro_pmf_phy<-chiro_pmf_phy[order(chiro_pmf_phy$Mean, decreasing = TRUE),]  
 
 top_pmf_phy_chiro<- chiro_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_pmf_phy_chiro)
   
 top_pmf_phy_chiro$SD_squared ='^'(top_pmf_phy_chiro$SD,2)
 top_pmf_phy_chiro$SD_squared_divided =(top_pmf_phy_chiro$SD_squared/5) 
@@ -2008,7 +2020,9 @@ perl_phylum <- psmelt(perl_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Bacteroidota, Cyanobacteria)
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(perl_phylum)
+#Proteobacteria, Bacteroidota, Firmicutes
 
 # Cochrane #
 perl_coch_phy<-subset(coch_phylum, sample_Family=="Perlidae")
@@ -2016,7 +2030,8 @@ perl_coch_phy<-subset(perl_coch_phy, Mean > 0)
 perl_coch_phy<-perl_coch_phy[order(perl_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_perl<- perl_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_coch_phy_perl)
   
 top_coch_phy_perl$SD_squared ='^'(top_coch_phy_perl$SD,2)
 top_coch_phy_perl$SD_squared_divided =(top_coch_phy_perl$SD_squared/8) 
@@ -2034,7 +2049,8 @@ perl_cush_phy<-subset(perl_cush_phy, Mean > 0)
 perl_cush_phy<-perl_cush_phy[order(perl_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_perl<- perl_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_cush_phy_perl)
   
 top_cush_phy_perl$SD_squared ='^'(top_cush_phy_perl$SD,2)
 top_cush_phy_perl$SD_squared_divided =(top_cush_phy_perl$SD_squared/5) 
@@ -2052,7 +2068,8 @@ perl_pmf_phy<-subset(perl_pmf_phy, Mean > 0)
 perl_pmf_phy<-perl_pmf_phy[order(perl_pmf_phy$Mean, decreasing = TRUE),]  
 
 top_pmf_phy_perl<- perl_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_pmf_phy_perl)
   
 top_pmf_phy_perl$SD_squared ='^'(top_pmf_phy_perl$SD,2)
 top_pmf_phy_perl$SD_squared_divided =(top_pmf_phy_perl$SD_squared/8) 
@@ -2074,7 +2091,9 @@ trichop_phylum <- psmelt(trichop_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Cyanobacteria, Bacteroidota)
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(trichop_phylum)
+#Proteobacteria, Bacteroidota, Firmicutes
 
 # Cochrane #
 trichop_coch_phy<-subset(coch_phylum, sample_Family=="Trichoptera")
@@ -2082,7 +2101,8 @@ trichop_coch_phy<-subset(trichop_coch_phy, Mean > 0)
 trichop_coch_phy<-trichop_coch_phy[order(trichop_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_trichop<- trichop_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Bacteroidota", "Firmicutes")))
+View(top_coch_phy_trichop)
   
 top_coch_phy_trichop$SD_squared ='^'(top_coch_phy_trichop$SD,2)
 top_coch_phy_trichop$SD_squared_divided =(top_coch_phy_trichop$SD_squared/8) 
@@ -2102,7 +2122,8 @@ trichop_sun_phy<-subset(trichop_sun_phy, Mean > 0)
 trichop_sun_phy<-trichop_sun_phy[order(trichop_sun_phy$Mean, decreasing = TRUE),]  
   
 top_sun_phy_trichop<- trichop_sun_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Bacteroidota", "Firmicutes")))
+View(top_sun_phy_trichop)
   
 top_sun_phy_trichop$SD_squared ='^'(top_sun_phy_trichop$SD,2)
 top_sun_phy_trichop$SD_squared_divided =(top_sun_phy_trichop$SD_squared/8) 
@@ -2120,7 +2141,8 @@ trichop_cush_phy<-subset(trichop_cush_phy, Mean > 0)
 trichop_cush_phy<-trichop_cush_phy[order(trichop_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_trichop<- trichop_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Bacteroidota", "Firmicutes")))
+View(top_cush_phy_trichop)
   
 top_cush_phy_trichop$SD_squared ='^'(top_cush_phy_trichop$SD,2)
 top_cush_phy_trichop$SD_squared_divided =(top_cush_phy_trichop$SD_squared/8) 
@@ -2138,7 +2160,8 @@ trichop_grvbr_phy<-subset(trichop_grvbr_phy, Mean > 0)
 trichop_grvbr_phy<-trichop_grvbr_phy[order(trichop_grvbr_phy$Mean, decreasing = TRUE),]  
 
 top_grvbr_phy_trichop<- trichop_grvbr_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Bacteroidota", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Proteobacteria", "Bacteroidota", "Firmicutes")))
+View(top_grvbr_phy_trichop)
   
 top_grvbr_phy_trichop$SD_squared ='^'(top_grvbr_phy_trichop$SD,2)
 top_grvbr_phy_trichop$SD_squared_divided =(top_grvbr_phy_trichop$SD_squared/7) 
@@ -2160,7 +2183,10 @@ ephem_Bow_phylum <- psmelt(ephem_Bow_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Cyanobacteria, Firmicutes)
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(ephem_Bow_phylum)
+
+#Proteobacteria, Firmicutes, Bacteroidota
 
 # Cochrane #
 ephem_coch_phy<-subset(coch_phylum, sample_Family=="Ephemeroptera")
@@ -2168,7 +2194,8 @@ ephem_coch_phy<-subset(ephem_coch_phy, Mean > 0)
 ephem_coch_phy<-ephem_coch_phy[order(ephem_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_ephem<- ephem_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Firmicutes", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_coch_phy_ephem)
   
 top_coch_phy_ephem$SD_squared ='^'(top_coch_phy_ephem$SD,2)
 top_coch_phy_ephem$SD_squared_divided =(top_coch_phy_ephem$SD_squared/8) 
@@ -2186,7 +2213,8 @@ ephem_sun_phy<-subset(ephem_sun_phy, Mean > 0)
 ephem_sun_phy<-ephem_sun_phy[order(ephem_sun_phy$Mean, decreasing = TRUE),]  
 
 top_sun_phy_ephem<- ephem_sun_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Firmicutes", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_sun_phy_ephem)
   
 top_sun_phy_ephem$SD_squared ='^'(top_sun_phy_ephem$SD,2)
 top_sun_phy_ephem$SD_squared_divided =(top_sun_phy_ephem$SD_squared/8) 
@@ -2204,7 +2232,8 @@ ephem_cush_phy<-subset(ephem_cush_phy, Mean > 0)
 ephem_cush_phy<-ephem_cush_phy[order(ephem_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_ephem<- ephem_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Firmicutes", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_cush_phy_ephem)
   
 top_cush_phy_ephem$SD_squared ='^'(top_cush_phy_ephem$SD,2)
 top_cush_phy_ephem$SD_squared_divided =(top_cush_phy_ephem$SD_squared/8) 
@@ -2222,7 +2251,8 @@ ephem_grvbr_phy<-subset(ephem_grvbr_phy, Mean > 0)
 ephem_grvbr_phy<-ephem_grvbr_phy[order(ephem_grvbr_phy$Mean, decreasing = TRUE),]  
 
 top_grvbr_phy_ephem<- ephem_grvbr_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Firmicutes", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_grvbr_phy_ephem)
   
 top_grvbr_phy_ephem$SD_squared ='^'(top_grvbr_phy_ephem$SD,2)
 top_grvbr_phy_ephem$SD_squared_divided =(top_grvbr_phy_ephem$SD_squared/8) 
@@ -2240,7 +2270,8 @@ ephem_pmf_phy<-subset(ephem_pmf_phy, Mean > 0)
 ephem_pmf_phy<-ephem_pmf_phy[order(ephem_pmf_phy$Mean, decreasing = TRUE),]  
 
 top_pmf_phy_ephem<- ephem_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Cyanobacteria", "Firmicutes", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_pmf_phy_ephem)
   
 top_pmf_phy_ephem$SD_squared ='^'(top_pmf_phy_ephem$SD,2)
 top_pmf_phy_ephem$SD_squared_divided =(top_pmf_phy_ephem$SD_squared/8) 
@@ -2261,7 +2292,10 @@ ephem_ACWA_phylum <- psmelt(ephem_ACWA_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites ()
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(ephem_ACWA_phylum)
+
+#Bacteroidota, Proteobacteria, Firmicutes
 
 # EFF5 #
 ephem_EFF5_phy<-subset(EFF5_phylum, sample_Family=="Ephemeroptera")
@@ -2270,6 +2304,7 @@ ephem_EFF5_phy<-ephem_EFF5_phy[order(ephem_EFF5_phy$Mean, decreasing = TRUE),]
 
 top_EFF5_phy_ephem<- ephem_EFF5_phy %>%
   mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_EFF5_phy_ephem)
   
 top_EFF5_phy_ephem$SD_squared ='^'(top_EFF5_phy_ephem$SD,2)
 top_EFF5_phy_ephem$SD_squared_divided =(top_EFF5_phy_ephem$SD_squared/8) 
@@ -2288,6 +2323,7 @@ ephem_EFF15_phy<-ephem_EFF15_phy[order(ephem_EFF15_phy$Mean, decreasing = TRUE),
 
 top_EFF15_phy_ephem<- ephem_EFF15_phy %>%
   mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_EFF15_phy_ephem)
   
 top_EFF15_phy_ephem$SD_squared ='^'(top_EFF15_phy_ephem$SD,2)
 top_EFF15_phy_ephem$SD_squared_divided =(top_EFF15_phy_ephem$SD_squared/8) 
@@ -2309,7 +2345,9 @@ baetid_ACWA_phylum <- psmelt(baetid_ACWA_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites ()
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(baetid_ACWA_phylum)
+#Proteobacteria, Bacteroidota, Firmicutes
 
 # EFF5 #
 baetid_EFF5_phy<-subset(EFF5_phylum, sample_Family=="Baetidae")
@@ -2317,7 +2355,8 @@ baetid_EFF5_phy<-subset(baetid_EFF5_phy, Mean > 0)
 baetid_EFF5_phy<-baetid_EFF5_phy[order(baetid_EFF5_phy$Mean, decreasing = TRUE),]  
 
 top_EFF5_phy_baetid<- baetid_EFF5_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_EFF5_phy_baetid)
   
 top_EFF5_phy_baetid$SD_squared ='^'(top_EFF5_phy_baetid$SD,2)
 top_EFF5_phy_baetid$SD_squared_divided =(top_EFF5_phy_baetid$SD_squared/8) 
@@ -2335,7 +2374,8 @@ baetid_EFF15_phy<-subset(baetid_EFF15_phy, Mean > 0)
 baetid_EFF15_phy<-baetid_EFF15_phy[order(baetid_EFF15_phy$Mean, decreasing = TRUE),]  
 
 top_EFF15_phy_baetid<- baetid_EFF15_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_EFF15_phy_baetid)
   
 top_EFF15_phy_baetid$SD_squared ='^'(top_EFF15_phy_baetid$SD,2)
 top_EFF15_phy_baetid$SD_squared_divided =(top_EFF15_phy_baetid$SD_squared/7) 
@@ -2356,7 +2396,10 @@ dip_phylum <- psmelt(dip_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Firmicutes, Cyanobacteria)
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(dip_phylum)
+
+#Proteobacteria, Firmicutes, Bacteroidota
 
 # Cochrane #
 dip_coch_phy<-subset(coch_phylum, sample_Family=="Diptera")
@@ -2364,7 +2407,8 @@ dip_coch_phy<-subset(dip_coch_phy, Mean > 0)
 dip_coch_phy<-dip_coch_phy[order(dip_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_dip<- dip_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_coch_phy_dip)
   
 top_coch_phy_dip$SD_squared ='^'(top_coch_phy_dip$SD,2)
 top_coch_phy_dip$SD_squared_divided =(top_coch_phy_dip$SD_squared/5) 
@@ -2382,7 +2426,8 @@ dip_cush_phy<-subset(dip_cush_phy, Mean > 0)
 dip_cush_phy<-dip_cush_phy[order(dip_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_dip<- dip_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_cush_phy_dip)
   
 top_cush_phy_dip$SD_squared ='^'(top_cush_phy_dip$SD,2)
 top_cush_phy_dip$SD_squared_divided =(top_cush_phy_dip$SD_squared/8) 
@@ -2400,7 +2445,8 @@ dip_pmf_phy<-subset(dip_pmf_phy, Mean > 0)
 dip_pmf_phy<-dip_pmf_phy[order(dip_pmf_phy$Mean, decreasing = TRUE),]  
 
 top_pmf_phy_dip<- dip_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Firmicutes", "Bacteroidota", "Proteobacteria")))
+View(top_pmf_phy_dip)
   
 top_pmf_phy_dip$SD_squared ='^'(top_pmf_phy_dip$SD,2)
 top_pmf_phy_dip$SD_squared_divided =(top_pmf_phy_dip$SD_squared/6) 
@@ -2422,7 +2468,10 @@ aran_phylum <- psmelt(aran_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Cyanobacteria, Bacteroidota, Proteobacteria)
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(aran_phylum)
+
+#Bacteroidota, Proteobacteria, Firmicutes
 
 # Cochrane #
 aran_coch_phy<-subset(coch_phylum, sample_Family=="Araneidae")
@@ -2430,7 +2479,8 @@ aran_coch_phy<-subset(aran_coch_phy, Mean > 0)
 aran_coch_phy<-aran_coch_phy[order(aran_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_aran<- aran_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_coch_phy_aran)
   
 top_coch_phy_aran$SD_squared ='^'(top_coch_phy_aran$SD,2)
 top_coch_phy_aran$SD_squared_divided =(top_coch_phy_aran$SD_squared/8) 
@@ -2448,7 +2498,8 @@ aran_sun_phy<-subset(aran_sun_phy, Mean > 0)
 aran_sun_phy<-aran_sun_phy[order(aran_sun_phy$Mean, decreasing = TRUE),]  
 
 top_sun_phy_aran<- aran_sun_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_sun_phy_aran)
   
 top_sun_phy_aran$SD_squared ='^'(top_sun_phy_aran$SD,2)
 top_sun_phy_aran$SD_squared_divided =(top_sun_phy_aran$SD_squared/7) 
@@ -2466,7 +2517,8 @@ aran_cush_phy<-subset(aran_cush_phy, Mean > 0)
 aran_cush_phy<-aran_cush_phy[order(aran_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_aran<- aran_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_cush_phy_aran)
   
 top_cush_phy_aran$SD_squared ='^'(top_cush_phy_aran$SD,2)
 top_cush_phy_aran$SD_squared_divided =(top_cush_phy_aran$SD_squared/7) 
@@ -2484,7 +2536,8 @@ aran_grvbr_phy<-subset(aran_grvbr_phy, Mean > 0)
 aran_grvbr_phy<-aran_grvbr_phy[order(aran_grvbr_phy$Mean, decreasing = TRUE),]  
 
 top_grvbr_phy_aran<- aran_grvbr_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_grvbr_phy_aran)
   
 top_grvbr_phy_aran$SD_squared ='^'(top_grvbr_phy_aran$SD,2)
 top_grvbr_phy_aran$SD_squared_divided =(top_grvbr_phy_aran$SD_squared/8) 
@@ -2502,7 +2555,8 @@ aran_pmf_phy<-subset(aran_pmf_phy, Mean > 0)
 aran_pmf_phy<-aran_pmf_phy[order(aran_pmf_phy$Mean, decreasing = TRUE),]  
 
 top_pmf_phy_aran<- aran_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_pmf_phy_aran)
   
 top_pmf_phy_aran$SD_squared ='^'(top_pmf_phy_aran$SD,2)
 top_pmf_phy_aran$SD_squared_divided =(top_pmf_phy_aran$SD_squared/6) 
@@ -2524,7 +2578,10 @@ tetra_phylum <- psmelt(tetra_glom) %>%
   as_tibble %>%
     group_by(Phylum) %>%
   dplyr::select(c("Abundance", "Phylum")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup #Top 3 most abundant phyla across all sites (Proteobacteria, Bacteroidota, Cyanobacteria)
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup 
+View(tetra_phylum)
+
+#Proteobacteria, Bacteroidota, Firmicutes
 
 # Cochrane #
 tetra_coch_phy<-subset(coch_phylum, sample_Family=="Tetragnathidae")
@@ -2532,7 +2589,8 @@ tetra_coch_phy<-subset(tetra_coch_phy, Mean > 0)
 tetra_coch_phy<-tetra_coch_phy[order(tetra_coch_phy$Mean, decreasing = TRUE),]  
 
 top_coch_phy_tetra<- tetra_coch_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_coch_phy_tetra)
   
 top_coch_phy_tetra$SD_squared ='^'(top_coch_phy_tetra$SD,2)
 top_coch_phy_tetra$SD_squared_divided =(top_coch_phy_tetra$SD_squared/8) 
@@ -2550,7 +2608,8 @@ tetra_sun_phy<-subset(tetra_sun_phy, Mean > 0)
 tetra_sun_phy<-tetra_sun_phy[order(tetra_sun_phy$Mean, decreasing = TRUE),]  
 
 top_sun_phy_tetra<- tetra_sun_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_sun_phy_tetra)
   
 top_sun_phy_tetra$SD_squared ='^'(top_sun_phy_tetra$SD,2)
 top_sun_phy_tetra$SD_squared_divided =(top_sun_phy_tetra$SD_squared/8) 
@@ -2568,7 +2627,8 @@ tetra_cush_phy<-subset(tetra_cush_phy, Mean > 0)
 tetra_cush_phy<-tetra_cush_phy[order(tetra_cush_phy$Mean, decreasing = TRUE),]  
 
 top_cush_phy_tetra<- tetra_cush_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_cush_phy_tetra)
   
 top_cush_phy_tetra$SD_squared ='^'(top_cush_phy_tetra$SD,2)
 top_cush_phy_tetra$SD_squared_divided =(top_cush_phy_tetra$SD_squared/8) 
@@ -2586,7 +2646,8 @@ tetra_grvbr_phy<-subset(tetra_grvbr_phy, Mean > 0)
 tetra_grvbr_phy<-tetra_grvbr_phy[order(tetra_grvbr_phy$Mean, decreasing = TRUE),]  
 
 top_grvbr_phy_tetra<- tetra_grvbr_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_grvbr_phy_tetra)
   
 top_grvbr_phy_tetra$SD_squared ='^'(top_grvbr_phy_tetra$SD,2)
 top_grvbr_phy_tetra$SD_squared_divided =(top_grvbr_phy_tetra$SD_squared/8) 
@@ -2604,7 +2665,8 @@ tetra_pmf_phy<-subset(tetra_pmf_phy, Mean > 0)
 tetra_pmf_phy<-tetra_pmf_phy[order(tetra_pmf_phy$Mean, decreasing = TRUE),]  
 
 top_pmf_phy_tetra<- tetra_pmf_phy %>%
-  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Cyanobacteria", "Proteobacteria")))
+  mutate(Phylum = fct_other(Phylum, keep=c("Bacteroidota", "Firmicutes", "Proteobacteria")))
+View(top_pmf_phy_tetra)
   
 top_pmf_phy_tetra$SD_squared ='^'(top_pmf_phy_tetra$SD,2)
 top_pmf_phy_tetra$SD_squared_divided =(top_pmf_phy_tetra$SD_squared/8) 
@@ -3435,13 +3497,13 @@ top_phyla_bow <- sample.df.agg_bow %>%
     summarise(Mean = mean(Abundance)) %>%
     arrange(-Mean)
 top_phyla_bow
-top5_bow <- top_phyla_bow$Phylum[1:23]
+top5_bow <- top_phyla_bow$Phylum[1:21]
 df0_bow <- sample.df.agg_bow %>%
     mutate(Phylum = fct_other(Phylum, top5_bow))
 df0_bow
 df0_bow<-aggregate(Abundance~Phylum + Site_code + sample_Family+Stage, data=df0_bow, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
 
-df0_bow$Phylum <- factor(df0_bow$Phylum, levels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Actinobacteriota", "Other", "Proteobacteria"), labels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Actinobacteriota", "Other", "Proteobacteria"))
+#df0_bow$Phylum <- factor(df0_bow$Phylum, levels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Actinobacteriota", "Other", "Proteobacteria"), labels=c("Bacteroidota", "Cyanobacteria", "Firmicutes", "Actinobacteriota", "Other", "Proteobacteria"))
 
 df0_bow$sample_Family<-factor(df0_bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
@@ -3459,14 +3521,14 @@ top5phylumplot_bow <- ggplot(df0_bow, aes(x=factor(Site_code, labels=c("COCH", "
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
                         axis.title.x=element_text(size=22))+
-  scale_fill_manual(name="Phylum", values = c("#A6CEE3", "#1F78B4", "#B2DF8A", "#CC9966", "#43464B", "darkolivegreen4"))+
+  scale_fill_manual(name="Phylum", values = c("#A6CEE3", "#1F78B4", "#B2DF8A", "#CC9966", "darkolivegreen4", "#43464B"))+
   scale_y_continuous(label = scales::percent)+
   rremove("grid")+
   xlab("Site")+
   facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)
 top5phylumplot_bow
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean relative abundance of top 5 phyla across invertebrate taxa Bow only.png", height=10, width=22)
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean rel abun top 5 phyla Bow only.png", height=10, width=22)
 
 #### Class Level ####
 rel_abun_class <- tax_glom(sample_ps, taxrank = "Class")
@@ -3475,8 +3537,8 @@ rel_abun_all_prune_class = prune_taxa(taxa_sums(rel_abun_class) > 0.05, rel_abun
 
 rel_abun_prune_sample_class <- psmelt(rel_abun_all_prune_class)
 
-sample.df.agg.class <- aggregate(Abundance ~ Class + Site_code  + sample_Family+Stage, data = rel_abun_prune_sample_class, FUN = mean) #aggregate to Phylum level, take the mean
-sample.df.agg.class$Site <- factor(sample.df.agg.class$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
+sample.df.agg.class <- aggregate(Abundance ~ Class + Site_code + sample_Family + Stage, data = rel_abun_prune_sample_class, FUN = mean) #aggregate to Phylum level, take the mean
+
 sample.df.agg.class$Site_code <- factor(sample.df.agg.class$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 top_class <- sample.df.agg.class %>%
@@ -3484,11 +3546,10 @@ top_class <- sample.df.agg.class %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
 top_class
-top10class <- top_class$Class[1:80]
+top10class <- top_class$Class[1:46]
 top10classdf <- sample.df.agg.class %>%
     mutate(Class = fct_other(Class, top10class))
-top10classdf <- aggregate(Abundance ~ Class + Site_code  + sample_Family+Stage, data = top5classdf, FUN = sum)
-top10classdf
+top10classdf <- aggregate(Abundance ~ Class + Site_code  + sample_Family + Stage, data = top5classdf, FUN = sum)
 
 top10classdf$sample_Family<-factor(top5classdf$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
@@ -3499,18 +3560,18 @@ top10classplot <- ggplot(top10classdf, aes(x=Site_code, y=Abundance, fill=Class)
   theme(strip.text = element_text(size = 16, color="black")) + 
   theme(legend.key.size = unit(0.5, "cm"),
         legend.text=element_text(size=10), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=10)) +
+  guides (fill=guide_legend(nrow=20)) +
   theme_bw()+
   theme(axis.title.y=element_text(size=22),
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
                         axis.title.x=element_text(size=22))+
-  scale_fill_manual(name="Bacterial Phylum", values=c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#43464B", "#FFD92F"))+
+  #scale_fill_manual(name="Bacterial Phylum", values=c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#43464B", "#FFD92F"))+
   scale_y_continuous(label = scales::percent)+
   rremove("grid")
 top10classplot
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean relative abundance of top 5 classes across invertebrates Bow only.png", height=10, width=22)
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean rel abun top X classes Bow.png", height=10, width=22)
 
 
 #### Family Level ####
@@ -3524,8 +3585,6 @@ rel_abun_prune_sample_fam_Bow <- psmelt(comp_rel_abun_fam_Bow)
 
 sample.df.agg_fam_Bow <- aggregate(Abundance ~ Family + Site_code + sample_Family+Stage, data = rel_abun_prune_sample_fam_Bow, FUN = mean) #aggregate to Phylum level, take the mean
 
-sample.df.agg_fam_Bow$Site <- factor(sample.df.agg_fam_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
-
 sample.df.agg_fam_Bow$Site_code <- factor(sample.df.agg_fam_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 #Top ~22 families, all inverts included
@@ -3533,7 +3592,7 @@ top_fam_Bow <- sample.df.agg_fam_Bow %>%
     group_by(Site_code, Family) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top25fam_Bow <- top_fam_Bow$Family[1:87]
+top25fam_Bow <- top_fam_Bow$Family[1:80]
 top25famdf_Bow <- sample.df.agg_fam_Bow %>%
     mutate(Family = fct_other(Family, top25fam_Bow))
 
@@ -3562,7 +3621,7 @@ top25famplotBow <- ggplot(top25famdf_Bow, aes(x=factor(Site_code, labels = c("CO
   rremove("grid")
 top25famplotBow 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 25 families across inverts and sites Bow only.png", height=10, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 25 fam Bow.png", height=10, width=22)
 
 #### Genus level ####
 
@@ -3586,7 +3645,7 @@ top_genus_Bow <- sample.df.agg_genus_Bow %>%
     group_by(Site_code, Genus) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top30genus_Bow <- top_genus_Bow$Genus[1:78]
+top30genus_Bow <- top_genus_Bow$Genus[1:83]
 top30genusdf_Bow <- sample.df.agg_genus_Bow %>%
     mutate(Genus = fct_other(Genus, top30genus_Bow))
 
@@ -3616,7 +3675,7 @@ top30genusplotBow <- ggplot(top30genusdf_Bow, aes(x=factor(Site_code, labels = c
 
 top30genusplotBow 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 30 genera across inverts and sites Bow only.png", height=10, width=26)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 30 genera Bow.png", height=10, width=26)
 
 # Top 10 genera from each life stage #
  ## Larvae ##
