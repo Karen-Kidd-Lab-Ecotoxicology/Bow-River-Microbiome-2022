@@ -97,6 +97,9 @@ library(MicEco)
 library(readxl)
 library(rdacca.hp) #Used to determine importance of each explanatory variable in RDA
 library(GGally) #Used to plot Spearman correlations
+library(biomformat)
+#install_github("helixcn/seqRFLP")
+library(seqRFLP) #Used to save files as .fasta
 ```
 
 # Phyloseq object
@@ -619,7 +622,7 @@ get_taxa_unique(buffer, "Genus") #113 genera total
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps)
-Bow_ps #4191 taxa, 280 samples
+Bow_ps #7527 taxa, 276 samples
 
 #Number of larval samples
 lar_Bow<-subset_samples(Bow_ps, Stage=="Larvae")
@@ -638,49 +641,88 @@ mean(sample_sums(Bow_ps)) #35,059 average reads/sample
 sort(sample_sums(Bow_ps)) #reads/sample ranges from 2384 - 222,630 counts
 ntaxa(Bow_ps) #4191
 
-#All phyla combined
-sort((table(tax_table(Bow_ps)[,2]))/sum(ntaxa(Bow_ps))*100)
-#Top 5 abundant phyla are Proteobacteria (37.6 %), Bacteroidota (30.7 %), Firmicutes (11.2 %), Cyanobacteria (5.92 %), Actinobacteria (5.65 %)
-sort((table(tax_table(Bow_ps)[,5])/sum(ntaxa(Bow_ps))*100))
-#Top 5 families are Comamonadaceae (7.83 %), Saprospiraceae (6.28 %), Flavobacteriaceae (4.58 %), Rhodobacteraceae (4.29 %), and Sphingomonadaceae (3.79 %)
-sort((table(tax_table(Bow_ps)[,6])/ntaxa(Bow_ps)*100))
-#top 5 genera: Flavobacterium (4.34 %), Rhodoferax (2.29 %), Tyzzerella (1.50 %), Pseudorhodobacter (1.41), Limnohabitans (1.10 %)
+#Top 5 phyla - all samples combined
+
+Bow_glom = tax_glom(Bow_ps, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
+
+Bow_phylum <- psmelt(Bow_glom) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(Bow_phylum)
+
+#Proteobacteria (52.4 +/- 30.4), Bacteroidota (23.7 +/- 23.7), Firmicutes (18.0 +/- 22.7), Actinobacteriota (3.44 +/- 6.59), Deferribacterota (0.49 +/- 1.52)
+
+
+
+#Top 5 families - all samples combined
+Bow_glom_fam = tax_glom(Bow_ps, "Family") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+Bow_fam <- psmelt(Bow_glom_fam) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Family) %>%
+  dplyr::select(c("Abundance", "Family")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(Bow_fam)
+
+#Rickettsiaceae (12.6 +/- 30.2), Chitinophagaceae (9.06 +/- 21.2), Comamonadaceae (7.83 +/- 11.4), Mycoplasmataceae (5.82 +/- 17.4), Anaplasmataceae (4.75 +/- 19.3)
+
+
+
+#Top 5 genera - all samples combined
+Bow_glom_genus= tax_glom(Bow_ps, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+Bow_genus <- psmelt(Bow_glom_genus) %>%
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(Bow_genus)
+
+#Rickettsia (13.7 31.1), Vibrionimonas (8.73 23.2), Candidatus Bacilloplasma (6.34 18.5), Wolbachia (4.77 19.3), Rhodoferax (4.06 6.57) 
 
 #Sort by proteobacteria
 proteo_Bow <- subset_taxa(Bow_ps, Phylum=="Proteobacteria")
-ntaxa(proteo_Bow) #1578
-(sort(table(tax_table(proteo_Bow)[,3])/ntaxa(proteo_Bow)*100)) #class. Only 2 classes. Alphaproteobacteria (49.7%) and Gammaproteobacteria (50.3%)
-(sort(table(tax_table(proteo_Bow)[,5])/ntaxa(proteo_Bow)*100)) #family Top 3: Comamonadaceae (20.8 %), Rhodobacteraceae (11.4 %), Sphingomonadaceae (10.1 %) 
-(sort(table(tax_table(proteo_Bow)[,6])/ntaxa(proteo_Bow)*100)) #genera Top 3: Rhodoferax (6.08 %), Pseudorhodobacter (3.74 %), Limnohabitans (2.92 %)
+ntaxa(proteo_Bow) #2754
+
+proteo_Bow_genus= tax_glom(proteo_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+
+proteo_Bow_genus_summ <- psmelt(proteo_Bow_genus) %>%
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(proteo_Bow_genus_summ)
+
 
 #Sort by Bacteroidota
 bactero_Bow <- subset_taxa(Bow_ps, Phylum=="Bacteroidota")
-ntaxa(bactero_Bow) #1288
-(sort(table(tax_table(bactero_Bow)[,3])/ntaxa(bactero_Bow)*100)) #class. Top class: Bacteroidia (97.4 %)
-(sort(table(tax_table(bactero_Bow)[,5])/ntaxa(bactero_Bow)*100)) #family Top 3: Saprospiraceae (20.4 %), Flavobacteriaceae (14.9 %), Chitinophagaceae (10.8 %)  
-(sort(table(tax_table(bactero_Bow)[,6])/ntaxa(bactero_Bow)*100)) #genera Top 3: Flavobacterium (14.1 %), Hymenobacter (3.11 %), Ferruginibacter (2.87 %)
+ntaxa(bactero_Bow) #2313
+
 
 #Sort by Firmicutes
 firm_Bow <- subset_taxa(Bow_ps, Phylum=="Firmicutes")
-ntaxa(firm_Bow) #468
-(sort(table(tax_table(firm_Bow)[,3])/ntaxa(firm_Bow)*100)) #class. Top 2: Clostridia (67.5 %), Bacilli (29.7 %) 
-(sort(table(tax_table(firm_Bow)[,5])/ntaxa(firm_Bow)*100)) #family Top 2: Lachnospiraceae (28.6 %), Ruminococcaceae (15.4 %) 
-(sort(table(tax_table(firm_Bow)[,6])/ntaxa(firm_Bow)*100)) #genera Top 3: Tyzzerella (13.5 %), Candidatus Soleaferrea (4.06 %), Staphylococcus (3.63 %)
+ntaxa(firm_Bow) #837
+
+#Sort by Cyanobacteria
+cyano_Bow <- subset_taxa(Bow_ps, Phylum=="Cyanobacteria")
+ntaxa(cyano_Bow) #120
 
 
 ##Get total numbers of ASVs at each level
-get_taxa_unique(Bow_ps, "Phylum") #32 phyla total
-get_taxa_unique(Bow_ps, "Class") #68 Classes total
-get_taxa_unique(Bow_ps, "Order") #166 orders total
-get_taxa_unique(Bow_ps, "Family") #237 families total
-get_taxa_unique(Bow_ps, "Genus") #480 genera total
+get_taxa_unique(Bow_ps, "Phylum") #38 phyla total
+get_taxa_unique(Bow_ps, "Class") #89 Classes total
+get_taxa_unique(Bow_ps, "Order") #209 orders total
+get_taxa_unique(Bow_ps, "Family") #316 families total
+get_taxa_unique(Bow_ps, "Genus") #714 genera total
 
 
 #### ACWA ####
 
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 ACWA_ps<-prune_taxa(taxa_sums(ACWA_ps) > 0, ACWA_ps)
-ACWA_ps #2604 taxa, 55 samples
+ACWA_ps #3613 taxa, 55 samples
 
 lar_ACWA<-subset_samples(ACWA_ps, Stage=="Larvae")
 nsamples(lar_ACWA) #39
@@ -688,48 +730,56 @@ ad_ACWA<-subset_samples(ACWA_ps, Stage=="Adults")
 nsamples(ad_ACWA) #16
 
 #Total number of reads
-print(sum(sample_sums(ACWA_ps))) #2,150,198
+print(sum(sample_sums(ACWA_ps))) #2,015,542
 #Average # of reads per sample
-mean(sample_sums(ACWA_ps)) #39,094 average reads/sample
-sort(sample_sums(ACWA_ps)) #reads/sample ranges from 8978 - 88,543 counts
-ntaxa(ACWA_ps) #2604
+mean(sample_sums(ACWA_ps)) #36,646 average reads/sample
+sort(sample_sums(ACWA_ps)) #reads/sample ranges from 8982 - 90,569 counts
+ntaxa(ACWA_ps) #3613
 
-#All phyla combined
-sort((table(tax_table(ACWA_ps)[,2]))/sum(ntaxa(ACWA_ps))*100)
-#Top 5 abundant phyla are Proteobacteria (35.8 %), Bacteroidota (31.6 %), Firmicutes (10.2 %), Cyanobacteria (5.68 %), Actinobacteria (3.76 %)
-sort((table(tax_table(ACWA_ps)[,5])/sum(ntaxa(ACWA_ps))*100))
-#Top 5 families are Comamonadaceae (7.52 %), Saprospiraceae (6.99 %), Rhodobacteraceae (5.07 %), Flavobacteriaceae (3.99 %), and Spirosomaceae (3.30 %)
-sort((table(tax_table(ACWA_ps)[,6])/ntaxa(ACWA_ps)*100))
-#top 5 genera: Flavobacterium (3.88 %), Tyzzerella (2.23 %), Pseudorhodobacter (1.65), Rhodoferax (1.50), Mucinivorans (1.19 %)
+#Top 5 phyla - all samples combined
+ACWA_glom = tax_glom(ACWA_ps, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
 
-#Sort by proteobacteria
-proteo_ACWA <- subset_taxa(ACWA_ps, Phylum=="Proteobacteria")
-ntaxa(proteo_ACWA) #933
-(sort(table(tax_table(proteo_ACWA)[,3])/ntaxa(proteo_ACWA)*100)) #class. Only 2 classes. Alphaproteobacteria (49.2%) and Gammaproteobacteria (50.6%)
-(sort(table(tax_table(proteo_ACWA)[,5])/ntaxa(proteo_ACWA)*100)) #family Top 3: Comamonadaceae (21.0 %), Rhodobacteraceae (14.1 %), Sphingomonadaceae (8.57 %) 
-(sort(table(tax_table(proteo_ACWA)[,6])/ntaxa(proteo_ACWA)*100)) #genera Top 3: Pseudorhodobacter (4.61), Rhodoferax (4.18 %), Limnohabitans (3.32 %)
+ACWA_phylum <- psmelt(ACWA_glom) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(ACWA_phylum)
 
-#Sort by Bacteroidota
-bactero_ACWA <- subset_taxa(ACWA_ps, Phylum=="Bacteroidota")
-ntaxa(bactero_ACWA) #824
-(sort(table(tax_table(bactero_ACWA)[,3])/ntaxa(bactero_ACWA)*100)) #class. Top class: Bacteroidia (97.1 %)
-(sort(table(tax_table(bactero_ACWA)[,5])/ntaxa(bactero_ACWA)*100)) #family Top 3: Saprospiraceae (22.1 %), Flavobacteriaceae (12.6 %), Spirosomaceae (10.4 %)  
-(sort(table(tax_table(bactero_ACWA)[,6])/ntaxa(bactero_ACWA)*100)) #genera Top 3: Flavobacterium (12.3 %), Mucinivorans (3.76 %), Emticicia (2.67 %)
+#Bacteroidota (45.5 +/- 23.1), Proteobacteria (43.7 +/- 23.7), Firmicutes (6.42 +/- 8.23), Deferribacterota (0.77 +/- 1.65), Actinobacteriota (0.54 +/- 0.57)
 
-#Sort by Firmicutes
-firm_ACWA <- subset_taxa(ACWA_ps, Phylum=="Firmicutes")
-ntaxa(firm_ACWA) #265
-(sort(table(tax_table(firm_ACWA)[,3])/ntaxa(firm_ACWA)*100)) #class. Top 2: Clostridia (76.2 %), Bacilli (20.8 %) 
-(sort(table(tax_table(firm_ACWA)[,5])/ntaxa(firm_ACWA)*100)) #family Top 2: Lachnospiraceae (29.8 %), Ruminococcaceae (20.0 %) 
-(sort(table(tax_table(firm_ACWA)[,6])/ntaxa(firm_ACWA)*100)) #genera Top 3: Tyzzerella (21.9 %), Candidatus Soleaferrea (5.66 %), Christensenellaceae R-7 group (3.40 %)
+#Top 5 families - all samples combined
+ACWA_glom_fam = tax_glom(ACWA_ps, "Family") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
+
+ACWA_fam <- psmelt(ACWA_glom_fam) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Family) %>%
+  dplyr::select(c("Abundance", "Family")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(ACWA_fam)
+
+#Chitinophagaceae (21.3, 31.1), Comamonadaceae (13.3, 16.0), Saprospiraceae (7.44, 9.29), Rhodobacteraceae (6.89, 9.74), Spirosomaceae (6.47, 6.10)    
+
+
+#Top 5 genera - all samples combined
+ACWA_glom_genus = tax_glom(ACWA_ps, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
+
+ACWA_genus <- psmelt(ACWA_glom_genus) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance))
+View(ACWA_genus)
+
+#Vibrionimonas (24.3 37.8), Ideonella (8.78 16.4), Sphingorhabdus (5.12 7.49), Mucinivorans (5.11 8.04), Pseudorhodobacter (3.80 4.25) 
 
 
 ##Get total numbers of ASVs at each level
-get_taxa_unique(ACWA_ps, "Phylum") #27 phyla total
-get_taxa_unique(ACWA_ps, "Class") #60 Classes total
-get_taxa_unique(ACWA_ps, "Order") #144 orders total
-get_taxa_unique(ACWA_ps, "Family") #196 families total
-get_taxa_unique(ACWA_ps, "Genus") #338 genera total
+get_taxa_unique(ACWA_ps, "Phylum") #33 phyla total
+get_taxa_unique(ACWA_ps, "Class") #75 Classes total
+get_taxa_unique(ACWA_ps, "Order") #172 orders total
+get_taxa_unique(ACWA_ps, "Family") #248 families total
+get_taxa_unique(ACWA_ps, "Genus") #441 genera total
 ```
 
 ### Total ASVs per site and invertebrate taxa 
@@ -741,6 +791,29 @@ ntaxa(sample_ps) #8,419
 
 #### Bow River ####
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+Bow_ps #7527 taxa, 276 samples
+print(sum(taxa_sums(Bow_ps))) #8,547,820 total reads
+
+#Larvae
+lar_Bow<-subset_samples(Bow_ps, Stage=="Larvae")
+lar_Bow<-prune_taxa(taxa_sums(lar_Bow) > 0, lar_Bow)
+lar_Bow #6051 taxa, 110 samples
+
+#Adults
+ad_Bow<-subset_samples(Bow_ps, Stage=="Adults")
+ad_Bow<-prune_taxa(taxa_sums(ad_Bow) > 0, ad_Bow)
+ad_Bow #2832 taxa, 90 samples
+
+#Spiders
+spi_Bow<-subset_samples(Bow_ps, Stage=="Spiders")
+spi_Bow<-prune_taxa(taxa_sums(spi_Bow) > 0, spi_Bow)
+spi_Bow #1480 taxa, 76 samples
+
+
+#Total number of reads
+print(sum(sample_sums(Bow_ps))) #8,547,820  
+mean(sample_sums(Bow_ps)) #30,970 average reads/sample
+sort(sample_sums(Bow_ps)) #reads/sample ranges from 2010 - 222,648 counts
 
 #Cochrane, n = 65
 coch<-subset_samples(Bow_ps, Site=="Cochrane")
@@ -2709,7 +2782,7 @@ taxon_pool_Phylum_Bow <- taxon_rel_abund_Phylum_Bow %>%
   dplyr::group_by(Site, sample_Family, taxon) %>%
   dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
   dplyr::group_by(taxon) %>%
-  dplyr::summarize(pool = max(median) < 25,
+  dplyr::summarize(pool = max(median) < 4,
             median = median(median),
             .groups="drop")
 
@@ -2725,12 +2798,43 @@ Phylum_Bow_graphing_df<- dplyr::inner_join(taxon_rel_abund_Phylum_Bow, taxon_poo
   dplyr::mutate(rel_abund = if_else(rel_abund == 0,
                              2/3 * lod,
                              rel_abund))
-Phylum_Bow_graphing_df
+#View(Phylum_Bow_graphing_df)
 
 ## Hydropsychidae ##
-hydro_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Hydropsychidae")
 
-hydro_phylum_Bow$taxon<-factor(hydro_phylum_Bow$taxon, levels=c("Other", "Cyanobacteria", "Firmicutes", "Proteobacteria", "Bacteroidota"))
+hydro_otu_rel_abund_Bow<-subset(otu_rel_abund_Bow, sample_Family=="Hydropsychidae")
+
+taxon_rel_abund_Phylum_hydro_Bow <- hydro_otu_rel_abund_Bow %>%
+  dplyr::filter(level=="Phylum") %>%
+  dplyr::group_by(Site, Study_ID, taxon) %>%
+  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
+  drop_na(Site, taxon)
+View(taxon_rel_abund_Phylum_hydro_Bow)
+
+taxon_pool_Phylum_hydro_Bow <- taxon_rel_abund_Phylum_hydro_Bow %>%
+  dplyr::group_by(Site, Study_ID, taxon) %>%
+  dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
+  dplyr::group_by(taxon) %>%
+  dplyr::summarize(pool = max(median) < 4,
+            median = median(median),
+            .groups="drop")
+View(taxon_pool_Phylum_hydro_Bow)
+
+#Graphing pointrange plot with median and 50% quartiles
+hydro_phylum_Bow<- dplyr::inner_join(taxon_rel_abund_Phylum_hydro_Bow, taxon_pool_Phylum_hydro_Bow, by="taxon") %>%
+ dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
+  dplyr::group_by(Site, taxon) %>%
+  dplyr::summarize(rel_abund = sum(rel_abund),
+            median = min(median),
+            .groups="drop") %>%
+  dplyr::mutate(taxon = factor(taxon),
+         taxon = fct_reorder(taxon, median, .desc=T)) %>%
+  dplyr::mutate(rel_abund = if_else(rel_abund == 0,
+                             2/3 * lod,
+                             rel_abund))
+View(hydro_phylum_Bow)
+
+hydro_phylum_Bow$taxon<-factor(hydro_phylum_Bow$taxon, levels=c("Other", "Actinobacteriota", "Deferribacterota", "Firmicutes", "Proteobacteria", "Bacteroidota"))
 
 hydro_phylum_Bow$Site<-factor(hydro_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -2752,39 +2856,41 @@ hydro_rel_abun_plot_Bow
 
 #Statistical tests
 
-hist(hydro_phylum_Bow$rel_abund)
-shapiro.test(hydro_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal Wallis
-
-kruskal.test(data=hydro_phylum_Bow, rel_abund ~ Site) #p = 0.98
-dunnTest(data=hydro_phylum_Bow, rel_abund ~ Site) #no sig. diff
+shapiro.test(hydro_phylum_Bow$rel_abund) #not normal.
 
 #Proteobacteria
 proteo_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_hydro_Bow, rel_abund ~ Site) #p = 0.802 no diff.
+kruskal.test(data=proteo_hydro_Bow, rel_abund ~ Site) #p = 0.775 no diff.
 
 #Bacteroidota
 bacter_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_hydro_Bow, rel_abund ~ Site) #p = 0.43 no diff.
+kruskal.test(data=bacter_hydro_Bow, rel_abund ~ Site) #p = 0.63 no diff.
 
 #Firmicutes
 firm_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_hydro_Bow, rel_abund ~ Site) #p = 0.022
-dunnTest(data=firm_hydro_Bow, rel_abund ~ Site) #COCH - PMF p=0.017, z = 3.13
+kruskal.test(data=firm_hydro_Bow, rel_abund ~ Site) #p = 0.0335
+dunnTest(data=firm_hydro_Bow, rel_abund ~ Site) 
+#COCH - PMF p=0.03, z = 2.97
 #Policeman Flats has significantly less Firmicutes than Cochrane
 
-#Cyanobacteria
-cyano_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_hydro_Bow, rel_abund ~ Site) #p = 0.000142
-dunnTest(data=cyano_hydro_Bow, rel_abund ~ Site) 
-#Cochrane sig. lower than all sites except Sunalta
-#Sunalta sig. lower than Graves Bridge
+#Actinobacteriota
+actino_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Actinobacteriota")
+kruskal.test(data=actino_hydro_Bow, rel_abund ~ Site) #p = 0.000394
+dunnTest(data=actino_hydro_Bow, rel_abund ~ Site) 
+#COCH - PMF z = -3.33, P = 0.0077
+#GRVBR - SUN z =2.82, p=0.038
+#PMF - SUN z = 3.67, P = 0.0024
+
+#Deferribacterota
+def_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Deferribacterota")
+kruskal.test(data=def_hydro_Bow, rel_abund ~ Site) #p = 0.2066
 
 
 ## Heptageniidae ##
 
 hep_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Heptageniidae")
 
-hep_phylum_Bow$taxon<-factor(hep_phylum_Bow$taxon, levels=c("Other", "Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
+hep_phylum_Bow$taxon<-factor(hep_phylum_Bow$taxon, levels=c("Other", "Deferribacterota", "Actinobacteriota", "Bacteroidota", "Firmicutes", "Proteobacteria"))
 
 hep_phylum_Bow$Site<-factor(hep_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -2810,39 +2916,31 @@ shapiro.test(hep_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal Wa
 
 #Proteobacteria
 proteo_hep_Bow<-subset(hep_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_hep_Bow, rel_abund ~ Site) #p = 0.013 
-dunnTest(data=proteo_hep_Bow, rel_abund ~ Site) 
-#CUSHBR - PMF p=0.022
-#CUSHBR - GRVBR p=0.0489
+kruskal.test(data=proteo_hep_Bow, rel_abund ~ Site) #p = 0.069. No diff 
 
 #Bacteroidota
 bacter_hep_Bow<-subset(hep_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_hep_Bow, rel_abund ~ Site) #p = 0.00687 possible diff
-dunnTest(data=bacter_hep_Bow, rel_abund ~ Site) 
-#CUSHBR - PMF p = 0.00327
+kruskal.test(data=bacter_hep_Bow, rel_abund ~ Site) #p = 0.38
 
 #Firmicutes
 firm_hep_Bow<-subset(hep_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_hep_Bow, rel_abund ~ Site) #p = 0.014
-dunnTest(data=firm_hep_Bow, rel_abund ~ Site) 
-#COCH - CUSHBR p = 0.0295
-#COCH - GRVBR p = 0.0350
-#Cochrane has higher Firmicutes
+kruskal.test(data=firm_hep_Bow, rel_abund ~ Site) #p = 0.095
 
-#Cyanobacteria
-cyano_hep_Bow<-subset(hep_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_hep_Bow, rel_abund ~ Site) #p < 0.001, chi-squared: 23.3 
-dunnTest(data=cyano_hep_Bow, rel_abund ~ Site) 
-#COCH - CUSHBR p < 0.001
-#SUN - CUSHBR p = 0.0015
+#Actinobacteriota
+actino_hep_Bow<-subset(hep_phylum_Bow, taxon=="Actinobacteriota")
+kruskal.test(data=actino_hep_Bow, rel_abund ~ Site) #p = 0.3214
 
-#GRVBR is very close to being sig. diff from COCH
+#Deferribacterota
+def_hep_Bow<-subset(hep_phylum_Bow, taxon=="Deferribacterota")
+kruskal.test(data=def_hep_Bow, rel_abund ~ Site) #p = 0.406
+
+#No differences in Heps
 
 
 ## Chironomidae ##
 chiro_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Chironomidae")
 
-chiro_phylum_Bow$taxon<-factor(chiro_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Proteobacteria", "Cyanobacteria"))
+chiro_phylum_Bow$taxon<-factor(chiro_phylum_Bow$taxon, levels=c("Other", "Deferribacterota", "Actinobacteriota", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 chiro_phylum_Bow$Site<-factor(chiro_phylum_Bow$Site, levels=c("Cochrane", "Cushing Bridge", "Policeman Flats"))
 
@@ -2868,32 +2966,31 @@ shapiro.test(chiro_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal 
 
 #Proteobacteria
 proteo_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_chiro_Bow, rel_abund ~ Site) #p = 0.074 possible difference
-dunnTest(data=proteo_chiro_Bow, rel_abund ~ Site) #no diff. 
+kruskal.test(data=proteo_chiro_Bow, rel_abund ~ Site) #p = 0.094 possible difference
 
 #Bacteroidota
 bacter_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_chiro_Bow, rel_abund ~ Site) #p = 0.062
-dunnTest(data=bacter_chiro_Bow, rel_abund ~ Site) #no diff. 
+kruskal.test(data=bacter_chiro_Bow, rel_abund ~ Site) #p = 0.083
 
 #Firmicutes
 firm_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_chiro_Bow, rel_abund ~ Site) #p = 0.054
-dunnTest(data=firm_chiro_Bow, rel_abund ~ Site) 
-#Very close to sig. between CUSHBR - PMF but no diff. 
+kruskal.test(data=firm_chiro_Bow, rel_abund ~ Site) #p = 0.43
 
-#Cyanobacteria
-cyano_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_chiro_Bow, rel_abund ~ Site) #p = 0.1184
-dunnTest(data=cyano_chiro_Bow, rel_abund ~ Site) 
-#No diff. 
+#Actinobacteriota
+actino_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Actinobacteriota")
+kruskal.test(data=actino_chiro_Bow, rel_abund ~ Site) #p = 0.558
+
+#Deferribacterota
+def_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Deferribacterota")
+kruskal.test(data=def_chiro_Bow, rel_abund ~ Site) #p = 0.449
+
 
 
 ## Perlidae ##
 
 perl_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Perlidae")
 
-perl_phylum_Bow$taxon<-factor(perl_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Cyanobacteria", "Bacteroidota", "Proteobacteria"))
+perl_phylum_Bow$taxon<-factor(perl_phylum_Bow$taxon, levels=c("Other", "Deferribacterota", "Actinobacteriota", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 perl_phylum_Bow$Site<-factor(perl_phylum_Bow$Site, levels=c("Cochrane", "Cushing Bridge", "Policeman Flats"))
 
@@ -2919,23 +3016,25 @@ shapiro.test(perl_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal W
 
 #Proteobacteria
 proteo_perl_Bow<-subset(perl_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_perl_Bow, rel_abund ~ Site) #p = 0.0429 possible difference
-dunnTest(data=proteo_perl_Bow, rel_abund ~ Site) #COCH - CUSHBR p = 0.049 
+kruskal.test(data=proteo_perl_Bow, rel_abund ~ Site) #p = 0.179
 
 #Bacteroidota
 bacter_perl_Bow<-subset(perl_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_perl_Bow, rel_abund ~ Site) #p = 0.328 no diff 
+kruskal.test(data=bacter_perl_Bow, rel_abund ~ Site) #p = 0.116
 
 #Firmicutes
 firm_perl_Bow<-subset(perl_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_perl_Bow, rel_abund ~ Site) #p = 0.11
+kruskal.test(data=firm_perl_Bow, rel_abund ~ Site) #p = 0.068
 
-#Cyanobacteria
-cyano_perl_Bow<-subset(perl_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_perl_Bow, rel_abund ~ Site) #p = 0.0029, chi-sq: 11.7 
-dunnTest(data=cyano_perl_Bow, rel_abund ~ Site) 
-#COCH - CUSHBR
-#CUSHBR - PMF
+#Actinobacteriota
+actino_perl_Bow<-subset(perl_phylum_Bow, taxon=="Actinobacteriota")
+kruskal.test(data=actino_perl_Bow, rel_abund ~ Site) #p = 0.018
+dunnTest(data=actino_perl_Bow, rel_abund ~ Site)
+#COCH - PMF z = -2.82, P = 0.0144
+
+#Deferribacterota
+def_perl_Bow<-subset(perl_phylum_Bow, taxon=="Deferribacterota")
+kruskal.test(data=def_perl_Bow, rel_abund ~ Site)
 
 
 ## Trichoptera ##
@@ -2968,20 +3067,17 @@ shapiro.test(trichop_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruska
 
 #Proteobacteria
 proteo_trichop_Bow<-subset(trichop_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_trichop_Bow, rel_abund ~ Site) #p = 0.98 
+kruskal.test(data=proteo_trichop_Bow, rel_abund ~ Site) #p = 0.89
 
 #Bacteroidota
 bacter_trichop_Bow<-subset(trichop_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_trichop_Bow, rel_abund ~ Site) #p = 0.638 
+kruskal.test(data=bacter_trichop_Bow, rel_abund ~ Site) #p = 0.5497
 
 #Firmicutes
 firm_trichop_Bow<-subset(trichop_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_trichop_Bow, rel_abund ~ Site) #p = 0.605
+kruskal.test(data=firm_trichop_Bow, rel_abund ~ Site) #p = 0.408
 
-#Cyanobacteria
-cyano_trichop_Bow<-subset(trichop_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_trichop_Bow, rel_abund ~ Site) #p = 0.249
-#No diff. in Trichoptera
+
 
 
 ## Ephemeroptera ##
@@ -3456,6 +3552,7 @@ annotate_figure(rel_abun_fig_ACWA, left = textGrob("Phylum", rot = 90, vjust = 1
 #ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/point range rel abund graph ACWA across taxa.png", height=6, width=10, bg="white")
 ```
 
+
 ### Plotting relative abundance {.tabset}
 #### Bow River - faceted across taxa and sites
 ```{r}
@@ -3531,22 +3628,23 @@ top5phylumplot_bow
 #ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean rel abun top 5 phyla Bow only.png", height=10, width=22)
 
 #### Class Level ####
-rel_abun_class <- tax_glom(sample_ps, taxrank = "Class")
+rel_abun_class <- tax_glom(Bow_ps, taxrank = "Class")
 rel_abun_class <- transform_sample_counts(rel_abun_class, function(x){x / sum(x)})
-rel_abun_all_prune_class = prune_taxa(taxa_sums(rel_abun_class) > 0.05, rel_abun_class) 
 
-rel_abun_prune_sample_class <- psmelt(rel_abun_all_prune_class)
+rel_abun_prune_sample_class <- psmelt(rel_abun_class)
 
 sample.df.agg.class <- aggregate(Abundance ~ Class + Site_code + sample_Family + Stage, data = rel_abun_prune_sample_class, FUN = mean) #aggregate to Phylum level, take the mean
 
 sample.df.agg.class$Site_code <- factor(sample.df.agg.class$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+sample.df.agg.class$sample_Family<-factor(sample.df.agg.class$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
 top_class <- sample.df.agg.class %>%
     group_by(Site_code, Class) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
 top_class
-top10class <- top_class$Class[1:46]
+top10class <- top_class$Class[1:39]
 top10classdf <- sample.df.agg.class %>%
     mutate(Class = fct_other(Class, top10class))
 top10classdf <- aggregate(Abundance ~ Class + Site_code  + sample_Family + Stage, data = top5classdf, FUN = sum)
@@ -3566,17 +3664,61 @@ top10classplot <- ggplot(top10classdf, aes(x=Site_code, y=Abundance, fill=Class)
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
                         axis.title.x=element_text(size=22))+
-  #scale_fill_manual(name="Bacterial Phylum", values=c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#43464B", "#FFD92F"))+
+  scale_fill_manual(name="Class", values = c(brewer.pal(10, "Spectral"), "#43464B"))+
   scale_y_continuous(label = scales::percent)+
   rremove("grid")
 top10classplot
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean rel abun top X classes Bow.png", height=10, width=22)
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean rel abun top 10 classes Bow.png", height=10, width=22)
 
+
+#### Order level ####
+rel_abun_order <- tax_glom(Bow_ps, taxrank = "Order")
+rel_abun_order <- transform_sample_counts(rel_abun_order, function(x){x / sum(x)})
+
+rel_abun_prune_sample_order <- psmelt(rel_abun_order)
+
+sample.df.agg.order <- aggregate(Abundance ~ Order + Site_code + sample_Family + Stage, data = rel_abun_prune_sample_order, FUN = mean) #aggregate to Phylum level, take the mean
+
+sample.df.agg.order$Site_code <- factor(sample.df.agg.order$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+sample.df.agg.order$sample_Family<-factor(sample.df.agg.order$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+top_order <- sample.df.agg.order %>%
+    group_by(Site_code, Order) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top15order <- top_order$Order[1:51]
+top15orderdf <- sample.df.agg.order %>%
+    mutate(Order = fct_other(Order, top15order))
+top15orderdf <- aggregate(Abundance ~ Order + Site_code  + sample_Family + Stage, data = top15orderdf, FUN = sum)
+
+top15orderdf$sample_Family<-factor(top15orderdf$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+top15orderplot <- ggplot(top15orderdf, aes(x=Site_code, y=Abundance, fill=Order)) + 
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1) + 
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=10), legend.title=element_text(size=10)) +
+  guides (fill=guide_legend(nrow=20)) +
+  theme_bw()+
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
+                        axis.title.x=element_text(size=22))+
+  scale_fill_manual(name="Class", values = c(brewer.pal(12, "Set3"), "#946aa2",  "#29bdab", "#991919","#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("Site")
+top15orderplot
+
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Mean rel abun top 15 orders Bow.png", height=10, width=22)
 
 #### Family Level ####
 
-sample_all_Bow<-subset_samples(sample_ps, Stream_Type=="Bow River")
+sample_all_Bow<-subset_samples(Bow_ps, Stream_Type=="Bow River")
 
 rel_abun_fam_Bow <- tax_glom(sample_all_Bow, taxrank = "Family")
 comp_rel_abun_fam_Bow <- transform_sample_counts(rel_abun_fam_Bow, function(x){x / sum(x)})
@@ -3587,7 +3729,7 @@ sample.df.agg_fam_Bow <- aggregate(Abundance ~ Family + Site_code + sample_Famil
 
 sample.df.agg_fam_Bow$Site_code <- factor(sample.df.agg_fam_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
-#Top ~22 families, all inverts included
+#Top 25 families, all inverts included
 top_fam_Bow <- sample.df.agg_fam_Bow %>%
     group_by(Site_code, Family) %>%
     summarize(Mean = mean(Abundance)) %>%
@@ -3625,8 +3767,6 @@ top25famplotBow
 
 #### Genus level ####
 
-Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-
 rel_abun_genus_Bow <- tax_glom(Bow_ps, taxrank = "Genus")
 comp_rel_abun_genus_Bow <- transform_sample_counts(rel_abun_genus_Bow, function(x) x/sum(x))
 
@@ -3645,7 +3785,7 @@ top_genus_Bow <- sample.df.agg_genus_Bow %>%
     group_by(Site_code, Genus) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top30genus_Bow <- top_genus_Bow$Genus[1:83]
+top30genus_Bow <- top_genus_Bow$Genus[1:84]
 top30genusdf_Bow <- sample.df.agg_genus_Bow %>%
     mutate(Genus = fct_other(Genus, top30genus_Bow))
 
@@ -3663,12 +3803,12 @@ top30genusplotBow <- ggplot(top30genusdf_Bow, aes(x=factor(Site_code, labels = c
   theme(strip.text = element_text(size = 22, color="black")) + 
   theme(legend.key.size = unit(0.5, "cm"),
         legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
-  guides (fill=guide_legend(nrow=30)) +
+  guides (fill=guide_legend(nrow=31)) +
   theme(axis.title.y=element_text(size=26),
         axis.text.y=element_text(size=22, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=22, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
                         axis.title=element_text(size=26))+
-  scale_fill_manual(name="Genus", values=c("#fcff5d", "#7dfc00", "#0ec434", "#228c68", "#8ad8e8", "#235b54", "#29bdab", "#3998f5", "#37294f", "#277da7", "#3750db", "#f22020", "#991919", "#ffcba5", "#e68f66", "#c56133", "#96341c", "#632819", "#ffc413", "#f47a22", "#2f2aa0", "#b732cc", "#772b9d", "#f07cab", "#d30b94", "#edeff3", "#c3a5b4", "#946aa2", "#5d4c86","#43464B"))+
+  scale_fill_manual(name="Genus", values=c("#fcff5d", "#7dfc00", "#0ec434", "#228c68", "#8ad8e8", "#235b54", "#29bdab", "#3998f5", "#37294f", "#277da7", "#3750db", "#f22020", "#991919", "#ffcba5", "#e68f66", "#c56133", "#96341c", "#632819", "#ffc413", "#f47a22", "#2f2aa0", "#b732cc", "#772b9d", "#f07cab", "#d30b94", "#edeff3", "#c3a5b4", "#946aa2", "#5d4c86","#FEA1B3","#43464B"))+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
@@ -3677,47 +3817,104 @@ top30genusplotBow
 
 #ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 30 genera Bow.png", height=10, width=26)
 
+#Need to make sure the top genera aren't being biased by a few taxa so we will plot it by the top 10 genera from each type of bug and see how it compares.
+
+
 # Top 10 genera from each life stage #
- ## Larvae ##
-lar_Bow<-subset_samples(Bow_ps, Stage=="Larvae")
-nsamples(lar_Bow) #111
 
-glom_lar_Bow <- tax_glom(lar_Bow, taxrank = "Genus")
-rel_abun_lar_Bow <- transform_sample_counts(glom_lar_Bow, function(x) x/sum(x))
 
-rel_abun_lar_Bow_df <- psmelt(rel_abun_lar_Bow)
+ ## Hydropsychidae ##
+hydro_Bow<-subset_samples(Bow_ps, Family=="Hydropsychidae")
 
-agg_lar_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_lar_Bow_df, FUN = mean) 
+glom_hydro_Bow <- tax_glom(hydro_Bow, taxrank = "Genus")
+rel_abun_hydro_Bow <- transform_sample_counts(glom_hydro_Bow, function(x) x/sum(x))
+
+rel_abun_hydro_Bow_df <- psmelt(rel_abun_hydro_Bow)
+
+agg_hydro_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_hydro_Bow_df, FUN = mean) 
 
 
 #Top 10 genus, all inverts included
-top_genus_lar_Bow <- agg_lar_Bow %>%
+top_genus_hydro_Bow <- agg_hydro_Bow %>%
     group_by(Site_code, Genus) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top10genus_lar_Bow <- top_genus_lar_Bow$Genus[1:20]
-top10genuslardfBow <- agg_lar_Bow %>%
-    mutate(Genus = fct_other(Genus, top10genus_lar_Bow))
+top10genus_hydro_Bow <- top_genus_hydro_Bow$Genus[1:33]
+top10genushydrodfBow <- agg_hydro_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_hydro_Bow))
 
-top10genuslardf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genuslardfBow, FUN = sum)
-
-#Top 10 across all larvae:         
+top10genushydrodf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genushydrodfBow, FUN = sum)
 
 #Alistipes
-#Candidatus Bacilloplasma
-#Flavobacterium
-#Ideonella
+#Dysgonomonas
 #Mucinivorans
+#Mucispirillum
+#Rhodobacter
+#Rhodoferax
+#Rickettsia
+#Rs-D38 termite group
+#Sphingorhabdus
+#Tyzzerella
+
+top10genushydroplotBow <- ggplot(top10genushydrodf_Bow, aes(x=factor(Site_code, labels = c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(10)), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+top10genushydroplotBow 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera hydro Bow.png", height=10, width=14)
+
+## Heptageniidae ##
+
+hep_Bow<-subset_samples(Bow_ps, Family=="Heptageniidae")
+
+glom_hep_Bow <- tax_glom(hep_Bow, taxrank = "Genus")
+rel_abun_hep_Bow <- transform_sample_counts(glom_hep_Bow, function(x) x/sum(x))
+
+rel_abun_hep_Bow_df <- psmelt(rel_abun_hep_Bow)
+
+agg_hep_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_hep_Bow_df, FUN = mean) 
+
+
+#Top 10 genus, all inverts included
+top_genus_hep_Bow <- agg_hep_Bow %>%
+    group_by(Site_code, Genus) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top10genus_hep_Bow <- top_genus_hep_Bow$Genus[1:29]
+top10genushepdfBow <- agg_hep_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_hep_Bow))
+
+top10genushepdf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genushepdfBow, FUN = sum)
+
+#Top 10:         
+
+#Aeromonas
+#Candidatus Bacilloplasma
+#CM1G08
+#Flavobacterium
+#Limnohabitans
 #Pseudorhodobacter
 #Rhodoferax
-#Serratia
+#Sphaerotilus
 #Sphingorhabdus
 #ZOR0006
 
-top10genuslardf_Bow$sample_Family<-factor(top10genuslardf_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae"))
-
-
-top10genuslarplotBow <- ggplot(top10genuslardf_Bow, aes(x=factor(Site_code, labels = c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Abundance, fill=Genus)) +
+top10genushepplotBow <- ggplot(top10genushepdf_Bow, aes(x=factor(Site_code, labels = c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Abundance, fill=Genus)) +
   geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
   facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
@@ -3735,50 +3932,165 @@ top10genuslarplotBow <- ggplot(top10genuslardf_Bow, aes(x=factor(Site_code, labe
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
-top10genuslarplotBow 
+top10genushepplotBow 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera larvae.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera hep Bow.png", height=10, width=14)
 
- ## Adults ##
-ad_Bow<-subset_samples(Bow_ps, Stage=="Adults")
-nsamples(ad_Bow) #92
 
-glom_ad_Bow <- tax_glom(ad_Bow, taxrank = "Genus")
-rel_abun_ad_Bow <- transform_sample_counts(glom_ad_Bow, function(x) x/sum(x))
+## Chironomidae ##
 
-rel_abun_ad_Bow_df <- psmelt(rel_abun_ad_Bow)
+chiro_Bow<-subset_samples(Bow_ps, Family=="Chironomidae")
 
-agg_ad_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_ad_Bow_df, FUN = mean) 
+glom_chiro_Bow <- tax_glom(chiro_Bow, taxrank = "Genus")
+rel_abun_chiro_Bow <- transform_sample_counts(glom_chiro_Bow, function(x) x/sum(x))
+
+rel_abun_chiro_Bow_df <- psmelt(rel_abun_chiro_Bow)
+
+agg_chiro_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_chiro_Bow_df, FUN = mean) 
 
 
 #Top 10 genus, all inverts included
-top_genus_ad_Bow <- agg_ad_Bow %>%
+top_genus_chiro_Bow <- agg_chiro_Bow %>%
     group_by(Site_code, Genus) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top10genus_ad_Bow <- top_genus_ad_Bow$Genus[1:20]
-top10genusaddfBow <- agg_ad_Bow %>%
-    mutate(Genus = fct_other(Genus, top10genus_ad_Bow))
+top10genus_chiro_Bow <- top_genus_chiro_Bow$Genus[1:13]
+top10genuschirodfBow <- agg_chiro_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_chiro_Bow))
 
-top10genusaddf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genusaddfBow, FUN = sum)
+top10genuschirodf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genuschirodfBow, FUN = sum)
+View(top10genuschirodf_Bow)
 
-#Top 10 across all adults:         
+#Top 10:         
+#Bacteroides
+#Dechloromonas
+#Exiguobacterium
+#Flavobacterium
+#Ideonella
+#Ilumatobacter
+#Leptothrix
+#Rickettsia
+#Roseomonas
+#Tabrizicola
 
-#Alcaligenes
-#Candidatus Bacilloplasma
+top10genuschiroplotBow <- ggplot(top10genuschirodf_Bow, aes(x=factor(Site_code, labels = c("COCH", "CUSHBR","PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(10)), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+top10genuschiroplotBow 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera chiro Bow.png", height=10, width=14)
+
+## Perlidae ##
+
+perl_Bow<-subset_samples(Bow_ps, Family=="Perlidae")
+
+glom_perl_Bow <- tax_glom(perl_Bow, taxrank = "Genus")
+rel_abun_perl_Bow <- transform_sample_counts(glom_perl_Bow, function(x) x/sum(x))
+
+rel_abun_perl_Bow_df <- psmelt(rel_abun_perl_Bow)
+
+agg_perl_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_perl_Bow_df, FUN = mean) 
+
+
+#Top 10 genus, all inverts included
+top_genus_perl_Bow <- agg_perl_Bow %>%
+    group_by(Site_code, Genus) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top10genus_perl_Bow <- top_genus_perl_Bow$Genus[1:14]
+top10genusperldfBow <- agg_perl_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_perl_Bow))
+
+top10genusperldf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genusperldfBow, FUN = sum)
+View(top10genusperldf_Bow)
+
+#Top 10:         
+#Acinetobacter
+#Alkanindiges
+#Emticicia
+#Ideonella
+#Limnohabitans
+#Pseudorhodobacter
+#Rhodoferax
+#Serratia
+#Sphaerotilus
+#Sphingorhabdus
+
+top10genusperlplotBow <- ggplot(top10genusperldf_Bow, aes(x=factor(Site_code, labels = c("COCH", "CUSHBR","PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(10)), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+top10genusperlplotBow 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera perl Bow.png", height=10, width=14)
+
+
+## Trichoptera ##
+
+trichop_Bow<-subset_samples(Bow_ps, Family=="Trichoptera")
+
+glom_trichop_Bow <- tax_glom(trichop_Bow, taxrank = "Genus")
+rel_abun_trichop_Bow <- transform_sample_counts(glom_trichop_Bow, function(x) x/sum(x))
+
+rel_abun_trichop_Bow_df <- psmelt(rel_abun_trichop_Bow)
+
+agg_trichop_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_trichop_Bow_df, FUN = mean) 
+
+
+#Top 10 genus, all inverts included
+top_genus_trichop_Bow <- agg_trichop_Bow %>%
+    group_by(Site_code, Genus) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top10genus_trichop_Bow <- top_genus_trichop_Bow$Genus[1:20]
+top10genustrichopdfBow <- agg_trichop_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_trichop_Bow))
+
+top10genustrichopdf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genustrichopdfBow, FUN = sum)
+View(top10genustrichopdf_Bow)
+
+#Top 10:         
 #Carnobacterium
 #Flavobacterium
+#Hymenobacter
 #Ideonella
 #Massilia
 #Rickettsia
 #Serratia
+#Sphingorhabdus
 #Spiroplasma
 #Staphylococcus
 
-top10genusaddf_Bow$sample_Family<-factor(top10genusaddf_Bow$sample_Family, levels=c("Trichoptera", "Ephemeroptera", "Diptera"))
-
-
-top10genusadplotBow <- ggplot(top10genusaddf_Bow, aes(x=factor(Site_code, labels = c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Abundance, fill=Genus)) +
+top10genustrichopplotBow <- ggplot(top10genustrichopdf_Bow, aes(x=factor(Site_code, labels = c("COCH","SUN","CUSHBR","GRVBR")), y=Abundance, fill=Genus)) +
   geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
   facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
@@ -3796,51 +4108,48 @@ top10genusadplotBow <- ggplot(top10genusaddf_Bow, aes(x=factor(Site_code, labels
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
-top10genusadplotBow 
+top10genustrichopplotBow 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera adults.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera trichop Bow.png", height=10, width=14)
 
 
- ## Spiders ##
-spi_Bow<-subset_samples(Bow_ps, Stage=="Spiders")
-nsamples(spi_Bow) #77
+## Ephemeroptera ##
 
-glom_spi_Bow <- tax_glom(spi_Bow, taxrank = "Genus")
-rel_abun_spi_Bow <- transform_sample_counts(glom_spi_Bow, function(x) x/sum(x))
+ephem_Bow<-subset_samples(Bow_ps, Family=="Ephemeroptera")
 
-rel_abun_spi_Bow_df <- psmelt(rel_abun_spi_Bow)
+glom_ephem_Bow <- tax_glom(ephem_Bow, taxrank = "Genus")
+rel_abun_ephem_Bow <- transform_sample_counts(glom_ephem_Bow, function(x) x/sum(x))
 
-agg_spi_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_spi_Bow_df, FUN = mean) 
+rel_abun_ephem_Bow_df <- psmelt(rel_abun_ephem_Bow)
+
+agg_ephem_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_ephem_Bow_df, FUN = mean) 
 
 
 #Top 10 genus, all inverts included
-top_genus_spi_Bow <- agg_spi_Bow %>%
+top_genus_ephem_Bow <- agg_ephem_Bow %>%
     group_by(Site_code, Genus) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top10genus_spi_Bow <- top_genus_spi_Bow$Genus[1:28]
-top10genusspidfBow <- agg_spi_Bow %>%
-    mutate(Genus = fct_other(Genus, top10genus_spi_Bow))
+top10genus_ephem_Bow <- top_genus_ephem_Bow$Genus[1:22]
+top10genusephemdfBow <- agg_ephem_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_ephem_Bow))
 
-top10genusspidf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genusspidfBow, FUN = sum)
+top10genusephemdf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genusephemdfBow, FUN = sum)
+View(top10genusephemdf_Bow)
 
-#Top 7 across all spiders:         
-
-#Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium
-#Faecalibacterium
+#Top 10:         
+#Alcaligenes
+#Candidatus Bacilloplasma
+#Corynebacterium
+#Flavobacterium
 #Massilia
-#Nevskia
-#Rhodococcus
 #Rickettsia
-#Sediminibacterium
+#Sphingomonas
+#Sphingorhabdus
 #Spiroplasma
-#Vibriomonas
-#Wolbachia
+#Staphylococcus
 
-top10genusspidf_Bow$sample_Family<-factor(top10genusspidf_Bow$sample_Family, levels=c("Araneidae", "Tetragnathidae"))
-
-
-top10genusspiplotBow <- ggplot(top10genusspidf_Bow, aes(x=factor(Site_code, labels = c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Abundance, fill=Genus)) +
+top10genusephemplotBow <- ggplot(top10genusephemdf_Bow, aes(x=factor(Site_code, labels = c("COCH","SUN","CUSHBR","GRVBR", "PMF")), y=Abundance, fill=Genus)) +
   geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
   facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
@@ -3858,14 +4167,294 @@ top10genusspiplotBow <- ggplot(top10genusspidf_Bow, aes(x=factor(Site_code, labe
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
-top10genusspiplotBow 
+top10genusephemplotBow 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera spiders.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera ephem Bow.png", height=10, width=14)
 
 
-ggarrange(top10genuslarplotBow, top10genusadplotBow, top10genusspiplotBow, nrow=3)
+## Diptera ##
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera across life stage combined.png", height=16, width=20)
+dip_Bow<-subset_samples(Bow_ps, Family=="Diptera")
+
+glom_dip_Bow <- tax_glom(dip_Bow, taxrank = "Genus")
+rel_abun_dip_Bow <- transform_sample_counts(glom_dip_Bow, function(x) x/sum(x))
+
+rel_abun_dip_Bow_df <- psmelt(rel_abun_dip_Bow)
+
+agg_dip_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_dip_Bow_df, FUN = mean) 
+
+
+#Top 10 genus, all inverts included
+top_genus_dip_Bow <- agg_dip_Bow %>%
+    group_by(Site_code, Genus) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top10genus_dip_Bow <- top_genus_dip_Bow$Genus[1:15]
+top10genusdipdfBow <- agg_dip_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_dip_Bow))
+
+top10genusdipdf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genusdipdfBow, FUN = sum)
+View(top10genusdipdf_Bow)
+
+#Top 10:         
+#Achromobacter
+#Agathobacter
+#Alcaligenes
+#Corynebacterium
+#Massilia
+#Pseudomonas
+#Rickettsia
+#Serratia
+#Staphylococcus
+#Wolbachia
+
+top10genusdipplotBow <- ggplot(top10genusdipdf_Bow, aes(x=factor(Site_code, labels = c("COCH","CUSHBR","PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(10)), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+top10genusdipplotBow 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera dip Bow.png", height=10, width=14)
+
+
+## Araneidae ##
+
+aran_Bow<-subset_samples(Bow_ps, Family=="Araneidae")
+
+glom_aran_Bow <- tax_glom(aran_Bow, taxrank = "Genus")
+rel_abun_aran_Bow <- transform_sample_counts(glom_aran_Bow, function(x) x/sum(x))
+
+rel_abun_aran_Bow_df <- psmelt(rel_abun_aran_Bow)
+
+agg_aran_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_aran_Bow_df, FUN = mean) 
+
+
+#Top 10 genus, all inverts included
+top_genus_aran_Bow <- agg_aran_Bow %>%
+    group_by(Site_code, Genus) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top10genus_aran_Bow <- top_genus_aran_Bow$Genus[1:18]
+top10genusarandfBow <- agg_aran_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_aran_Bow))
+
+top10genusarandf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genusarandfBow, FUN = sum)
+View(top10genusarandf_Bow)
+
+#Top 10:         
+#Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium
+#Faecalibacterium
+#Hymenobacter
+#Massilia
+#Melittangium
+#Nevskia
+#Rhodococcus
+#Sediminibacterium
+#Spiroplasma
+#Vibrionimonas
+
+top10genusaranplotBow <- ggplot(top10genusarandf_Bow, aes(x=factor(Site_code, labels = c("COCH","CUSHBR","PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(10)), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+top10genusaranplotBow 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera aran Bow.png", height=10, width=14)
+
+
+## Tetragnathdiae ##
+
+tetra_Bow<-subset_samples(Bow_ps, Family=="Tetragnathidae")
+
+glom_tetra_Bow <- tax_glom(tetra_Bow, taxrank = "Genus")
+rel_abun_tetra_Bow <- transform_sample_counts(glom_tetra_Bow, function(x) x/sum(x))
+
+rel_abun_tetra_Bow_df <- psmelt(rel_abun_tetra_Bow)
+
+agg_tetra_Bow<- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_tetra_Bow_df, FUN = mean) 
+
+
+#Top 10 genus, all inverts included
+top_genus_tetra_Bow <- agg_tetra_Bow %>%
+    group_by(Site_code, Genus) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top10genus_tetra_Bow <- top_genus_tetra_Bow$Genus[1:25]
+top10genustetradfBow <- agg_tetra_Bow %>%
+    mutate(Genus = fct_other(Genus, top10genus_tetra_Bow))
+
+top10genustetradf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top10genustetradfBow, FUN = sum)
+View(top10genustetradf_Bow)
+
+#Top 10:         
+#Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium
+#Clostridium sensu stricto 13
+#Exiguobacterium
+#Faecalibacterium
+#Microterricola
+#Rhodococcus
+#Rickettsia
+#Spiroplasma
+#Vibrionimonas
+#Wolbachia
+
+top10genustetraplotBow <- ggplot(top10genustetradf_Bow, aes(x=factor(Site_code, labels = c("COCH","SUN", "CUSHBR","GRVBR", "PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=24)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
+                        axis.title=element_text(size=26))+
+  scale_fill_manual(name="Genus", values=c(as.vector(stepped(10)), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+top10genustetraplotBow 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 10 genera tetra Bow.png", height=10, width=14)
+
+
+## Plotting all inverts together with top 10 genera/invert ##
+
+rel_abun_genus_Bow <- tax_glom(Bow_ps, taxrank = "Genus")
+comp_rel_abun_genus_Bow <- transform_sample_counts(rel_abun_genus_Bow, function(x) x/sum(x))
+
+rel_abun_prune_sample_genus_Bow <- psmelt(comp_rel_abun_genus_Bow)
+
+sample.df.agg_genus_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = rel_abun_prune_sample_genus_Bow, FUN = mean) 
+
+sample.df.agg_genus_Bow$Site <- factor(sample.df.agg_genus_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
+
+sample.df.agg_genus_Bow$Site_code <- factor(sample.df.agg_genus_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+sample.df.agg_genus_Bow$Stage<-factor(sample.df.agg_genus_Bow$Stage, levels=c("Larvae", "Adults", "Spiders"))
+
+#Top 10 genera/invert:
+#Achromobacter
+#Acinetobacter
+#Aeromonas
+#Agathobacter
+#Alcaligenes
+#Alistipes
+#Alkanindiges
+#Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium
+#Bacteroides
+#Candidatus Bacilloplasma
+#Carnobacterium
+#Clostridium sensu stricto 13
+#CM1G08
+#Corynebacterium
+#Dechloromonas
+#Dysgonomonas
+#Emticicia
+#Exiguobacterium
+#Faecalibacterium
+#Flavobacterium
+#Hymenobacter
+#Ideonella
+#Ilumatobacter
+#Leptothrix
+#Limnohabitans
+#Massilia
+#Melittangium
+#Microterricola
+#Mucinivorans
+#Mucispirillum
+#Nevskia
+#Pseudomonas
+#Pseudorhodobacter
+#Rhodobacter
+#Rhodococcus
+#Rhodoferax
+#Rickettsia
+#Roseomonas
+#Rs-D38 termite group
+#Sediminibacterium
+#Serratia
+#Sphaerotilus
+#Sphingomonas
+#Sphingorhabdus
+#Spiroplasma
+#Staphylococcus
+#Tabrizicola
+#Tyzzerella
+#Vibrionimonas
+#Wolbachia
+#ZOR0006
+
+#Top 51 genus, all inverts included
+top_genus_Bow <- sample.df.agg_genus_Bow %>%
+    group_by(Genus, Site_code) %>%
+    summarize(Mean = mean(Abundance)) %>%
+    arrange()
+#View(top_genus_Bow)
+top51genus_Bow <- top_genus_Bow$Genus[c(41:45, 66:70, 106:110, 116:120, 136:140, 151:155, 166:175, 371:375, 576:580, 716:720, 856:860, 936:940, 1011:1015, 1161:1165, 1191:1195, 1241:1245, 1261:1265, 1331:1335, 1586:1590, 1621:1625, 1636:1640, 1866:1870, 1891:1895, 1991:1995, 2001:2005, 2076:2080, 2106:2115, 2171:2175, 2686:2690, 2696:2700, 2786:2795, 2801:2805, 2836:2840, 2876:2880, 2886:2890, 3036:3040, 3046:3050, 3106:3110, 3121:3125, 3131:3135, 3146:3150, 3181:3185, 3296:3300, 3431:3435, 3511:3515, 3546:3550, 3586:3590)]
+top51genusdf_Bow <- sample.df.agg_genus_Bow %>%
+    mutate(Genus = fct_other(Genus, top51genus_Bow))
+
+top51genusdf_Bow <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = top51genusdf_Bow, FUN = sum)
+
+top51genusdf_Bow$sample_Family<-factor(top51genusdf_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Chironomidae ", "Araneidae", "Tetragnathidae"))
+
+
+top51genusplotBow <- ggplot(top51genusdf_Bow, aes(x=factor(Site_code, labels = c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1) + 
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 22, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=20, face="italic"), legend.title=element_text(size=20)) +
+  guides (fill=guide_legend(nrow=26)) +
+  theme(axis.title.y=element_text(size=26),
+        axis.text.y=element_text(size=22, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
+                        axis.title=element_text(size=26))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+
+top51genusplotBow 
+#Looks similar to the graph with the top 30 across all samples. Easier to use that one because the colours are more visible. 
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 51 genera Bow.png", height=10, width=26)
+
 ```
 
 #### ACWA - faceted across taxa and sites
@@ -3887,7 +4476,6 @@ colorado <- function(src, boulder) {
 }
 
 #### Phylum ####
-#ACWA only
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 rel_abun_phylum_ACWA <- speedyseq::tax_glom(ACWA_ps, taxrank = "Phylum")
 comp_rel_abun_phylum_ACWA <- transform_sample_counts(rel_abun_phylum_ACWA, function(x) x/sum(x))
@@ -3932,6 +4520,90 @@ top5phylumplot_ACWA <- ggplot(df0_ACWA, aes(x=Site_code, y=Abundance, fill=Phylu
 top5phylumplot_ACWA
 
 #ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Top 5 phyla across inverts ACWA only.png", height=10, width=22)
+
+#### Class ####
+rel_abun_class_ACWA <- speedyseq::tax_glom(ACWA_ps, taxrank = "Class")
+comp_rel_abun_class_ACWA <- transform_sample_counts(rel_abun_class_ACWA, function(x) x/sum(x))
+
+rel_abun_class_df <- psmelt(comp_rel_abun_class_ACWA)
+
+sample.df.agg.ACWA.class <- aggregate(Abundance ~ Class + Site_code + sample_Family + Stage , data = rel_abun_class_df, FUN = mean)
+sample.df.agg.ACWA.class$Site_code <- factor(sample.df.agg.ACWA.class$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
+sample.df.agg.ACWA.class$sample_Family<-factor(sample.df.agg.ACWA.class$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
+
+#Top 10 class relative abundance
+top_class_ACWA <- sample.df.agg.ACWA.class %>%
+    group_by(Site_code, Class) %>%
+    summarise(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top_10_class_ACWA <- top_class_ACWA$Class[1:23]
+df0_ACWA <- sample.df.agg.ACWA.class %>%
+    mutate(Class = fct_other(Class, top_10_class_ACWA))
+df0_ACWA<-aggregate(Abundance~Class+sample_Family+Site_code+Stage, data=df0_ACWA, FUN="sum")
+
+top10classplot_ACWA <- ggplot(df0_ACWA, aes(x=Site_code, y=Abundance, fill=Class)) + 
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)+ 
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(1, "cm"),
+        legend.text=element_text(size=16), legend.title=element_text(size=16), legend.position = "right") +
+  guides (fill=guide_legend(nrow=11)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_markdown(angle=45, hjust=1, size=16, color="black"), #face=colorado(df0_bow$Site_code, c("EFF5", "EFF15"))),
+                        axis.title=element_text(size=22))+
+  scale_fill_manual(name="Class", values = c(brewer.pal(10, "Spectral"), "#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("ACWA Stream")
+top10classplot_ACWA
+
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Top 10 classes across inverts ACWA.png", height=10, width=22)
+
+#### Order ####
+rel_abun_order_ACWA <- speedyseq::tax_glom(ACWA_ps, taxrank = "Order")
+comp_rel_abun_order_ACWA <- transform_sample_counts(rel_abun_order_ACWA, function(x) x/sum(x))
+
+rel_abun_order_df <- psmelt(comp_rel_abun_order_ACWA)
+
+sample.df.agg.ACWA.order <- aggregate(Abundance ~ Order + Site_code + sample_Family + Stage , data = rel_abun_order_df, FUN = mean)
+sample.df.agg.ACWA.order$Site_code <- factor(sample.df.agg.ACWA.order$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
+sample.df.agg.ACWA.order$sample_Family<-factor(sample.df.agg.ACWA.order$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
+
+#Top 10 class relative abundance
+top_order_ACWA <- sample.df.agg.ACWA.order %>%
+    group_by(Site_code, Order) %>%
+    summarise(Mean = mean(Abundance)) %>%
+    arrange(-Mean)
+top_10_order_ACWA <- top_order_ACWA$Order[1:33]
+df0_ACWA <- sample.df.agg.ACWA.order %>%
+    mutate(Order = fct_other(Order, top_10_order_ACWA))
+df0_ACWA<-aggregate(Abundance~Order+sample_Family+Site_code+Stage, data=df0_ACWA, FUN="sum")
+
+top15orderplot_ACWA <- ggplot(df0_ACWA, aes(x=Site_code, y=Abundance, fill=Order)) + 
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)+ 
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(1, "cm"),
+        legend.text=element_text(size=16), legend.title=element_text(size=16), legend.position = "right") +
+  guides (fill=guide_legend(nrow=16)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_markdown(angle=45, hjust=1, size=16, color="black"), #face=colorado(df0_bow$Site_code, c("EFF5", "EFF15"))),
+                        axis.title=element_text(size=22))+
+ scale_fill_manual(name="Class", values = c(brewer.pal(12, "Set3"), "#946aa2",  "#29bdab", "#991919","#43464B"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("ACWA Stream")
+top15orderplot_ACWA
+
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/Top 15 orders across inverts ACWA.png", height=10, width=22)
 
 #### Family ####
 
@@ -3981,7 +4653,6 @@ top25famplotACWA
 #ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Top 25 families ACWA.png", height=10, width=22)
 
 #### Genus ####
-ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 rel_abun_genus_ACWA <- tax_glom(ACWA_ps, taxrank = "Genus")
 comp_rel_abun_genus_ACWA <- transform_sample_counts(rel_abun_genus_ACWA, function(x) x/sum(x))
 
@@ -4002,7 +4673,7 @@ top_genus_ACWA
 top30genus_ACWA <- top_genus_ACWA$Genus[1:65] #Specifies the number of lines of data to take
 top30genus_ACWA
 top30genusdf_ACWA <- sample.df.agg_genus_ACWA %>%
-    mutate(Genus = fct_other(Genus, top5genus_ACWA)) 
+    mutate(Genus = fct_other(Genus, top30genus_ACWA)) 
 top30genusdf_ACWA <- aggregate(Abundance ~ Genus + Site + sample_Family+Stage, data = top30genusdf_ACWA, FUN = sum)
     
 
@@ -4604,7 +5275,7 @@ Papers that do not support rarefaction:
 #Rarefying to the minimum sequencing depth
 #Rarefies to an even sequencing depth (usually the minimum read so that no sequences are removed)
 (ps_rare <- phyloseq::rarefy_even_depth(sample_ps, rngseed = 123, replace = FALSE)) 
-#4420 taxa, 339 samples
+#7647 taxa, 331 samples
 #Rarefying to the minimum sample depth removed 102 ASVs (not many) because we already filtered out the rare bacteria.
 
 head(phyloseq::sample_sums(ps_rare)) #2283 bacterial taxa subsampled per sample. Cuts a lot of sequencing depth but some people argue it is better to retain more samples rather than a larger sequencing depth. 
@@ -4681,17 +5352,17 @@ shapiro.test(adiv_Bow$Shannon) #Not normal, use Kruskal-Wallis tests.
 #Kruskal-Wallis tests:
 
 #Life stage (larvae, adults, spiders)
-kruskal.test(Shannon~Stage, data=adiv_Bow) #p<0.001, chi-sq: 136.2
+kruskal.test(Shannon~Stage, data=adiv_Bow) #p<0.001, chi-sq: 101.09
 dunnTest(Shannon~Stage, data=adiv_Bow) #All diff from each other
 
 #Difference across sites: (have to separate by invert taxa)
 
 #Larval Hydropsychidae 
 adiv_hydro_Bow<-subset(adiv_Bow, Family=="Hydropsychidae")
-shapiro.test(adiv_hydro_Bow$Shannon) #Normal dist. p = 0.069
-leveneTest(Shannon~Site, data=adiv_hydro_Bow) #Homogeneity. p = 0.264.
+shapiro.test(adiv_hydro_Bow$Shannon) #Normal dist. p = 0.056
+leveneTest(Shannon~Site_code, data=adiv_hydro_Bow) #Homogeneity. p = 0.278.
 #Use ANOVA
-summary(hydro_aov<-aov(Shannon~Site, data=adiv_hydro_Bow)) #p<0.001, F(4,31) = 22.0
+summary(hydro_aov<-aov(Shannon~Site_code, data=adiv_hydro_Bow)) #p<0.001, F(4,31) = 21.0
 TukeyHSD(hydro_aov)
 #GRVBR - COCH
 #PMF - COCH
@@ -4705,72 +5376,64 @@ TukeyHSD(hydro_aov)
 #Adult Trichoptera
 div.df.Bow.Tricho<-subset(adiv_Bow, Family=="Trichoptera")
 shapiro.test(div.df.Bow.Tricho$Shannon) #Not normal
-leveneTest(Shannon~Site, data=div.df.Bow.Tricho) #Heterogeneity
+leveneTest(Shannon~Site_code, data=div.df.Bow.Tricho) #Heterogeneity
 #Use Kruskal-Wallis
-kruskal.test(Shannon~Site, data=div.df.Bow.Tricho) #p= 0.669
-dunnTest(Shannon~Site, data=div.df.Bow.Tricho) #no significant diff. across sites.
+kruskal.test(Shannon~Site_code, data=div.df.Bow.Tricho) #p= 0.55
 
 #Larval Heptageniidae (order Ephemeroptera)
 div.df.Bow.Hep<-subset(adiv_Bow, Family=="Heptageniidae")
-shapiro.test(div.df.Bow.Hep$Shannon) #Normal dist. p = 0.663
-leveneTest(Shannon~Site, data=div.df.Bow.Hep) #Homogeneity
+shapiro.test(div.df.Bow.Hep$Shannon) #Normal dist. p = 0.36
+leveneTest(Shannon~Site_code, data=div.df.Bow.Hep) #Homogeneity
 #Use ANOVA
-summary(hep_aov<-aov(Shannon~Site, data=div.df.Bow.Hep)) #p=0.0623
-TukeyHSD(hep_aov)
-#COCH - PMF
+summary(hep_aov<-aov(Shannon~Site_code, data=div.df.Bow.Hep)) #p=0.129
 
 #Adult Ephemeroptera
 div.df.Bow.Ephem<-subset(adiv_Bow, Family=="Ephemeroptera")
-shapiro.test(div.df.Bow.Ephem$Shannon) #p=0.008, not normal
-leveneTest(Shannon~Site, data=div.df.Bow.Ephem) #Homogeneity p = 0.115
+shapiro.test(div.df.Bow.Ephem$Shannon) #not normal
+leveneTest(Shannon~Site_code, data=div.df.Bow.Ephem) #Homogeneity p = 0.40
 #Use Kruskal-Wallis
-kruskal.test(Shannon~Site, data=div.df.Bow.Ephem) #p=0.187
-dunnTest(Shannon~Site, data=div.df.Bow.Ephem) #No sig diff across sites
+kruskal.test(Shannon~Site_code, data=div.df.Bow.Ephem) #p=0.037
+dunnTest(Shannon~Site_code, data=div.df.Bow.Ephem) #No sig diff across sites
 
 #Larval Chironomidae (Order Diptera)
 div.df.Bow.chiro<-subset(adiv_Bow, Family=="Chironomidae")
 shapiro.test(div.df.Bow.chiro$Shannon) #0.167 Normal
-leveneTest(Shannon~Site, data=div.df.Bow.chiro) #Homogeneity. 
+leveneTest(Shannon~Site_code, data=div.df.Bow.chiro) #Homogeneity. 
 #Use AnOVA
-summary(chiro_aov<-aov(Shannon~Site, data=div.df.Bow.chiro)) #p=0.128
-TukeyHSD(chiro_aov)
-#No differences across sites
+summary(chiro_aov<-aov(Shannon~Site_code, data=div.df.Bow.chiro)) #p=0.939
 
 #Adult Diptera
 div.df.Bow.dip<-subset(adiv_Bow, Family=="Diptera")
 shapiro.test(div.df.Bow.dip$Shannon) #p=0.18 Normal
-leveneTest(Shannon~Site, data=div.df.Bow.dip) #0.605. Homogeneity.
+leveneTest(Shannon~Site_code, data=div.df.Bow.dip) #0.605. Homogeneity.
 #Use ANOVA
-summary(dip_aov<-aov(Shannon~Site, data=div.df.Bow.dip)) #p=0.944
-TukeyHSD(dip_aov)
-#No differences across sites
+summary(dip_aov<-aov(Shannon~Site_code, data=div.df.Bow.dip)) #p=0.999
 
 #Larval Perlidae
 div.df.Bow.perl<-subset(adiv_Bow, Family=="Perlidae")
-shapiro.test(div.df.Bow.perl$Shannon) #0.017 not normal
-leveneTest(Shannon~Site, data=div.df.Bow.perl) #0.02231. Homogeneity
-#Use Kruskal-Wallis
-kruskal.test(Shannon~Site, data=div.df.Bow.perl) #p=0.4296
-dunnTest(Shannon~Site, data=div.df.Bow.perl) #No sig diff across sites
-
-summary(perl_aov<-aov(Shannon~Site, data=div.df.Bow.perl)) #p=0.314
-TukeyHSD(perl_aov) #ANOVA also indicates no differences. 
+shapiro.test(div.df.Bow.perl$Shannon) #0.073 normal
+leveneTest(Shannon~Site_code, data=div.df.Bow.perl) #0.118. Homogeneity
+#ANOVA
+summary(perl_aov<-aov(Shannon~Site_code, data=div.df.Bow.perl)) #p=0.078
 
 #Araneidae
 div.df.Bow.aran<-subset(adiv_Bow, Family=="Araneidae")
-shapiro.test(div.df.Bow.aran$Shannon) #0.0945. Normal
-leveneTest(Shannon~Site, data=div.df.Bow.aran) #0.77 homogeneity
-#Use ANOVA
-summary(aran_aov<-aov(Shannon~Site, data=div.df.Bow.aran)) #p=0.162
-TukeyHSD(aran_aov)
-#No differences across sites
+shapiro.test(div.df.Bow.aran$Shannon) #0.0297. Not normal
+leveneTest(Shannon~Site_code, data=div.df.Bow.aran) #0.84 homogeneity
+
+#Kruskal-Wallis
+kruskal.test(Shannon~Site_code, data=div.df.Bow.aran) #p=0.00043, chi-sq: 20.4
+dunnTest(Shannon~Site_code, data=div.df.Bow.aran)
+#COCH - PMF z= -4.09, P < 0.001
+#CUSH - PMF z=-2.89, P = 0.0306
+#COCH - SUN z = -3.00, P = 0.0246
+
 
 #Tetragnathidae
 div.df.Bow.tetra<-subset(adiv_Bow, Family=="Tetragnathidae")
 shapiro.test(div.df.Bow.tetra$Shannon) #P<0.001 not normal
 #Use KW
-kruskal.test(Shannon~Site, data=div.df.Bow.tetra) #p=0.29
-dunnTest(Shannon~Site, data=div.df.Bow.tetra) #No differences across sites 
+kruskal.test(Shannon~Site_code, data=div.df.Bow.tetra) #p=0.28
 ```
 
 ### ACWA - Shannon index  (Stats and graph) faceted by taxa and sites
@@ -4833,7 +5496,7 @@ kruskal.test(Shannon~Stage, data=adiv_ACWA) #p<0.001
 #Significant difference in Shannon index btw larvae and adults 
 
 #Diff btw families
-kruskal.test(Shannon~Family, data=adiv_ACWA)#p<0.001, chi-sq: 37.0
+kruskal.test(Shannon~Family, data=adiv_ACWA)#p<0.001, chi-sq: 36.5
 dunnTest(Shannon~Family, data=adiv_ACWA) #All diff from each other
 
 #Hydropsychidae
@@ -4842,11 +5505,10 @@ hydro_ACWA<-subset(adiv_ACWA, Family=="Hydropsychidae")
 hydro_ACWA %>%
   summarize(mean = mean(Shannon), sd = sd(Shannon))
 
-
 shapiro.test(hydro_ACWA$Shannon) # normal
 leveneTest(data=hydro_ACWA, Shannon~Site) #0.197. homogeneity
 #Use ANOVA
-summary(hydro_ACWA_aov<-aov(data=hydro_ACWA, Shannon~Site)) #P = 0.278, ANOVA F(2,21)=1.36
+summary(hydro_ACWA_aov<-aov(data=hydro_ACWA, Shannon~Site)) #P = 0.331, ANOVA F(2,21)=1.17
 #No difference between streams
 
 #Baetidae
@@ -4854,10 +5516,10 @@ baetid_ACWA<-subset(adiv_ACWA, Family=="Baetidae")
 baetid_ACWA %>%
   summarize(mean = mean(Shannon), sd = sd(Shannon))
 
-shapiro.test(baetid_ACWA$Shannon) # normal p =0.096
-leveneTest(data=baetid_ACWA, Shannon~Site) #0.602. homogeneity
+shapiro.test(baetid_ACWA$Shannon) # normal p =0.18
+leveneTest(data=baetid_ACWA, Shannon~Site) #0.66. homogeneity
 #Use t test
-t.test(data=baetid_ACWA, Shannon~Site) #p=0.795, t = -0.265, df=12.1
+t.test(data=baetid_ACWA, Shannon~Site) #p=0.646, t = -0.471, df=12.3
 #No difference between streams
 
 #Ephemeroptera
@@ -4867,11 +5529,11 @@ ephem_ACWA %>%
 
 shapiro.test(ephem_ACWA$Shannon) #Not normal
 #Use Wilcoxon test
-wilcox.test(data=ephem_ACWA, Shannon~Site) # W = 19, p = 0.195
+wilcox.test(data=ephem_ACWA, Shannon~Site) # W = 16, p = 0.105
 #No difference between streams
 ```
 
-### Calculating median +/- IQR Shannon Index Bow and ACWA
+### Calculating mean +/- SD Shannon Index Bow and ACWA
 
 ```{r}
 
@@ -5067,7 +5729,7 @@ shan.plot.taxa.rare<-ggplot(adiv_Bow_rare, aes(x=factor(Site, labels=c("COCH", "
 
 shan.plot.taxa.rare
 
-#ggsave(filename="Microbiome_ED/Final analysis/Alpha Diversity Graphs/Rarefied shannon diversity Bow River.png", height=12, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Alpha Diversity Graphs/Rarefied shannon diversity Bow River.png", height=12, width=22)
 
 #Looks the same as the non-rarefied plot
 
@@ -5100,9 +5762,6 @@ TukeyHSD(hydro_aov_rare)
 #PMF - SUN
 #GRVBR - CUSH
 #PMF - CUSH
-#PMF - GRVBR
-
-#One extra difference with rarefied data (between GRVBR and PMF)
 
 #Adult Trichoptera
 div.df.Bow.Tricho.rare<-subset(adiv_Bow_rare, Family=="Trichoptera")
@@ -5117,9 +5776,7 @@ div.df.Bow.Hep.rare<-subset(adiv_Bow_rare, Family=="Heptageniidae")
 shapiro.test(div.df.Bow.Hep.rare$Shannon) #Normal dist. p = 0.2118
 leveneTest(Shannon~Site, data=div.df.Bow.Hep.rare) #Homogeneity
 #Use ANOVA
-summary(hep_aov_rare<-aov(Shannon~Site, data=div.df.Bow.Hep.rare)) #p=0.0435
-TukeyHSD(hep_aov_rare)
-#COCH - PMF
+summary(hep_aov_rare<-aov(Shannon~Site, data=div.df.Bow.Hep.rare)) #p=0.129
 
 #Adult Ephemeroptera
 div.df.Bow.Ephem.rare<-subset(adiv_Bow_rare, Family=="Ephemeroptera")
@@ -5165,7 +5822,10 @@ leveneTest(Shannon~Site, data=div.df.Bow.aran.rare) #0.75 homogeneity
 #Use ANOVA
 summary(aran_aov_rare<-aov(Shannon~Site, data=div.df.Bow.aran.rare)) #p=0.404
 TukeyHSD(aran_aov_rare)
-#No differences across sites
+#SUN-COCH
+#PMF-COCH
+#PMF-CUSH
+#PMF-GRVBR
 
 #Tetragnathidae
 div.df.Bow.tetra.rare<-subset(adiv_Bow_rare, Family=="Tetragnathidae")
@@ -5174,8 +5834,7 @@ shapiro.test(div.df.Bow.tetra.rare$Shannon) #P<0.001 not normal
 kruskal.test(Shannon~Site, data=div.df.Bow.tetra.rare) #p=0.25
 dunnTest(Shannon~Site, data=div.df.Bow.tetra.rare) #No differences across sites 
 
-#Rarefied data resulted in only one extra difference in larval hydropsychidae. Pretty much the same as non rarefied data.
-
+#Rarefied data resulted in the same as non rarefied data.
 ```
 
 ### ACWA - faceted by stream and invertebrate type 
@@ -5203,7 +5862,7 @@ shan.plot.taxa.ACWA.rare<-ggplot(adiv_ACWA_rare, aes(x=factor(Site, labels=c("RE
 
 shan.plot.taxa.ACWA.rare
 
-#ggsave(filename="Microbiome_ED/Final analysis/Alpha Diversity Graphs/Non rarefied shannon diversity ACWA.png", height=12, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Alpha Diversity Graphs/Non rarefied shannon diversity ACWA.png", height=12, width=22)
 
 
                                     ### Statistical tests ###
@@ -5215,7 +5874,7 @@ shapiro.test(adiv_ACWA_rare$Shannon) #Not normal
 #Kruskal-Wallis tests:
 
 #Test diff btw larvae and adults
-wilcox.test(Shannon~Stage, data=adiv_ACWA_rare) #W = 0.84, p < 0.001
+wilcox.test(Shannon~Stage, data=adiv_ACWA_rare) #W = 593, p < 0.001
 
 #Diff btw families
 kruskal.test(Shannon~Family, data=adiv_ACWA_rare)#p<0.001
@@ -5226,7 +5885,7 @@ hydro_ACWA_rare<-subset(adiv_ACWA_rare, Family=="Hydropsychidae")
 shapiro.test(hydro_ACWA_rare$Shannon) # normal
 leveneTest(data=hydro_ACWA_rare, Shannon~Site) #0.3. homogeneity
 #Use ANOVA
-summary(hydro_ACWA_aov_rare<-aov(data=hydro_ACWA_rare, Shannon~Site)) #0.326 no diff
+summary(hydro_ACWA_aov_rare<-aov(data=hydro_ACWA_rare, Shannon~Site)) #0.381 no diff
 #No difference between streams
 
 #Baetidae
@@ -5234,17 +5893,17 @@ baetid_ACWA_rare<-subset(adiv_ACWA_rare, Family=="Baetidae")
 shapiro.test(baetid_ACWA_rare$Shannon) # normal
 leveneTest(data=baetid_ACWA, Shannon~Site) #0.683. homogeneity
 #Use t test
-t.test(data=baetid_ACWA_rare, Shannon~Site) #p=0.809
+t.test(data=baetid_ACWA_rare, Shannon~Site) #p=0.634
 #No difference between streams
 
 #Ephemeroptera
 ephem_ACWA_rare<-subset(adiv_ACWA_rare, Family=="Ephemeroptera")
 shapiro.test(ephem_ACWA_rare$Shannon) #Not normal
 #Use Wilcoxon test
-wilcox.test(data=ephem_ACWA_rare, Shannon~Site) # W = 18, p = 0.195
-#No difference between streams
+wilcox.test(data=ephem_ACWA_rare, Shannon~Site) # W = 11, p = 0.028
 
-#Same results as non rarefied data
+
+#Mostly the same results as non rarefied data except for Ephemeroptera between 5-15% effluent stream
 ```
 
 # Beta Diversity
@@ -5260,7 +5919,7 @@ Transforming the data to proportions (relative abundance) is the best method of 
 blank_ps<-subset_samples(ps, Sample_Type=="Blank")
 
 exp_bl_ps<-merge_phyloseq(blank_ps, sample_ps)
-nsamples(exp_bl_ps) #358 (335 samples, 23 blanks)
+nsamples(exp_bl_ps) #354 (331 samples, 23 blanks)
 
 #Ordinating blanks with experimental samples to see how closely related they are
 
@@ -5272,18 +5931,17 @@ ordination_all = ordinate(ps_rel_abun, method="PCoA", distance=dist_all) #Ordina
 
 plot_ordination(ps_rel_abun, ordination_all, shape="Blank_collection_method", color="Sample_Type") +
   theme_classic() +
-  theme(strip.background = element_blank())+
-  xlab("PC1[12.9%]")+
-  ylab("PC2[10.7%]")
+  theme(strip.background = element_blank())
+  
 #Doesn't explain much of the data, need to do an NMDS
  
 set.seed(1)
 ord_NMDS_blanks = ordinate(ps_rel_abun, method="NMDS", distance=dist_all)
-ord_NMDS_blanks #stress=0.206
+ord_NMDS_blanks #stress=0.194
 
 
-blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks) + 
-  geom_point(aes(colour=factor(Sample_Type), shape=factor(Blank_Type)), size=2)+
+blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks, color="Sample_Type", shape="Blank_Type") + 
+  geom_point()+
   theme_classic() +
   theme(strip.background = element_blank())+
   theme(legend.key.size = unit(1, 'cm'), 
@@ -5295,10 +5953,9 @@ blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks) +
         legend.position = "right")+
   guides(nrow=10)+
   scale_shape_manual(name="Blank type", values=c(1:7))+
-  scale_colour_manual(name="Sample type", values=c("red", "blue"))
+  scale_color_manual(name="Sample type", values=c("red", "darkblue"))
 
-newtab$Blank_Type <- factor(newtab$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Floating emergence trap","Buffer tube","DNA extraction reagent","Nested PCR negative"))
-blank_nmds$Blank_Type <- newtab
+blank_nmds$Blank_Type <- factor(blank_nmds$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Floating emergence trap","Buffer tube","DNA extraction reagent","Nested PCR negative"))
 print(blank_nmds)
 
 #ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples.png", height=10, width=12)
@@ -5307,11 +5964,12 @@ metadata_blanks <- data.frame(sample_data(ps_rel_abun))
 
 adonis.blanks <- adonis2(dist_all ~ Sample_Type, data = metadata_blanks)
 adonis.blanks #p<0.001. Significant dissimilarity between blank samples and invertebrate samples
-#F(1, 356) = 4.73, P < 0.001
+#F(1, 352) = 4.40, P < 0.001
 
 #Testing variance (beta dispersion) differences between samples and blanks:
 bd_blanks<-betadisper(dist_all, metadata_blanks$Sample_Type)
-anova(bd_blanks) #Sig. dispersion F(1,356) = 58.0, p<0.001
+anova(bd_blanks) #Sig. dispersion F(1,352) = 53.8, p<0.001
+
 
 ## Separating out respective blanks for each sample type ##
 
@@ -5384,8 +6042,8 @@ metadata_Bow_all <- meta(Bow_ps_rel_abun) #get sample data
 predictors_Bow<-metadata_Bow_all[,c(2,9)] #Select site and invertebrate columns to use as factors
 
 rdacca.hp(t_otu_Bow_all, predictors_Bow, method="RDA", type = "adjR2") #Run the RDA to see the percent explained by each factor
-#Total variation explained: 0.301%
-#Site explains 8.50% of the total variance explained whereas Family explained 91.5% of the total variation explained
+#Total variation explained: 0.295%
+#Site explains 4.88% of the total variance explained whereas Family explained 5.2% of the total variation explained
 
 #### Beta Diversity Graphs + PERMANOVA ####
 
@@ -5408,17 +6066,17 @@ metadata_Bow <- data.frame(sample_data(Bow_rel_abun))
 #All together
 plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + #Plots the ordination
   theme_classic() +
-  theme(strip.background = element_blank())+
-  xlab("PC1 [12.8%]")+
-  ylab("PC2 [10.9%]")
+  theme(strip.background = element_blank())
+  #xlab("PC1 [11.2%]")+
+  #ylab("PC2 [8.5%]")
 
 #Faceted by stage (larvae, adults, spiders)
 plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") + 
   theme_classic() +
   theme(strip.background = element_blank())+
-  facet_wrap(~Stage)+
-  xlab("PC1 [12.8%]")+
-  ylab("PC2 [10.9%]")
+  facet_wrap(~Stage)
+  #xlab("PC1 [12.8%]")+
+  #ylab("PC2 [10.9%]")
 
 #Axes don't explain a ton of variation so I will try ordinating with an NMDS as well. 
 
@@ -5428,7 +6086,7 @@ plot_ordination(Bow_rel_abun, ord_Bow, shape="Site", color="Family") +
 # NMDS 
 set.seed(1)
 ord_NMDS_Bow = ordinate(Bow_rel_abun, method="NMDS", distance=Bow_bray)
-ord_NMDS_Bow #Stress=0.204
+ord_NMDS_Bow #Stress=0.192
 
 plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
   theme_classic() +
@@ -5442,8 +6100,7 @@ plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Fa
         legend.position = "right")+
   guides(color=guide_legend(title="Invertebrate Taxa")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))
- # ylim(-0.5, 0.5)+
-  #xlim(-0.5, 0.5)
+
 
 newtab1 = data.table(plotNMDS1$data)
 newtab1$Family <- ordered(newtab1$Family,
@@ -5451,7 +6108,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 plotNMDS1$data <- newtab1
 print(plotNMDS1)
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS all data Bow only relative abundance.png", height=10, width=14)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS all data Bow.png", height=10, width=14)
 
 #Ellipses by taxa
 plotNMDStaxa<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shape="Site") + 
@@ -5467,16 +6124,12 @@ plotNMDStaxa<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shap
   guides(color=guide_legend(title="Invertebrate Taxa")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
   stat_ellipse(type="norm", alpha=1, aes(group=Family, color=Family))
-  #ylim(-0.5, 0.5)+
-  #xlim(-0.5, 0.5)
 
 newtabtaxa = data.table(plotNMDStaxa$data)
 newtabtaxa$Family <- ordered(newtabtaxa$Family,
 levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Chironomidae", "Araneidae", "Tetragnathidae"))
 plotNMDStaxa$data <- newtabtaxa
 print(plotNMDStaxa)
-
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across taxa Bow.png", height=10, width=14)
 
 
 #Ellipses by Site
@@ -5493,17 +6146,12 @@ plotNMDSsite<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family", shap
   guides(color=guide_legend(title="Invertebrate Taxa")) +
   scale_color_discrete(palette(c("orange","blue","red","black","magenta","peachpuff")))+
   stat_ellipse(type="norm", alpha=1, aes(group=Site))
-   #ylim(-0.5, 0.5)+
-  #xlim(-0.5, 0.5)
 
 newtabtaxa = data.table(plotNMDSsite$data)
 newtabtaxa$Family <- ordered(newtabtaxa$Family,
 levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Chironomidae", "Araneidae", "Tetragnathidae"))
 plotNMDSsite$data <- newtabtaxa
 print(plotNMDSsite)
-
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites Bow.png", height=10, width=14)
-
 
 
 #Faceted by invertebrate taxa and life Stage
@@ -5530,7 +6178,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 p$data <- newtab
 print(p)
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS across Bow River invertebrates and sites faceted.png", height=10, width=20)
+#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS Bow River invertebrates.png", height=10, width=20)
 
 #Faceted by site
 p1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family") + 
@@ -5557,7 +6205,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 p1$data <- newtab2
 print(p1)
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa Bow only.png", height=10, width=16)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites Bow.png", height=10, width=16)
 
 
 # Faceted by site with spiders removed to see if it changes the graphs #
@@ -5566,7 +6214,7 @@ Bow_bray_no_spi<-phyloseq::distance(Bow_rel_abun_no_spi, method="bray")
 
 set.seed(1)
 ord_NMDS_Bow_no_spi = ordinate(Bow_rel_abun_no_spi, method="NMDS", distance=Bow_bray_no_spi)
-ord_NMDS_Bow_no_spi #Stress=0.174
+ord_NMDS_Bow_no_spi #Stress=0.163
 
 #Faceted by site
 p1_no_spi<-plot_ordination(Bow_rel_abun_no_spi, ord_NMDS_Bow_no_spi, color = "Family") + 
@@ -5594,8 +6242,6 @@ p1_no_spi$data <- newtab2_no_spi
 print(p1_no_spi)
 #Doesn't change too much when spiders are removed
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/NMDS across sites faceted by invertebrate taxa Bow only no spiders.png", height=10, width=16)
-
 
                                 ## PERMANOVA by Site and invertebrate taxa ##
 
@@ -5608,7 +6254,7 @@ bd_all_fam_Bow<-betadisper(Bow_bray, metadata_Bow$Family)
 anova(bd_all_fam_Bow) #yes beta disper p < 0.001
 
 bd_all_site_Bow<-betadisper(Bow_bray, metadata_Bow$Site) 
-anova(bd_all_site_Bow) #no beta disper p = 0.313
+anova(bd_all_site_Bow) #no beta disper p = 0.262
 
           
               # Testing the difference in beta diversity across sites within each invert taxon #
@@ -5622,14 +6268,14 @@ Bow_bray_hydro = phyloseq::distance(Bow_rel_abun_hydro, method="bray")
 metadata_Bow_hydro <- data.frame(sample_data(Bow_rel_abun_hydro))
 
 test.adonis.Bow.hydro <- adonis2(Bow_bray_hydro ~ Site, data = metadata_Bow_hydro)
-test.adonis.Bow.hydro #p<0.001, F(4,31)=4.30, R^2=0.357. 
+test.adonis.Bow.hydro #p<0.001
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_hydro ~ Site, data = metadata_Bow_hydro)
 #All sites except CUSHBR - SUN are sig diff
 
 bd_all_fam_Bow_hydro<-betadisper(Bow_bray_hydro, metadata_Bow_hydro$Site) 
-anova(bd_all_fam_Bow_hydro) #no beta dispersion p = 0.079
+anova(bd_all_fam_Bow_hydro) #no beta dispersion p = 0.058
 
 ## Heptageniidae ##
 
@@ -5644,10 +6290,10 @@ test.adonis.Bow.hep #p<0.001.
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_hep ~ Site, data = metadata_Bow_hep)
-#All sites are sig. diff from each other
+#All sites except CUSH - SUN diff from each other
 
 bd_all_fam_Bow_hep<-betadisper(Bow_bray_hep, metadata_Bow_hep$Site) 
-anova(bd_all_fam_Bow_hep) #sig beta dispersion p = 0.0085
+anova(bd_all_fam_Bow_hep) #sig beta dispersion p = 0.0124
 
 
 ## Chironomidae ##
@@ -5659,14 +6305,14 @@ Bow_bray_chiro = phyloseq::distance(Bow_rel_abun_chiro, method="bray")
 metadata_Bow_chiro <- data.frame(sample_data(Bow_rel_abun_chiro))
 
 test.adonis.Bow.chiro <- adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
-test.adonis.Bow.chiro #p=0.001. 
+test.adonis.Bow.chiro #p=0.091. 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
-#Cochrane - Policeman Flats are not diff from each other
+#No diff.
 
 bd_all_fam_Bow_chiro<-betadisper(Bow_bray_chiro, metadata_Bow_chiro$Site) 
-anova(bd_all_fam_Bow_chiro) #no beta dispersion p = 0.673
+anova(bd_all_fam_Bow_chiro) #no beta dispersion p = 0.638
 
 ## Perlidae ##
 
@@ -5684,7 +6330,7 @@ pairwise.adonis2(Bow_bray_perl ~ Site, data = metadata_Bow_perl)
 #All sites were significantly different from each other
 
 bd_all_fam_Bow_perl<-betadisper(Bow_bray_perl, metadata_Bow_perl$Site) 
-anova(bd_all_fam_Bow_perl) #yes, sig beta dispersion p = 0.0161
+anova(bd_all_fam_Bow_perl) #no beta dispersion p = 0.122
 
 ## Trichoptera ##
 
@@ -5695,14 +6341,14 @@ Bow_bray_trichop = phyloseq::distance(Bow_rel_abun_trichop, method="bray")
 metadata_Bow_trichop <- data.frame(sample_data(Bow_rel_abun_trichop))
 
 test.adonis.Bow.trichop <- adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-test.adonis.Bow.trichop #p = 0.037 
+test.adonis.Bow.trichop #p = 0.021
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-#Only COCH - GRVBR and CUSHBR - GRVBR were sig. different from each other (not all upstream sites were different from GRVBR)
+#CUSHBR - GRVBR, GRVBR - SUN, COCH - GRVBR were sig. different from each other (all upstream sites were diff from GRVBR). 
 
 bd_all_fam_Bow_trichop<-betadisper(Bow_bray_trichop, metadata_Bow_trichop$Site) 
-anova(bd_all_fam_Bow_trichop) #no beta dispersion p = 0.896
+anova(bd_all_fam_Bow_trichop) #no beta dispersion p = 0.875
 
 ## Ephemeroptera ##
 
@@ -5720,12 +6366,14 @@ pairwise.adonis2(Bow_bray_ephem ~ Site, data = metadata_Bow_ephem)
 #Sig diff btw sites include:
 #COCH - GRVBR
 #COCH - CUSHBR
+#COCH - PMF
+#GRVBR - SUN
 #GRVBR - CUSHBR
 #SUN - CUSHBR
 #CUSHBR - PMF
 
 bd_all_fam_Bow_ephem<-betadisper(Bow_bray_ephem, metadata_Bow_ephem$Site) 
-anova(bd_all_fam_Bow_ephem) #yes beta dispersion p = 0.00394
+anova(bd_all_fam_Bow_ephem) #yes beta dispersion p = 0.00311
 
 
 ## Diptera ##
@@ -5736,14 +6384,14 @@ Bow_bray_dip = phyloseq::distance(Bow_rel_abun_dip, method="bray")
 metadata_Bow_dip <- data.frame(sample_data(Bow_rel_abun_dip))
 
 test.adonis.Bow.dip <- adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-test.adonis.Bow.dip #p = 0.13
+test.adonis.Bow.dip #p = 0.162
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-#sig diff between COCH - CUSHBR
+#sig diff between COCH - CUSHBR and COCH - PMF
 
 bd_all_fam_Bow_dip<-betadisper(Bow_bray_dip, metadata_Bow_dip$Site) 
-anova(bd_all_fam_Bow_dip) #no beta dispersion p = 0.967
+anova(bd_all_fam_Bow_dip) #no beta dispersion p = 0.997
 
 
 ## Araneidae ##
@@ -5760,15 +6408,14 @@ test.adonis.Bow.aran #p < 0.001
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_aran ~ Site, data = metadata_Bow_aran)
 #Sig diff btw sites include:
-#COCH - SUN
 #COCH - PMF
 #GRVBR - SUN
 #GRVBR - PMF
-#CUSHBR - SUN
-#CUSHBR - PMF
+#CUSH - PMF
+#SUN - PMF
 
 bd_all_fam_Bow_aran<-betadisper(Bow_bray_aran, metadata_Bow_aran$Site) 
-anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.973
+anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.049
 
 ## Tetragnathidae ##
 
@@ -5779,14 +6426,14 @@ Bow_bray_tetra = phyloseq::distance(Bow_rel_abun_tetra, method="bray")
 metadata_Bow_tetra <- data.frame(sample_data(Bow_rel_abun_tetra))
 
 test.adonis.Bow.tetra <- adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
-test.adonis.Bow.tetra #p = 0.505
+test.adonis.Bow.tetra #p = 0.574
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
 #No significant differences between any of the sites
 
 bd_all_fam_Bow_tetra<-betadisper(Bow_bray_tetra, metadata_Bow_tetra$Site) 
-anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.515
+anova(bd_all_fam_Bow_tetra) #no beta dispersion p = 0.528
 
 ## Cochrane ##
 
@@ -5801,10 +6448,12 @@ test.adonis.Bow.coch #p < 0.001, F(8,56) = 5.59
 
 #Pairwise comparisons
 pairwise.adonis2(coch_bray ~ Family, data = metadata_coch)
-#Most inverts are diff. from each other
+#All diff from each other except
+#Dip - Ephem
+#Dip - Trichop
 
 bd_all_fam_Bow_coch<-betadisper(coch_bray, metadata_coch$Family) 
-anova(bd_all_fam_Bow_coch) #yes beta dispersion p = 0.0047.
+anova(bd_all_fam_Bow_coch) #yes beta dispersion p = 0.0017.
 
 ## Sunalta ##
 
@@ -5815,14 +6464,15 @@ sun_bray = phyloseq::distance(sun_rel_abun, method="bray")
 metadata_sun <- data.frame(sample_data(sun_rel_abun))
 
 test.adonis.Bow.sun <- adonis2(sun_bray ~ Family, data = metadata_sun)
-test.adonis.Bow.sun #p < 0.001, F(5,41) = 4.54
+test.adonis.Bow.sun #p < 0.001, F(5,40) = 4.02
 
 #Pairwise comparisons
 pairwise.adonis2(sun_bray ~ Family, data = metadata_sun)
-#Most inverts are diff. from each other
+#All diff from each other except
+#Ephem - Trichop
 
 bd_all_fam_Bow_sun<-betadisper(sun_bray, metadata_sun$Family) 
-anova(bd_all_fam_Bow_sun) #yes beta dispersion p = 0.00498.
+anova(bd_all_fam_Bow_sun) #no beta dispersion p = 0.057.
 
 
 ## Cushing Bridge ##
@@ -5834,14 +6484,14 @@ cush_bray = phyloseq::distance(cush_rel_abun, method="bray")
 metadata_cush <- data.frame(sample_data(cush_rel_abun))
 
 test.adonis.Bow.cush <- adonis2(cush_bray ~ Family, data = metadata_cush)
-test.adonis.Bow.cush #p < 0.001, F(8.54) = 5.96
+test.adonis.Bow.cush #p < 0.001, F(8.52) = 5.01
 
 #Pairwise comparisons
 pairwise.adonis2(cush_bray ~ Family, data = metadata_cush)
 #All inverts are diff. from each other
 
 bd_all_fam_Bow_cush<-betadisper(cush_bray, metadata_cush$Family) 
-anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.000469.
+anova(bd_all_fam_Bow_cush) #yes beta dispersion p = 0.000263.
 
 
 ## Graves Bridge ##
@@ -5857,10 +6507,10 @@ test.adonis.Bow.grv #p < 0.001, F(5,41)=7.67
 
 #Pairwise comparisons
 pairwise.adonis2(grv_bray ~ Family, data = metadata_grv)
-#Most inverts are diff. from each other
+#All inverts are diff. from each other
 
 bd_all_fam_Bow_grv<-betadisper(grv_bray, metadata_grv$Family) 
-anova(bd_all_fam_Bow_grv) #yes beta dispersion p = 0.0112.
+anova(bd_all_fam_Bow_grv) #yes beta dispersion p<0.001.
 
 
 ## Policeman Flats ##
@@ -5876,7 +6526,8 @@ test.adonis.Bow.pmf #p < 0.001, F(7,50)=5.98
 
 #Pairwise comparisons
 pairwise.adonis2(pmf_bray ~ Family, data = metadata_pmf)
-#Most inverts are diff. from each other
+#Most inverts are diff. from each other except
+#Dip - Ephem
 
 bd_all_fam_Bow_pmf<-betadisper(pmf_bray, metadata_pmf$Family) 
 anova(bd_all_fam_Bow_pmf) #no beta dispersion p = 0.00102.
@@ -5909,8 +6560,8 @@ env_scale<-scale(env_data) #Water chem is on different scales so you have to sca
 env_dist<-dist(env_scale, method="euclidean") #Turn into a distance matrix
 
 abund_env = mantel(Bow_bray_df_no_grvbr, env_dist, method = "spearman", permutations = 999, na.rm = TRUE)
-#We're using Spearman correlations because we have non-parametric data (abundance data is usually highly skewed)
-abund_env #r = 0.00805, p = 0.290. Environment not selecting for the microbiome composition. Not sig. 
+#Using Spearman correlations because we have non-parametric data (abundance data is usually highly skewed)
+abund_env #r = 0.000531, p = 0.452. 
 
 
 # Environmental data run separately #
@@ -5921,7 +6572,7 @@ dist.temp = dist(temp, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_temp = mantel(Bow_bray_df_no_grvbr, dist.temp, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_temp # Mantel r=0.0127, p=0.186
+abund_temp # Mantel r=0.0144, p=0.164
 
 #Dissolved oxygen
 DO<-env_data$Dissolved_oxygen
@@ -5930,7 +6581,7 @@ dist.DO = dist(DO, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_DO = mantel(Bow_bray_df_no_grvbr, dist.DO, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_DO # Mantel r=0.00905, p=0.248
+abund_DO # Mantel r=0.00702, p=0.314
 
 #Conductivity
 cond<-env_data$Conductivity
@@ -5939,9 +6590,8 @@ dist.cond = dist(cond, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_cond = mantel(Bow_bray_df_no_grvbr, dist.cond, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_cond # Mantel r=0.0224, p=0.017
+abund_cond # Mantel r=0.015, p=0.089
 
-#Conductivity significantly selects for the microbiome community
 
 #Total Phosphorus
 TP<-env_data$Total_Phosphorus
@@ -5950,7 +6600,7 @@ dist.TP = dist(TP, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_TP = mantel(Bow_bray_df_no_grvbr, dist.TP, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TP # Mantel r=0.0150, p=0.218
+abund_TP # Mantel r=0.00403, p=0.384
 
 #Total Dissolved Solids
 TDS<-env_data$Total_Dissolved_Solids
@@ -5959,9 +6609,8 @@ dist.TDS = dist(TDS, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_TDS = mantel(Bow_bray_df_no_grvbr, dist.TDS, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TDS # Mantel r=0.0224, p=0.02
+abund_TDS # Mantel r=0.0155, p=0.083
 
-#Total dissolved solids is a significant predictor of microbiome composition
 
 #Total Suspended Solids
 TSS<-env_data$Total_Suspended_Solids
@@ -5970,7 +6619,7 @@ dist.TSS = dist(TSS, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_TSS = mantel(Bow_bray_df_no_grvbr, dist.TSS, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TSS # Mantel r=0.01127, p=0.248
+abund_TSS # Mantel r=0.00072, p=0.461
 
 #Total Organic Carbon
 TOC<-env_data$Total_Organic_Carbon
@@ -5979,9 +6628,7 @@ dist.TOC = dist(TOC, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_TOC = mantel(Bow_bray_df_no_grvbr, dist.TOC, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TOC # Mantel r=0.0494, p=0.007
-
-#Total organic carbon is a significant predictor of microbiome composition
+abund_TOC # Mantel r=0.0365, p=0.057
 
 #pH
 pH<-env_data$pH
@@ -5990,7 +6637,7 @@ dist.pH = dist(pH, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_pH = mantel(Bow_bray_df_no_grvbr, dist.pH, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_pH # Mantel r=0.0040, p=0.426
+abund_pH # Mantel r= -0.0071, p=0.612
 
 #NO3
 NO3<-env_data$Nitrate
@@ -5999,9 +6646,9 @@ dist.NO3 = dist(NO3, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_NO3 = mantel(Bow_bray_df_no_grvbr, dist.NO3, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_NO3 # Mantel r=0.01127, p=0.259
+abund_NO3 # Mantel r=0.00072, p=0.466
 
-#Total organic carbon, total dissolved solids, and conductivity were significant predictors of microbiome composition in the Bow River
+#no significant environmental predictors of the microbiome
 
 
 ## Correlating the geographic information to microbiome data ##
@@ -6030,7 +6677,7 @@ d.geo.Bow = distm(geo_coord_Bow, fun = distHaversine)
 dist.geo.Bow = as.dist(d.geo.Bow)
 
 abund_geo  = mantel(Bow_bray_df, dist.geo.Bow, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_geo #r = 0.0053, p = 0.358
+abund_geo #r = 0.00119, p = 0.421
 ```
 
 #### ACWA
@@ -12952,7 +13599,7 @@ eff_plot_ACWA
 
 # Picrust2
 
-## Data prep from PICRUSt2 output files
+## Creating files for input to PICRUSt2
 
 ```{r}
 #Need to create a fasta file which requires an ASV identifier in the first column (ex. 'ASV1', 'ASV2', etc.) and the bacterial DNA sequence in the second column.
@@ -12966,7 +13613,7 @@ otu<-as(otu_table(sample_ps),"matrix")
 otu_df<-as.data.frame(otu)
 otu_df<- rownames_to_column(otu_df, "ASV")
 otu_biom<-make_biom(data=otu_df)
-write_biom(otu_biom,"Microbiome_ED/PICRUSt2 Data/otu_biom.biom")
+write_biom(otu_biom,"microbiome_analysis/PICRUSt2 Data/otu_biom.biom")
 
 #After filtering steps, convert the phyloseq object back into an ASV table and save as data frame. 
 
@@ -12996,9 +13643,6 @@ ASV<-OTUdf2[,1] #Makes a column of ASV identifiers
 #Now we add the columns together to create the fasta dataframe
 ASVfasta<-data.frame(c(rbind(ASV, seq))) #Combines the ASV IDs and the sequences in a dataframe
 #Remove headers
-
-#install_github("helixcn/seqRFLP")
-library("seqRFLP") #Used to save files as .fasta
 
 #Converts data frame to fasta file
 ASV.fasta = dataframe2fas(ASVfasta, file="Microbiome_ED/PICRUSt2 Data/ASV_Sequences_4.fna")
@@ -13071,7 +13715,7 @@ sample_ps %>%
 ```
 
 
-## Load and modify data format
+## Loading and modifying data format of PICRUSt2 output
 
 'description' is the description of the individual pathway and 'Pathway_type' is a higher order classification (pathway class). Multiple individual pathways can be cateogrized into a pathway class.
 
