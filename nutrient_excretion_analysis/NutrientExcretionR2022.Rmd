@@ -27,7 +27,7 @@ library(ggpubr)
 
 Nut_data<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\nutrient_excretion_analysis\\NutrientExcretionR2022.csv")
 
-Nut_data$Site <- factor(Nut_data$Site, levels = c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "BBR2", "PCR1", "PCR3"), labels=c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "REF", "EXP5", "EXP15"))
+Nut_data$Site <- factor(Nut_data$Site, levels = c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "BBR2", "PCR1", "PCR3"), labels=c("Cochrane", "Sunalta", "Graves Bridge", "Policeman Flats", "REF", "EFF5", "EFF15"))
 Nut_data$Type<-factor(Nut_data$Type, levels = c("Bow River", "ACWA Stream"))
 Nut_data$Length<-as.numeric(Nut_data$Length)
 Nut_data$Mass<-as.numeric(Nut_data$Mass)
@@ -443,12 +443,12 @@ TukeyHSD(ACWAN)
 #EXP15 has significantly lower ammonia excretion than EXP5 p = 0.0367 
 ```
 
-# Combining P and N plots
+# Combining P and N boxplots (Supplementary Info)
 ```{r 2 panel plot with N and P}
 ## All sites together (Bow and ACWA)
 #PO4-P excretion rate normalized by mass of organism 
 
-excr_P_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF", "REF", "EXP5", "EXP15")), y=Excr_rate_P))+ 
+excr_P_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF", "REF", "EFF5", "EFF15")), y=Excr_rate_P))+ 
   geom_boxplot()+
   theme_classic()+
   ylab(expression(paste("Excretion Rate" ~PO[4]~"-P ("~mu~"g/L/mg caddis/minute)")))+
@@ -462,7 +462,7 @@ excr_P_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", 
 excr_P_plot2_all<-excr_P_plot_all + theme(axis.title.y = element_blank(), axis.title.x = element_blank())
 
 #NH3-N excretion rate normalized by mass of organism (just Bow River samples)
-excr_NH3_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF", "REF", "EXP5", "EXP15")), y=Excr_rate_NH3))+ 
+excr_NH3_plot_all<-ggplot(Nut_samples, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF", "REF", "EFF5", "EFF15")), y=Excr_rate_NH3))+ 
   geom_boxplot()+
   scale_y_log10()+
   theme_classic()+
