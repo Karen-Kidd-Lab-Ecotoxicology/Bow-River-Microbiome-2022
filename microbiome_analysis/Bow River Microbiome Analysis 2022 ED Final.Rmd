@@ -9693,29 +9693,32 @@ ggplot(Bow_ali_agg, aes(x=Site, y=Abundance))+
 # Endosymbionts
 ## Relative abundance of endosymbionts to total abundance/site and taxa
 ```{r}
-endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Hamiltonella")
+endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Hamiltonella" | Genus=="Rickettsiella")
 endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
 endo #46 taxa
 
 #### Larval Hydropsychidae Bow River ####
 
-hydro_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
+nsamples(hydro_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")) #36
 
 #Cochrane 
 
-hydro_coch<-subset_samples(hydro_Bow, Site=="Cochrane")
+nsamples(hydro_coch<-subset_samples(hydro_Bow, Site=="Cochrane")) #8
 
-hydro_coch_glom = tax_glom(hydro_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
+hydro_coch_glom = tax_glom(hydro_coch, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_coch_glom<-prune_taxa(taxa_sums(hydro_coch_glom) > 0, hydro_coch_glom)
 
 hydro_coch_genus <- psmelt(hydro_coch_glom) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
 coch_endo_hydro<- hydro_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))%>%
+  ungroup()
+View(coch_endo_hydro)
 
 coch_endo_hydro$SD_squared ='^'(coch_endo_hydro$SD,2)
 coch_endo_hydro$SD_squared_divided =(coch_endo_hydro$SD_squared/8) 
@@ -9737,10 +9740,12 @@ hydro_sun_genus <- psmelt(hydro_sun_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 sun_endo_hydro<- hydro_sun_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+
+View(sun_endo_hydro)
 
 sun_endo_hydro$SD_squared ='^'(sun_endo_hydro$SD,2)
 sun_endo_hydro$SD_squared_divided =(sun_endo_hydro$SD_squared/7) 
@@ -9762,10 +9767,12 @@ hydro_cush_genus <- psmelt(hydro_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_hydro<- hydro_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_hydro)
+
 
 cush_endo_hydro$SD_squared ='^'(cush_endo_hydro$SD,2)
 cush_endo_hydro$SD_squared_divided =(cush_endo_hydro$SD_squared/5) 
@@ -9787,10 +9794,12 @@ hydro_grvbr_genus <- psmelt(hydro_grvbr_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 grvbr_endo_hydro<- hydro_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(grvbr_endo_hydro)
+
 
 grvbr_endo_hydro$SD_squared ='^'(grvbr_endo_hydro$SD,2)
 grvbr_endo_hydro$SD_squared_divided =(grvbr_endo_hydro$SD_squared/8) 
@@ -9812,10 +9821,12 @@ hydro_pmf_genus <- psmelt(hydro_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_hydro<- hydro_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_hydro)
+
 
 pmf_endo_hydro$SD_squared ='^'(pmf_endo_hydro$SD,2)
 pmf_endo_hydro$SD_squared_divided =(pmf_endo_hydro$SD_squared/8) 
@@ -9829,7 +9840,7 @@ View(top_endo_hydro_pmf)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
-hydro_Bow_genus <- tax_glom(hydro_lar_Bow, taxrank = "Genus")
+hydro_Bow_genus <- tax_glom(hydro_Bow, taxrank = "Genus")
 comp_hydro_Bow_genus <- transform_sample_counts(hydro_Bow_genus, function(x) x/sum(x))
 
 hydro_Bow_genus_df <- psmelt(comp_hydro_Bow_genus)
@@ -9838,12 +9849,12 @@ hydro_agg <- aggregate(Abundance ~ Genus + Site_code, data = hydro_Bow_genus_df,
 
 #Sort abundance of each genus by mean at each site
 sort_genus_hydro <- hydro_agg %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarise(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
 sort_genus_hydro
 
-endosymbionts <- sort_genus_hydro$Genus[1901:1905]
+endosymbionts <- sort_genus_hydro$Genus[2836:2840]
 
   
 endo_df_hydro <- hydro_agg %>%
@@ -9874,8 +9885,7 @@ endo_plot_hydro <- ggplot(endo_agg_df, aes(x=Site_code, y=Abundance, fill=Genus)
 endo_plot_hydro
 
 #### Larval Hydropsychidae ACWA ####
-hydro_ACWA<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type!="Bow River")
-nsamples(hydro_ACWA)
+nsamples(hydro_ACWA<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type!="Bow River")) #24
 
 # REF #
 
@@ -9888,10 +9898,10 @@ hydro_REF_genus <- psmelt(hydro_REF_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 REF_endo_hydro<- hydro_REF_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(REF_endo_hydro)
 
 REF_endo_hydro$SD_squared ='^'(REF_endo_hydro$SD,2)
@@ -9915,10 +9925,10 @@ hydro_EFF5_genus <- psmelt(hydro_EFF5_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 EFF5_endo_hydro<- hydro_EFF5_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(EFF5_endo_hydro)
 
 EFF5_endo_hydro$SD_squared ='^'(EFF5_endo_hydro$SD,2)
@@ -9942,10 +9952,10 @@ hydro_EFF15_genus <- psmelt(hydro_EFF15_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 EFF15_endo_hydro<- hydro_EFF15_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(EFF15_endo_hydro)
 
 EFF15_endo_hydro$SD_squared ='^'(EFF15_endo_hydro$SD,2)
@@ -9971,10 +9981,11 @@ hep_coch_genus <- psmelt(hep_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_hep<- hep_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_hep)
 
 coch_endo_hep$SD_squared ='^'(coch_endo_hep$SD,2)
 coch_endo_hep$SD_squared_divided =(coch_endo_hep$SD_squared/8) 
@@ -9996,10 +10007,11 @@ hep_sun_genus <- psmelt(hep_sun_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 sun_endo_hep<- hep_sun_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(sun_endo_hep)
 
 sun_endo_hep$SD_squared ='^'(sun_endo_hep$SD,2)
 sun_endo_hep$SD_squared_divided =(sun_endo_hep$SD_squared/8) 
@@ -10021,10 +10033,11 @@ hep_cush_genus <- psmelt(hep_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_hep<- hep_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_hep)
 
 cush_endo_hep$SD_squared ='^'(cush_endo_hep$SD,2)
 cush_endo_hep$SD_squared_divided =(cush_endo_hep$SD_squared/8) 
@@ -10046,10 +10059,12 @@ hep_grvbr_genus <- psmelt(hep_grvbr_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 grvbr_endo_hep<- hep_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(grvbr_endo_hep)
+
 
 grvbr_endo_hep$SD_squared ='^'(grvbr_endo_hep$SD,2)
 grvbr_endo_hep$SD_squared_divided =(grvbr_endo_hep$SD_squared/8) 
@@ -10071,10 +10086,12 @@ hep_pmf_genus <- psmelt(hep_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_hep<- hep_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_hep)
+
 
 pmf_endo_hep$SD_squared ='^'(pmf_endo_hep$SD,2)
 pmf_endo_hep$SD_squared_divided =(pmf_endo_hep$SD_squared/8) 
@@ -10089,7 +10106,7 @@ View(top_endo_hep_pmf)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
-hep_Bow_genus <- tax_glom(hep_lar_Bow, taxrank = "Genus")
+hep_Bow_genus <- tax_glom(hep, taxrank = "Genus")
 comp_hep_Bow_genus <- microbiome::transform(hep_Bow_genus, "compositional")
 
 hep_Bow_genus_df <- psmelt(comp_hep_Bow_genus)
@@ -10098,12 +10115,12 @@ hep_agg <- aggregate(Abundance ~ Genus + Site_code, data = hep_Bow_genus_df, FUN
 
 #Sort abundance of each genus by mean at each site
 sort_genus_hep <- hep_agg %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarise(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
 sort_genus_hep
 
-endosymbionts_hep <- sort_genus_hep$Genus[c(1901:1905, 2346:2350)]
+endosymbionts_hep <- sort_genus_hep$Genus[c(2836:2840, 3546:3550)]
 endosymbionts_hep
   
 endo_df_hep <- hep_agg %>%
@@ -10148,10 +10165,10 @@ baetid_EFF5_genus <- psmelt(baetid_EFF5_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 EFF5_endo_baetid<- baetid_EFF5_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(EFF5_endo_baetid)
 
 EFF5_endo_baetid$SD_squared ='^'(EFF5_endo_baetid$SD,2)
@@ -10175,10 +10192,10 @@ baetid_EFF15_genus <- psmelt(baetid_EFF15_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 EFF15_endo_baetid<- baetid_EFF15_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(EFF15_endo_baetid)
 
 EFF15_endo_baetid$SD_squared ='^'(EFF15_endo_baetid$SD,2)
@@ -10204,10 +10221,11 @@ chiro_coch_genus <- psmelt(chiro_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_chiro<- chiro_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_chiro)
 
 coch_endo_chiro$SD_squared ='^'(coch_endo_chiro$SD,2)
 coch_endo_chiro$SD_squared_divided =(coch_endo_chiro$SD_squared/4) 
@@ -10229,13 +10247,15 @@ chiro_cush_genus <- psmelt(chiro_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_chiro<- chiro_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_chiro)
+
 
 cush_endo_chiro$SD_squared ='^'(cush_endo_chiro$SD,2)
-cush_endo_chiro$SD_squared_divided =(cush_endo_chiro$SD_squared/6) 
+cush_endo_chiro$SD_squared_divided =(cush_endo_chiro$SD_squared/4) 
   
 top_means_endo_chiro_cush<-aggregate(Mean ~ Genus, data = cush_endo_chiro, FUN = sum)
 top_SD_endo_chiro_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_endo_chiro, FUN = sum)
@@ -10254,13 +10274,15 @@ chiro_pmf_genus <- psmelt(chiro_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_chiro<- chiro_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_chiro)
+
 
 pmf_endo_chiro$SD_squared ='^'(pmf_endo_chiro$SD,2)
-pmf_endo_chiro$SD_squared_divided =(pmf_endo_chiro$SD_squared/4) 
+pmf_endo_chiro$SD_squared_divided =(pmf_endo_chiro$SD_squared/5) 
   
 top_means_endo_chiro_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_chiro, FUN = sum)
 top_SD_endo_chiro_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_chiro, FUN = sum)
@@ -10271,7 +10293,7 @@ View(top_endo_chiro_pmf)
 
 ## Plotting relative abundance of endosymbionts versus non endosymbionts ##
 
-chiro_Bow_genus <- tax_glom(chiro_lar_Bow, taxrank = "Genus")
+chiro_Bow_genus <- tax_glom(chiro, taxrank = "Genus")
 comp_chiro_Bow_genus <- transform_sample_counts(chiro_Bow_genus, function(x) x/sum(x))
 
 chiro_Bow_genus_df <- psmelt(comp_chiro_Bow_genus)
@@ -10280,12 +10302,12 @@ chiro_agg <- aggregate(Abundance ~ Genus + Site_code, data = chiro_Bow_genus_df,
 
 #Sort abundance of each genus by mean at each site
 sort_genus_chiro <- chiro_agg %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarize(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
 sort_genus_chiro
 
-endosymbionts_chiro <- sort_genus_chiro$Genus[1901:1905]
+endosymbionts_chiro <- sort_genus_chiro$Genus[c(1702:1704)]
 
 endo_df_chiro <- chiro_agg %>%
     mutate(Genus = fct_other(Genus, endosymbionts_chiro))
@@ -10308,7 +10330,7 @@ endo_plot_chiro <- ggplot(endo_agg_df_chiro, aes(x=Site_code, y=Abundance, fill=
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
                         axis.title.x=element_text(size=22))+
-  scale_fill_manual(name="Genus", values=c("honeydew4"))+
+  scale_fill_manual(name="Genus", values=c("lightgoldenrod1", "honeydew4"))+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
@@ -10328,10 +10350,12 @@ perl_coch_genus <- psmelt(perl_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_perl<- perl_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_perl)
+
 
 coch_endo_perl$SD_squared ='^'(coch_endo_perl$SD,2)
 coch_endo_perl$SD_squared_divided =(coch_endo_perl$SD_squared/8) 
@@ -10353,10 +10377,12 @@ perl_cush_genus <- psmelt(perl_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_perl<- perl_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_perl)
+
 
 cush_endo_perl$SD_squared ='^'(cush_endo_perl$SD,2)
 cush_endo_perl$SD_squared_divided =(cush_endo_perl$SD_squared/5) 
@@ -10378,10 +10404,12 @@ perl_pmf_genus <- psmelt(perl_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_perl<- perl_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_perl)
+
 
 pmf_endo_perl$SD_squared ='^'(pmf_endo_perl$SD,2)
 pmf_endo_perl$SD_squared_divided =(pmf_endo_perl$SD_squared/8) 
@@ -10392,51 +10420,6 @@ top_SD_endo_perl_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_perl
 top_endo_perl_pmf<-merge(top_means_endo_perl_pmf, top_SD_endo_perl_pmf, by=c("Genus"))
 top_endo_perl_pmf$SD_Final<-sqrt(top_endo_perl_pmf$SD_squared_divided)
 View(top_endo_perl_pmf)
-
-## Plotting relative abundance of endosymbionts versus non endosymbionts ##
-
-perl_Bow_genus <- tax_glom(perl_lar_Bow, taxrank = "Genus")
-comp_perl_Bow_genus <- transform_sample_counts(perl_Bow_genus, function(x) x/sum(x))
-
-perl_Bow_genus_df <- psmelt(comp_perl_Bow_genus)
-
-perl_agg <- aggregate(Abundance ~ Genus + Site_code, data = perl_Bow_genus_df, FUN = mean)
-
-#Sort abundance of each genus by mean at each site
-sort_genus_perl <- perl_agg %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
-sort_genus_perl
-
-endosymbionts_perl <- sort_genus_perl$Genus[1901:1905]
-
-endo_df_perl <- perl_agg %>%
-    mutate(Genus = fct_other(Genus, endosymbionts_perl))
-endo_df_perl
-
-endo_agg_df_perl<-aggregate(Abundance ~ Genus + Site_code, data = endo_df_perl, FUN = sum)
-
-endo_agg_df_perl$Genus<-factor(endo_agg_df_perl$Genus, levels=c("Rickettsia", "Other"), labels=c("Rickettsia", "Non-endosymbionts"))
-
-endo_plot_perl <- ggplot(endo_agg_df_perl, aes(x=Site_code, y=Abundance, fill=Genus)) +
-  geom_bar(stat="identity", color="black") + 
-  ylab("Mean Relative Abundance") +
-  theme_bw()+
-  rremove("grid")+
-  theme(strip.text = element_text(size = 16, color="black")) + 
-  theme(legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
-  guides (fill=guide_legend(nrow=12)) +
-  theme(axis.title.y=element_text(size=22),
-        axis.text.y=element_text(size=16, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
-                        axis.title.x=element_text(size=22))+
-  scale_fill_manual(name="Genus", values=c("honeydew4"))+
-  scale_y_continuous(label = scales::percent)+
-  xlab("Site")+
-  rremove("grid")
-endo_plot_perl
 
 #### Adult Trichoptera Bow River ####
 trichop<-subset_samples(sample_ps, Family=="Trichoptera")
@@ -10451,10 +10434,12 @@ trichop_coch_genus <- psmelt(trichop_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_trichop<- trichop_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_trichop)
+
 
 coch_endo_trichop$SD_squared ='^'(coch_endo_trichop$SD,2)
 coch_endo_trichop$SD_squared_divided =(coch_endo_trichop$SD_squared/8) 
@@ -10476,10 +10461,12 @@ trichop_sun_genus <- psmelt(trichop_sun_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 sun_endo_trichop<- trichop_sun_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(sun_endo_trichop)
+
 
 sun_endo_trichop$SD_squared ='^'(sun_endo_trichop$SD,2)
 sun_endo_trichop$SD_squared_divided =(sun_endo_trichop$SD_squared/8) 
@@ -10501,10 +10488,12 @@ trichop_cush_genus <- psmelt(trichop_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_trichop<- trichop_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_trichop)
+
 
 cush_endo_trichop$SD_squared ='^'(cush_endo_trichop$SD,2)
 cush_endo_trichop$SD_squared_divided =(cush_endo_trichop$SD_squared/8) 
@@ -10526,10 +10515,12 @@ trichop_grvbr_genus <- psmelt(trichop_grvbr_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 grvbr_endo_trichop<- trichop_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(grvbr_endo_trichop)
+
 
 grvbr_endo_trichop$SD_squared ='^'(grvbr_endo_trichop$SD,2)
 grvbr_endo_trichop$SD_squared_divided =(grvbr_endo_trichop$SD_squared/7) 
@@ -10540,6 +10531,53 @@ top_SD_endo_trichop_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_en
 top_endo_trichop_grvbr<-merge(top_means_endo_trichop_grvbr, top_SD_endo_trichop_grvbr, by=c("Genus"))
 top_endo_trichop_grvbr$SD_Final<-sqrt(top_endo_trichop_grvbr$SD_squared_divided)
 View(top_endo_trichop_grvbr)
+
+## Plotting relative abundance of endosymbionts versus non endosymbionts ##
+
+trichop_Bow_genus <- tax_glom(trichop, taxrank = "Genus")
+comp_trichop_Bow_genus <- microbiome::transform(trichop_Bow_genus, "compositional")
+
+trichop_Bow_genus_df <- psmelt(comp_trichop_Bow_genus)
+
+trichop_agg <- aggregate(Abundance ~ Genus + Site_code, data = trichop_Bow_genus_df, FUN = mean)
+
+#Sort abundance of each genus by mean at each site
+sort_genus_trichop <- trichop_agg %>%
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarise(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
+View(sort_genus_trichop)
+
+endosymbionts_trichop <- sort_genus_trichop$Genus[c(385:388,2269:2272,2517:2520, 2837:2840)]
+endosymbionts_trichop
+  
+endo_df_trichop <- trichop_agg %>%
+    mutate(Genus = fct_other(Genus, endosymbionts_trichop))
+endo_df_trichop
+
+endo_agg_df_trichop<-aggregate(Abundance ~ Genus + Site_code, data = endo_df_trichop, FUN = sum)
+
+endo_agg_df_trichop$Genus<-factor(endo_agg_df_trichop$Genus, levels=c("Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia", "Other"), labels=c("Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia", "Non-endosymbionts"))
+
+endo_plot_trichop <- ggplot(endo_agg_df_trichop, aes(x=Site_code, y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
+  guides (fill=guide_legend(nrow=12)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
+                        axis.title.x=element_text(size=22))+
+  scale_fill_manual(name="Genus", values=c("skyblue1", "lightgoldenrod1", "tan1", "lightpink2", "honeydew4"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+endo_plot_trichop
+
 
 #### Adult Ephemeroptera Bow River ####
 
@@ -10555,10 +10593,12 @@ ephem_Bow_coch_genus <- psmelt(ephem_Bow_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_ephem_Bow<- ephem_Bow_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_ephem_Bow)
+
 
 coch_endo_ephem_Bow$SD_squared ='^'(coch_endo_ephem_Bow$SD,2)
 coch_endo_ephem_Bow$SD_squared_divided =(coch_endo_ephem_Bow$SD_squared/8) 
@@ -10580,10 +10620,12 @@ ephem_Bow_sun_genus <- psmelt(ephem_Bow_sun_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 sun_endo_ephem_Bow<- ephem_Bow_sun_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(sun_endo_ephem_Bow)
+
 
 sun_endo_ephem_Bow$SD_squared ='^'(sun_endo_ephem_Bow$SD,2)
 sun_endo_ephem_Bow$SD_squared_divided =(sun_endo_ephem_Bow$SD_squared/8) 
@@ -10605,10 +10647,11 @@ ephem_Bow_cush_genus <- psmelt(ephem_Bow_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_ephem_Bow<- ephem_Bow_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_ephem_Bow)
 
 cush_endo_ephem_Bow$SD_squared ='^'(cush_endo_ephem_Bow$SD,2)
 cush_endo_ephem_Bow$SD_squared_divided =(cush_endo_ephem_Bow$SD_squared/8) 
@@ -10630,10 +10673,11 @@ ephem_Bow_grvbr_genus <- psmelt(ephem_Bow_grvbr_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 grvbr_endo_ephem_Bow<- ephem_Bow_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(grvbr_endo_ephem_Bow)
 
 grvbr_endo_ephem_Bow$SD_squared ='^'(grvbr_endo_ephem_Bow$SD,2)
 grvbr_endo_ephem_Bow$SD_squared_divided =(grvbr_endo_ephem_Bow$SD_squared/8) 
@@ -10655,10 +10699,11 @@ ephem_Bow_pmf_genus <- psmelt(ephem_Bow_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_ephem_Bow<- ephem_Bow_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_ephem_Bow)
 
 pmf_endo_ephem_Bow$SD_squared ='^'(pmf_endo_ephem_Bow$SD,2)
 pmf_endo_ephem_Bow$SD_squared_divided =(pmf_endo_ephem_Bow$SD_squared/8) 
@@ -10669,6 +10714,53 @@ top_SD_endo_ephem_Bow_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo
 top_endo_ephem_Bow_pmf<-merge(top_means_endo_ephem_Bow_pmf, top_SD_endo_ephem_Bow_pmf, by=c("Genus"))
 top_endo_ephem_Bow_pmf$SD_Final<-sqrt(top_endo_ephem_Bow_pmf$SD_squared_divided)
 View(top_endo_ephem_Bow_pmf)
+
+## Plotting relative abundance of endosymbionts versus non endosymbionts ##
+
+ephem_Bow_genus <- tax_glom(ephem_Bow, taxrank = "Genus")
+comp_ephem_Bow_genus <- microbiome::transform(ephem_Bow_genus, "compositional")
+
+ephem_Bow_genus_df <- psmelt(comp_ephem_Bow_genus)
+
+ephem_agg <- aggregate(Abundance ~ Genus + Site_code, data = ephem_Bow_genus_df, FUN = mean)
+
+#Sort abundance of each genus by mean at each site
+sort_genus_ephem <- ephem_agg %>%
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarise(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
+View(sort_genus_ephem)
+
+endosymbionts_ephem <- sort_genus_ephem$Genus[c(481:485, 2836:2840, 3146:3150, 3546:3550)]
+endosymbionts_ephem
+  
+endo_df_ephem <- ephem_agg %>%
+    mutate(Genus = fct_other(Genus, endosymbionts_ephem))
+endo_df_ephem
+
+endo_agg_df_ephem<-aggregate(Abundance ~ Genus + Site_code, data = endo_df_ephem, FUN = sum)
+
+endo_agg_df_ephem$Genus<-factor(endo_agg_df_ephem$Genus, levels=c("Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia", "Other"), labels=c("Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia", "Non-endosymbionts"))
+
+endo_plot_ephem <- ggplot(endo_agg_df_ephem, aes(x=Site_code, y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
+  guides (fill=guide_legend(nrow=12)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
+                        axis.title.x=element_text(size=22))+
+  scale_fill_manual(name="Genus", values=c("skyblue1", "lightgoldenrod1", "tan1", "lightpink2", "honeydew4"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+endo_plot_ephem
+
 
 #### Adult Ephemeroptera ACWA ####
 
@@ -10686,7 +10778,7 @@ ephem_EFF5_genus <- psmelt(ephem_EFF5_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 EFF5_endo_ephem<- ephem_EFF5_genus %>%
   mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
@@ -10713,7 +10805,7 @@ ephem_EFF15_genus <- psmelt(ephem_EFF15_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 EFF15_endo_ephem<- ephem_EFF15_genus %>%
   mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
@@ -10743,10 +10835,10 @@ dip_coch_genus <- psmelt(dip_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_dip<- dip_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(coch_endo_dip) #5 samples
 
 coch_endo_dip$SD_squared ='^'(coch_endo_dip$SD,2)
@@ -10769,10 +10861,10 @@ dip_cush_genus <- psmelt(dip_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_dip<- dip_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
 View(cush_endo_dip) #8
 
 cush_endo_dip$SD_squared ='^'(cush_endo_dip$SD,2)
@@ -10795,13 +10887,15 @@ dip_pmf_genus <- psmelt(dip_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_dip<- dip_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_dip)
+
 
 pmf_endo_dip$SD_squared ='^'(pmf_endo_dip$SD,2)
-pmf_endo_dip$SD_squared_divided =(pmf_endo_dip$SD_squared/8) 
+pmf_endo_dip$SD_squared_divided =(pmf_endo_dip$SD_squared/6) 
   
 top_means_endo_dip_pmf<-aggregate(Mean ~ Genus, data = pmf_endo_dip, FUN = sum)
 top_SD_endo_dip_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_endo_dip, FUN = sum)
@@ -10810,6 +10904,51 @@ top_endo_dip_pmf<-merge(top_means_endo_dip_pmf, top_SD_endo_dip_pmf, by=c("Genus
 top_endo_dip_pmf$SD_Final<-sqrt(top_endo_dip_pmf$SD_squared_divided)
 View(top_endo_dip_pmf)
 
+## Plotting relative abundance of endosymbionts versus non endosymbionts ##
+
+dip_Bow_genus <- tax_glom(dip_Bow, taxrank = "Genus")
+comp_dip_Bow_genus <- microbiome::transform(dip_Bow_genus, "compositional")
+
+dip_Bow_genus_df <- psmelt(comp_dip_Bow_genus)
+
+dip_agg <- aggregate(Abundance ~ Genus + Site_code, data = dip_Bow_genus_df, FUN = mean)
+
+#Sort abundance of each genus by mean at each site
+sort_genus_dip <- dip_agg %>%
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarise(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
+View(sort_genus_dip)
+
+endosymbionts_dip <- sort_genus_dip$Genus[c(289:291, 1702:1704, 1888:1890, 2128:2130)]
+endosymbionts_dip
+  
+endo_df_dip <- dip_agg %>%
+    mutate(Genus = fct_other(Genus, endosymbionts_dip))
+endo_df_dip
+
+endo_agg_df_dip<-aggregate(Abundance ~ Genus + Site_code, data = endo_df_dip, FUN = sum)
+
+endo_agg_df_dip$Genus<-factor(endo_agg_df_dip$Genus, levels=c("Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia", "Other"), labels=c("Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia", "Non-endosymbionts"))
+
+endo_plot_dip <- ggplot(endo_agg_df_dip, aes(x=Site_code, y=Abundance, fill=Genus)) +
+  geom_bar(stat="identity", color="black") + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.text=element_text(size=10, face="italic"), legend.title=element_text(size=10)) +
+  guides (fill=guide_legend(nrow=12)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
+                        axis.title.x=element_text(size=22))+
+  scale_fill_manual(name="Genus", values=c("skyblue1", "lightgoldenrod1", "tan1", "lightpink2", "honeydew4"))+
+  scale_y_continuous(label = scales::percent)+
+  xlab("Site")+
+  rremove("grid")
+endo_plot_dip
 
 #### Araneidae ####
 aran<-subset_samples(sample_ps, Family=="Araneidae")
@@ -10824,10 +10963,11 @@ aran_coch_genus <- psmelt(aran_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_aran<- aran_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_aran)
 
 coch_endo_aran$SD_squared ='^'(coch_endo_aran$SD,2)
 coch_endo_aran$SD_squared_divided =(coch_endo_aran$SD_squared/8) 
@@ -10849,13 +10989,14 @@ aran_sun_genus <- psmelt(aran_sun_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 sun_endo_aran<- aran_sun_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(sun_endo_aran)
 
 sun_endo_aran$SD_squared ='^'(sun_endo_aran$SD,2)
-sun_endo_aran$SD_squared_divided =(sun_endo_aran$SD_squared/8) 
+sun_endo_aran$SD_squared_divided =(sun_endo_aran$SD_squared/7) 
   
 top_means_endo_aran_sun<-aggregate(Mean ~ Genus, data = sun_endo_aran, FUN = sum)
 top_SD_endo_aran_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_endo_aran, FUN = sum)
@@ -10874,10 +11015,11 @@ aran_cush_genus <- psmelt(aran_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_aran<- aran_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_aran)
 
 cush_endo_aran$SD_squared ='^'(cush_endo_aran$SD,2)
 cush_endo_aran$SD_squared_divided =(cush_endo_aran$SD_squared/7) 
@@ -10899,10 +11041,11 @@ aran_grvbr_genus <- psmelt(aran_grvbr_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 grvbr_endo_aran<- aran_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(grvbr_endo_aran)
 
 grvbr_endo_aran$SD_squared ='^'(grvbr_endo_aran$SD,2)
 grvbr_endo_aran$SD_squared_divided =(grvbr_endo_aran$SD_squared/8) 
@@ -10925,10 +11068,11 @@ aran_pmf_genus <- psmelt(aran_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_aran<- aran_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_aran)
 
 pmf_endo_aran$SD_squared ='^'(pmf_endo_aran$SD,2)
 pmf_endo_aran$SD_squared_divided =(pmf_endo_aran$SD_squared/6) 
@@ -10954,10 +11098,11 @@ tetra_coch_genus <- psmelt(tetra_coch_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 coch_endo_tetra<- tetra_coch_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(coch_endo_tetra)
 
 coch_endo_tetra$SD_squared ='^'(coch_endo_tetra$SD,2)
 coch_endo_tetra$SD_squared_divided =(coch_endo_tetra$SD_squared/8) 
@@ -10979,10 +11124,11 @@ tetra_sun_genus <- psmelt(tetra_sun_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 sun_endo_tetra<- tetra_sun_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(sun_endo_tetra)
 
 sun_endo_tetra$SD_squared ='^'(sun_endo_tetra$SD,2)
 sun_endo_tetra$SD_squared_divided =(sun_endo_tetra$SD_squared/8) 
@@ -11004,10 +11150,11 @@ tetra_cush_genus <- psmelt(tetra_cush_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 cush_endo_tetra<- tetra_cush_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(cush_endo_tetra)
 
 cush_endo_tetra$SD_squared ='^'(cush_endo_tetra$SD,2)
 cush_endo_tetra$SD_squared_divided =(cush_endo_tetra$SD_squared/8) 
@@ -11030,10 +11177,11 @@ tetra_grvbr_genus <- psmelt(tetra_grvbr_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 grvbr_endo_tetra<- tetra_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(grvbr_endo_tetra)
 
 grvbr_endo_tetra$SD_squared ='^'(grvbr_endo_tetra$SD,2)
 grvbr_endo_tetra$SD_squared_divided =(grvbr_endo_tetra$SD_squared/8) 
@@ -11055,10 +11203,11 @@ tetra_pmf_genus <- psmelt(tetra_pmf_glom) %>%
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup 
 
 pmf_endo_tetra<- tetra_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium")))
+  mutate(Genus = fct_other(Genus, keep=c("Rickettsia", "Spiroplasma", "Buchnera", "Wolbachia", "Candidatus cardinium", "Hamiltonella", "Rickettsiella")))
+View(pmf_endo_tetra)
 
 pmf_endo_tetra$SD_squared ='^'(pmf_endo_tetra$SD,2)
 pmf_endo_tetra$SD_squared_divided =(pmf_endo_tetra$SD_squared/8) 
@@ -11071,6 +11220,24 @@ top_endo_tetra_pmf$SD_Final<-sqrt(top_endo_tetra_pmf$SD_squared_divided)
 View(top_endo_tetra_pmf)
 
 #### Plotting all taxa faceted ####
+
+# Bolding individual axes labels #
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
 
 #Bow River 
 
@@ -11091,19 +11258,20 @@ Bow_agg <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data
 
 #Sort abundance of each genus by mean at each site
 sort_genus_Bow <- Bow_agg %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
+    dplyr::group_by(Genus, Site_code) %>%
+    dplyr::summarize(Mean = mean(Abundance)) %>%
+    dplyr::arrange()
 View(sort_genus_Bow)
 
-endosymbionts_Bow <- sort_genus_Bow$Genus[c(481:485, 591:595, 2836:2840, 3146:3150, 3546:3550)]
+endosymbionts_Bow <- sort_genus_Bow$Genus[c(481:485, 2836:2840, 3146:3150, 3546:3550)]
+endosymbionts_Bow
   
 endo_df_Bow <- Bow_agg %>%
     mutate(Genus = fct_other(Genus, endosymbionts_Bow))
 
 endo_agg_df_Bow<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = endo_df_Bow, FUN = sum)
 
-endo_agg_df_Bow$Genus<-factor(endo_agg_df_Bow$Genus, levels=c("Other", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"), labels=c( "Non-endosymbionts", "Buchnera", "Candidatus Cardinium", "Rickettsia", "Spiroplasma", "Wolbachia"))
+endo_agg_df_Bow$Genus<-factor(endo_agg_df_Bow$Genus, levels=c("Other", "Buchnera","Rickettsia", "Spiroplasma", "Wolbachia"), labels=c( "Non-endosymbionts", "Buchnera", "Rickettsia", "Spiroplasma", "Wolbachia"))
 
 endo_agg_df_Bow$Site_code <- factor(endo_agg_df_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
@@ -11124,7 +11292,7 @@ endo_plot_Bow <- ggplot(endo_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genu
         axis.text.y=element_text(size=24, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=24, color="black", face=colorado(endo_agg_df_Bow$Site_code, c("GRVBR", "PMF"))),
                         axis.title.x=element_text(size=30))+
-  scale_fill_manual(name="Genus", values=c("#808080", "tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
+  scale_fill_manual(name="Genus", values=c("#808080", "tan1","skyblue1", "lightgoldenrod1","lightpink1"))+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
@@ -11215,7 +11383,26 @@ endo #46 taxa
 
 #### Bow River ####
 
-endo_Bow<-subset_taxa(Bow_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Hamiltonella")
+# Bolding individual axes labels #
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+
+
+endo_Bow<-subset_taxa(Bow_ps, Genus=="Buchnera" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Hamiltonella")
 endo_Bow<-prune_taxa(taxa_sums(endo_Bow) > 0, endo_Bow) 
 endo_Bow #46 taxa, 276 samples
 
@@ -11228,6 +11415,7 @@ sample.df.agg.endo_phy_Bow_all <- aggregate(Abundance ~ Genus + Site_code + samp
 
 #Faceted by site and invert family. Hard to see because there's not much going on.
 ggplot(sample.df.agg.endo_phy_Bow_all, aes(x=Sample_ID , y=Abundance, fill=Genus, label=Sample_ID)) + geom_bar(stat="identity", color="black") + 
+  theme_bw()+
   ylab("Mean relative abundance of endosymbionts") +
   facet_nested_wrap(~Site_code + sample_Family, scales = "free", nrow=4, ncol=8)+
   theme(strip.text = element_text(size = 8, color="black")) + 
@@ -11237,17 +11425,18 @@ ggplot(sample.df.agg.endo_phy_Bow_all, aes(x=Sample_ID , y=Abundance, fill=Genus
   theme(axis.title.y=element_text(size=8),
         axis.text.y=element_text(size=8),
         axis.text.x=element_blank(),
-        #axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Genus", values=c("tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
+  scale_fill_manual(name="Genus", values=c("tan1", "skyblue1", "lightgoldenrod1","lightpink1"))+
   rremove("grid")
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Endosymbionts/Bow River endosymbiont relative abundance within individual samples.png", height=6, width=5, bg="white")
+
 
 ## Faceted by average relative abundance per invert taxa and site ##
 
 sample.df.agg.endo_phy_Bow_site <- aggregate(Abundance ~ Genus + Site_code + Stage + sample_Family, data = endo_df_Bow_all, FUN = mean)
 
-sample.df.agg.endo_phy_Bow_site$sample_Family<-factor(sample.df.agg.endo_phy_Bow_site$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+sample.df.agg.endo_phy_Bow_site$sample_Family<-factor(sample.df.agg.endo_phy_Bow_site$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
 ggplot(sample.df.agg.endo_phy_Bow_site, aes(x=Site_code , y=Abundance, fill=Genus)) + geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
@@ -11260,15 +11449,13 @@ ggplot(sample.df.agg.endo_phy_Bow_site, aes(x=Site_code , y=Abundance, fill=Genu
   guides(fill=guide_legend(nrow=1)) +
   theme(axis.title.y=element_blank(),
         axis.text.y=element_text(size=8, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=8, color="black", face=colorado(sample.df.agg.endo_phy_Bow_site$Site_code, c("GRVBR", "PMF"))),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Genus", values=c("tan1","seagreen1", "skyblue1", "lightgoldenrod1","lightpink1"))+
+  scale_fill_manual(name="Genus", values=c("tan1", "skyblue1", "lightgoldenrod1","lightpink1"))+
   xlab("Site")
 
-
-
-#ggsave(filename="Microbiome_ED/Final analysis/Relative abundance/Endosymbionts/Bow River and ACWA stream endosymbionts.png", height=6, width=5, bg="white")
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Endosymbionts/Bow River endosymbiont mean relative abundance.png", height=6, width=5, bg="white")
 
 
 #### ACWA ####
@@ -11287,27 +11474,48 @@ sample.df.agg.endo_phy_ACWA$sample_Family<-factor(sample.df.agg.endo_phy_ACWA$sa
 
 sample.df.agg.endo_phy_ACWA$Site_code<-factor(sample.df.agg.endo_phy_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
 
+
+# Bolding individual axes labels #
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+
 #Endosymbiont genera across sites and taxa
+
 ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Site_code , y=Abundance, fill=Genus)) + geom_bar(stat="identity", color="black") + 
   ylab("Mean Relative Abundance") +
   xlab("ACWA Stream")+
   theme_bw()+
   facet_nested_wrap(~Stage + sample_Family, scales="free_x")+
   #facet_wrap(vars(Stage, Site_code), scales = "free")+
-  theme(strip.text = element_text(size = 8, color="black")) + 
+  theme(strip.text = element_text(size = 14, color="black")) + 
   theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8)) +
+        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=12)) +
   guides(fill=guide_legend(nrow=1)) +
   theme(axis.title.y=element_blank(),
-        axis.text.y=element_text(size=8, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
-                        axis.title=element_text(size=14))+
+        axis.text.y=element_text(size=14, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=14, color="black", face=colorado(sample.df.agg.endo_phy_Bow_site$Site_code, c("EFF5", "EFF15"))),
+                        axis.title=element_text(size=16))+
   scale_y_continuous(label = scales::percent)+
   scale_fill_manual(name="Genus", values = c("skyblue1", "lightpink1"))+
   rremove("grid")
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Endosymbionts/ACWA endosymbiont mean relative abundance.png", height=6, width=12, bg="white")
 
 
-#ACWA streams
+#Individual Samples
 
 endo_ACWA<-subset_samples(endo, Stream_Type!="Bow River")
 endo_ACWA<-prune_taxa(taxa_sums(endo_ACWA)>0, endo_ACWA)
@@ -11322,20 +11530,24 @@ sample.df.agg.endo_phy_ACWA$sample_Family<-factor(sample.df.agg.endo_phy_ACWA$sa
 sample.df.agg.endo_phy_ACWA$Site_code<-factor(sample.df.agg.endo_phy_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
 
 #Endosymbiont genera
-ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus)) + geom_bar(stat="identity") + 
-  ylab("Mean relative abundance") +
-  facet_nested_wrap(~Site_code + sample_Family, scales = "free")+
-  theme(strip.text = element_text(size = 8, color="black")) + 
+ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus, label=Sample_ID)) + geom_bar(stat="identity", color="black") + 
+  theme_bw()+
+  ylab("Relative Abundance of Endosymbionts") +
+  facet_nested_wrap(~Site_code + sample_Family, scales = "free", nrow=4, ncol=8)+
+  theme(strip.text = element_text(size = 14, color="black")) + 
   theme(legend.position="bottom", legend.key.size = unit(0.5, "cm"),
-        legend.text=element_text(size=6, face="italic"), legend.title=element_text(size=8), axis.text.x = element_blank()) +
+        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=12)) +
   guides(fill=guide_legend(nrow=1)) +
-  theme(axis.title.y=element_text(size=8),
-        axis.text.y=element_text(size=8),
-        axis.text.x=element_text(angle=45, hjust=1, size=8, color="black"),
-                        axis.title=element_text(size=18))+
+  theme(axis.title.y=element_text(size=16),
+        axis.text.y=element_text(size=14),
+        axis.text.x=element_blank(),
+                        axis.title=element_text(size=16), axis.ticks.x = element_blank())+
   scale_y_continuous(label = scales::percent)+
-  scale_fill_manual(name="Genus", values = c("skyblue1", "lightpink1"))+
-  rremove("grid")
+  scale_fill_manual(name="Genus", values=c("skyblue1","lightpink1"))+
+  rremove("grid")+
+  xlab("")
+
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/Endosymbionts/ACWA endosymbiont relative abundance within individual samples.png", height=6, width=12, bg="white")
 
 ```
 
