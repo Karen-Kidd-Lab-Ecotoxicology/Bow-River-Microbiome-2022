@@ -1582,6 +1582,22 @@ topgenusplotbl
 
 ### Calculating mean relative abundance and SD of top 5 phyla 
 ```{r}
+#### All Bow River samples ####
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River") 
+Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps) 
+
+Bow_glom = tax_glom(Bow_ps, "Phylum") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+Bow_phylum <- psmelt(Bow_glom) %>%
+  as_tibble %>%
+    group_by(Phylum) %>%
+  dplyr::select(c("Abundance", "sample_Family", "Phylum")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+    ungroup 
+View(Bow_phylum)
+#Proteobacteria, Bacteroidota, Firmicutes, Actinobacteriota
+
 #### Sites ####
 # Cochrane #
 
@@ -2752,18 +2768,19 @@ top_phy_tetra_pmf$SD_Final<-sqrt(top_phy_tetra_pmf$SD_squared_divided)
 View(top_phy_tetra_pmf) #Use this SD for the 'other' category since its a pooled SD of all the other taxa
 ```
 
-### Testing significant differences across sites and invert taxa
+### Testing significant differences across sites and invert taxa (point range graph with top 4 phyla)
 ```{r}
 #### Bow River ####
 
 ### Phylum level ###
 
-metadata_Bow<-subset(sample_data_4, Stream_Type=="Bow River")
+#Use data that was re-structured into a dataframe above
+metadata_Bow<-subset(sample_data_4, Stream_Type=="Bow River") 
 
 otu_rel_abund_Bow <- dplyr::inner_join(ASVseq_ps_2, metadata_Bow, by="Study_ID") %>%
   dplyr::inner_join(., taxonomy_modified, by="Sequences") %>% #joins taxonomy, abundances, and metadata
   dplyr::group_by(Study_ID) %>%
-  dplyr::mutate(rel_abund = count / sum(count)) %>% #transforms to relative abundance
+  dplyr::mutate(rel_abund = 100*count / sum(count)) %>% #transforms to relative abundance
   dplyr::ungroup() %>%
   dplyr::select(-count) %>%
   pivot_longer(
@@ -2771,76 +2788,46 @@ otu_rel_abund_Bow <- dplyr::inner_join(ASVseq_ps_2, metadata_Bow, by="Study_ID")
     names_to="level",
     values_to="taxon") 
 
-#Phylum
+
 taxon_rel_abund_Phylum_Bow <- otu_rel_abund_Bow %>%
   dplyr::filter(level=="Phylum") %>%
   dplyr::group_by(Site, sample_Family, Study_ID, taxon) %>%
-  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
+  dplyr::summarize(rel_abund = sum(rel_abund), .groups="drop") %>%
   drop_na(Site, sample_Family, taxon)
 
 taxon_pool_Phylum_Bow <- taxon_rel_abund_Phylum_Bow %>%
   dplyr::group_by(Site, sample_Family, taxon) %>%
   dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
   dplyr::group_by(taxon) %>%
-  dplyr::summarize(pool = max(median) < 4,
-            median = median(median),
+  dplyr::summarize(pool = max(median) < 20,
+            median = max(median),
             .groups="drop")
 
-#Graphing pointrange plot with median and 50% quartiles
 Phylum_Bow_graphing_df<- dplyr::inner_join(taxon_rel_abund_Phylum_Bow, taxon_pool_Phylum_Bow, by="taxon") %>%
  dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
   dplyr::group_by(Study_ID, Site, sample_Family, taxon) %>%
   dplyr::summarize(rel_abund = sum(rel_abund),
-            median = min(median),
+            median = max(median),
             .groups="drop") %>%
   dplyr::mutate(taxon = factor(taxon),
          taxon = fct_reorder(taxon, median, .desc=T)) %>%
   dplyr::mutate(rel_abund = if_else(rel_abund == 0,
                              2/3 * lod,
                              rel_abund))
-#View(Phylum_Bow_graphing_df)
+View(Phylum_Bow_graphing_df)
 
 ## Hydropsychidae ##
 
-hydro_otu_rel_abund_Bow<-subset(otu_rel_abund_Bow, sample_Family=="Hydropsychidae")
+hydro_otu_rel_abund_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Hydropsychidae")
+View(hydro_otu_rel_abund_Bow)
 
-taxon_rel_abund_Phylum_hydro_Bow <- hydro_otu_rel_abund_Bow %>%
-  dplyr::filter(level=="Phylum") %>%
-  dplyr::group_by(Site, Study_ID, taxon) %>%
-  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
-  drop_na(Site, taxon)
-View(taxon_rel_abund_Phylum_hydro_Bow)
+hydro_otu_rel_abund_Bow$taxon<-factor(hydro_otu_rel_abund_Bow$taxon, levels=c("Other", "Firmicutes", "Proteobacteria", "Bacteroidota"))
 
-taxon_pool_Phylum_hydro_Bow <- taxon_rel_abund_Phylum_hydro_Bow %>%
-  dplyr::group_by(Site, Study_ID, taxon) %>%
-  dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
-  dplyr::group_by(taxon) %>%
-  dplyr::summarize(pool = max(median) < 4,
-            median = median(median),
-            .groups="drop")
-View(taxon_pool_Phylum_hydro_Bow)
+hydro_otu_rel_abund_Bow$Site<-factor(hydro_otu_rel_abund_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
-#Graphing pointrange plot with median and 50% quartiles
-hydro_phylum_Bow<- dplyr::inner_join(taxon_rel_abund_Phylum_hydro_Bow, taxon_pool_Phylum_hydro_Bow, by="taxon") %>%
- dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
-  dplyr::group_by(Site, taxon) %>%
-  dplyr::summarize(rel_abund = sum(rel_abund),
-            median = min(median),
-            .groups="drop") %>%
-  dplyr::mutate(taxon = factor(taxon),
-         taxon = fct_reorder(taxon, median, .desc=T)) %>%
-  dplyr::mutate(rel_abund = if_else(rel_abund == 0,
-                             2/3 * lod,
-                             rel_abund))
-View(hydro_phylum_Bow)
-
-hydro_phylum_Bow$taxon<-factor(hydro_phylum_Bow$taxon, levels=c("Other", "Actinobacteriota", "Deferribacterota", "Firmicutes", "Proteobacteria", "Bacteroidota"))
-
-hydro_phylum_Bow$Site<-factor(hydro_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
-
-hydro_rel_abun_plot_Bow <- ggplot(hydro_phylum_Bow, aes(y=taxon, x=rel_abund, color=Site)) +
+hydro_rel_abun_plot_Bow <- ggplot(hydro_otu_rel_abund_Bow, aes(y=taxon, x=rel_abund, color=Site)) +
   stat_summary(fun.data=median_hilow, geom = "pointrange",
-               fun.args=list(conf.int=0.5),
+               fun.args=list(conf.int=0.5), #set confidence intervals to 50%
                position = position_dodge(width=1)) +
   coord_trans(x="log10") +
   scale_x_continuous(limits=c(NA, 100),
@@ -2852,45 +2839,35 @@ hydro_rel_abun_plot_Bow <- ggplot(hydro_phylum_Bow, aes(y=taxon, x=rel_abund, co
   rremove("grid")+
   theme(axis.text.y = element_text(color="black"), axis.text.x = element_text(color="black"))
 
+
 hydro_rel_abun_plot_Bow
 
 #Statistical tests
 
-shapiro.test(hydro_phylum_Bow$rel_abund) #not normal.
+shapiro.test(hydro_otu_rel_abund_Bow$rel_abund) #not normal.
 
 #Proteobacteria
-proteo_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Proteobacteria")
+proteo_hydro_Bow<-subset(hydro_otu_rel_abund_Bow, taxon=="Proteobacteria")
 kruskal.test(data=proteo_hydro_Bow, rel_abund ~ Site) #p = 0.775 no diff.
 
 #Bacteroidota
-bacter_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Bacteroidota")
+bacter_hydro_Bow<-subset(hydro_otu_rel_abund_Bow, taxon=="Bacteroidota")
 kruskal.test(data=bacter_hydro_Bow, rel_abund ~ Site) #p = 0.63 no diff.
 
 #Firmicutes
-firm_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Firmicutes")
+firm_hydro_Bow<-subset(hydro_otu_rel_abund_Bow, taxon=="Firmicutes")
 kruskal.test(data=firm_hydro_Bow, rel_abund ~ Site) #p = 0.0335
 dunnTest(data=firm_hydro_Bow, rel_abund ~ Site) 
 #COCH - PMF p=0.03, z = 2.97
 #Policeman Flats has significantly less Firmicutes than Cochrane
 
-#Actinobacteriota
-actino_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Actinobacteriota")
-kruskal.test(data=actino_hydro_Bow, rel_abund ~ Site) #p = 0.000394
-dunnTest(data=actino_hydro_Bow, rel_abund ~ Site) 
-#COCH - PMF z = -3.33, P = 0.0077
-#GRVBR - SUN z =2.82, p=0.038
-#PMF - SUN z = 3.67, P = 0.0024
-
-#Deferribacterota
-def_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Deferribacterota")
-kruskal.test(data=def_hydro_Bow, rel_abund ~ Site) #p = 0.2066
-
 
 ## Heptageniidae ##
 
 hep_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Heptageniidae")
+View(hep_phylum_Bow)
 
-hep_phylum_Bow$taxon<-factor(hep_phylum_Bow$taxon, levels=c("Other", "Deferribacterota", "Actinobacteriota", "Bacteroidota", "Firmicutes", "Proteobacteria"))
+hep_phylum_Bow$taxon<-factor(hep_phylum_Bow$taxon, levels=c("Other", "Bacteroidota", "Firmicutes", "Proteobacteria"))
 
 hep_phylum_Bow$Site<-factor(hep_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -2916,7 +2893,8 @@ shapiro.test(hep_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal Wa
 
 #Proteobacteria
 proteo_hep_Bow<-subset(hep_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_hep_Bow, rel_abund ~ Site) #p = 0.069. No diff 
+kruskal.test(data=proteo_hep_Bow, rel_abund ~ Site) #p = 0.069. 
+dunnTest(data=proteo_hep_Bow, rel_abund ~ Site) #No differences
 
 #Bacteroidota
 bacter_hep_Bow<-subset(hep_phylum_Bow, taxon=="Bacteroidota")
@@ -2925,22 +2903,13 @@ kruskal.test(data=bacter_hep_Bow, rel_abund ~ Site) #p = 0.38
 #Firmicutes
 firm_hep_Bow<-subset(hep_phylum_Bow, taxon=="Firmicutes")
 kruskal.test(data=firm_hep_Bow, rel_abund ~ Site) #p = 0.095
-
-#Actinobacteriota
-actino_hep_Bow<-subset(hep_phylum_Bow, taxon=="Actinobacteriota")
-kruskal.test(data=actino_hep_Bow, rel_abund ~ Site) #p = 0.3214
-
-#Deferribacterota
-def_hep_Bow<-subset(hep_phylum_Bow, taxon=="Deferribacterota")
-kruskal.test(data=def_hep_Bow, rel_abund ~ Site) #p = 0.406
-
-#No differences in Heps
+dunnTest(data=firm_hep_Bow, rel_abund ~ Site) #No differences
 
 
 ## Chironomidae ##
 chiro_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Chironomidae")
 
-chiro_phylum_Bow$taxon<-factor(chiro_phylum_Bow$taxon, levels=c("Other", "Deferribacterota", "Actinobacteriota", "Firmicutes", "Bacteroidota", "Proteobacteria"))
+chiro_phylum_Bow$taxon<-factor(chiro_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 chiro_phylum_Bow$Site<-factor(chiro_phylum_Bow$Site, levels=c("Cochrane", "Cushing Bridge", "Policeman Flats"))
 
@@ -2966,31 +2935,24 @@ shapiro.test(chiro_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal 
 
 #Proteobacteria
 proteo_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_chiro_Bow, rel_abund ~ Site) #p = 0.094 possible difference
+kruskal.test(data=proteo_chiro_Bow, rel_abund ~ Site) #p = 0.094 
+dunnTest(data=proteo_chiro_Bow, rel_abund ~ Site) #No differences
 
 #Bacteroidota
 bacter_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Bacteroidota")
 kruskal.test(data=bacter_chiro_Bow, rel_abund ~ Site) #p = 0.083
+dunnTest(data=bacter_chiro_Bow, rel_abund ~ Site) #No differences
 
 #Firmicutes
 firm_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Firmicutes")
 kruskal.test(data=firm_chiro_Bow, rel_abund ~ Site) #p = 0.43
-
-#Actinobacteriota
-actino_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Actinobacteriota")
-kruskal.test(data=actino_chiro_Bow, rel_abund ~ Site) #p = 0.558
-
-#Deferribacterota
-def_chiro_Bow<-subset(chiro_phylum_Bow, taxon=="Deferribacterota")
-kruskal.test(data=def_chiro_Bow, rel_abund ~ Site) #p = 0.449
-
 
 
 ## Perlidae ##
 
 perl_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Perlidae")
 
-perl_phylum_Bow$taxon<-factor(perl_phylum_Bow$taxon, levels=c("Other", "Deferribacterota", "Actinobacteriota", "Firmicutes", "Bacteroidota", "Proteobacteria"))
+perl_phylum_Bow$taxon<-factor(perl_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 perl_phylum_Bow$Site<-factor(perl_phylum_Bow$Site, levels=c("Cochrane", "Cushing Bridge", "Policeman Flats"))
 
@@ -3025,23 +2987,13 @@ kruskal.test(data=bacter_perl_Bow, rel_abund ~ Site) #p = 0.116
 #Firmicutes
 firm_perl_Bow<-subset(perl_phylum_Bow, taxon=="Firmicutes")
 kruskal.test(data=firm_perl_Bow, rel_abund ~ Site) #p = 0.068
-
-#Actinobacteriota
-actino_perl_Bow<-subset(perl_phylum_Bow, taxon=="Actinobacteriota")
-kruskal.test(data=actino_perl_Bow, rel_abund ~ Site) #p = 0.018
-dunnTest(data=actino_perl_Bow, rel_abund ~ Site)
-#COCH - PMF z = -2.82, P = 0.0144
-
-#Deferribacterota
-def_perl_Bow<-subset(perl_phylum_Bow, taxon=="Deferribacterota")
-kruskal.test(data=def_perl_Bow, rel_abund ~ Site)
-
+dunnTest(data=firm_perl_Bow, rel_abund ~ Site) #No differences
 
 ## Trichoptera ##
 
 trichop_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Trichoptera")
 
-trichop_phylum_Bow$taxon<-factor(trichop_phylum_Bow$taxon, levels=c("Other", "Cyanobacteria", "Firmicutes", "Bacteroidota", "Proteobacteria"))
+trichop_phylum_Bow$taxon<-factor(trichop_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 trichop_phylum_Bow$Site<-factor(trichop_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge"))
 
@@ -3071,20 +3023,18 @@ kruskal.test(data=proteo_trichop_Bow, rel_abund ~ Site) #p = 0.89
 
 #Bacteroidota
 bacter_trichop_Bow<-subset(trichop_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_trichop_Bow, rel_abund ~ Site) #p = 0.5497
+kruskal.test(data=bacter_trichop_Bow, rel_abund ~ Site) #p = 0.55
 
 #Firmicutes
 firm_trichop_Bow<-subset(trichop_phylum_Bow, taxon=="Firmicutes")
 kruskal.test(data=firm_trichop_Bow, rel_abund ~ Site) #p = 0.408
 
 
-
-
 ## Ephemeroptera ##
 
 ephem_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Ephemeroptera")
 
-ephem_phylum_Bow$taxon<-factor(ephem_phylum_Bow$taxon, levels=c("Other", "Bacteroidota", "Firmicutes", "Cyanobacteria", "Proteobacteria"))
+ephem_phylum_Bow$taxon<-factor(ephem_phylum_Bow$taxon, levels=c("Other", "Bacteroidota", "Firmicutes", "Proteobacteria"))
 
 ephem_phylum_Bow$Site<-factor(ephem_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -3110,36 +3060,28 @@ shapiro.test(ephem_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal 
 
 #Proteobacteria
 proteo_ephem_Bow<-subset(ephem_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_ephem_Bow, rel_abund ~ Site) #p = 0.023, chi-sq: 11.3
-dunnTest(data=proteo_ephem_Bow, rel_abund ~ Site) 
-#CUSHBR - GRVBR p = 0.011
+kruskal.test(data=proteo_ephem_Bow, rel_abund ~ Site) #p = 0.086
+dunnTest(data=proteo_ephem_Bow, rel_abund ~ Site) #No differences
 
 #Bacteroidota
 bacter_ephem_Bow<-subset(ephem_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_ephem_Bow, rel_abund ~ Site) #p = 0.0065, chi-sq: 14.3
+kruskal.test(data=bacter_ephem_Bow, rel_abund ~ Site) #p = 0.0049, chi-sq: 14.9
 dunnTest(data=bacter_ephem_Bow, rel_abund ~ Site)
-#COCH - CUSHBR p =0.019
-#CUSHBR - PMF p = 0.0294
-#CUSHBR - SUN p = 0.0434
+#COCH - CUSHBR p =0.012 higher Bacteroidota at COCH
+#CUSHBR - GRVBR p = 0.0089 higher Bacteroidota at GRVBR
+#CUSHBR - SUN p = 0.048 higher Bacteroidota at SUN
 
 #Firmicutes
 firm_ephem_Bow<-subset(ephem_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_ephem_Bow, rel_abund ~ Site) #p = 0.176
+kruskal.test(data=firm_ephem_Bow, rel_abund ~ Site) #p = 0.051
+dunnTest(data=firm_ephem_Bow, rel_abund ~ Site) #no differences
 
-#Cyanobacteria
-cyano_ephem_Bow<-subset(ephem_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_ephem_Bow, rel_abund ~ Site) #p = 0.0029, chi-sq: 16.1
-dunnTest(data=cyano_ephem_Bow, rel_abund ~ Site)
-#CUSHBR - GRVBR p = 0.0035
-#CUSHBR - PMF p = 0.037
-
-#Cushing Bridge had the lowest amount of Cyanobacteria in mayfly adults compared to mayfly larvae which had the most at that site. Interesting.
 
 ## Diptera ##
 
 dip_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Diptera")
 
-dip_phylum_Bow$taxon<-factor(dip_phylum_Bow$taxon, levels=c("Other", "Bacteroidota", "Cyanobacteria", "Firmicutes", "Proteobacteria"))
+dip_phylum_Bow$taxon<-factor(dip_phylum_Bow$taxon, levels=c("Other", "Bacteroidota", "Firmicutes", "Proteobacteria"))
 
 dip_phylum_Bow$Site<-factor(dip_phylum_Bow$Site, levels=c("Cochrane", "Cushing Bridge", "Policeman Flats"))
 
@@ -3165,26 +3107,22 @@ shapiro.test(dip_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal Wa
 
 #Proteobacteria
 proteo_dip_Bow<-subset(dip_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_dip_Bow, rel_abund ~ Site) #p = 0.42 
+kruskal.test(data=proteo_dip_Bow, rel_abund ~ Site) #p = 0.89
 
 #Bacteroidota
 bacter_dip_Bow<-subset(dip_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_dip_Bow, rel_abund ~ Site) #p = 0.369 
+kruskal.test(data=bacter_dip_Bow, rel_abund ~ Site) #p = 0.69 
 
 #Firmicutes
 firm_dip_Bow<-subset(dip_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_dip_Bow, rel_abund ~ Site) #p = 0.366
-
-#Cyanobacteria
-cyano_dip_Bow<-subset(dip_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_dip_Bow, rel_abund ~ Site) #p = 0.843 
+kruskal.test(data=firm_dip_Bow, rel_abund ~ Site) #p = 0.88
 
 
 ## Araneidae ##
 
 aran_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Araneidae")
 
-aran_phylum_Bow$taxon<-factor(aran_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Proteobacteria", "Cyanobacteria", "Bacteroidota"))
+aran_phylum_Bow$taxon<-factor(aran_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Proteobacteria", "Bacteroidota"))
 
 aran_phylum_Bow$Site<-factor(aran_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -3210,36 +3148,31 @@ shapiro.test(aran_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal W
 
 #Proteobacteria
 proteo_aran_Bow<-subset(aran_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_aran_Bow, rel_abund ~ Site) #p = 0.010 
+kruskal.test(data=proteo_aran_Bow, rel_abund ~ Site) #p < 0.001, chi-sq = 18.5 
 dunnTest(data=proteo_aran_Bow, rel_abund ~ Site) 
-#No sig. differences. CUSHBR - SUN and GRVBR - SUN very close.
+#COCH - PMF p < 0.001 cochrane had less proteobacteria
+#COCH - SUN p = 0.033 cochrane had less proteobacteria
 
 #Bacteroidota
 bacter_aran_Bow<-subset(aran_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_aran_Bow, rel_abund ~ Site) #p < 0.001, chi-sq: 20.7
+kruskal.test(data=bacter_aran_Bow, rel_abund ~ Site) #p = 0.0051, chi-sq: 14.8
 dunnTest(data=bacter_aran_Bow, rel_abund ~ Site)
-#COCH - PMF p = 0.0033
-#CUSHBR - PMF p = 0.0033
-#GRVBR - PMF p = 0.00699
+#COCH - PMF p = 0.017 Cochrane had more bacteroidota
+#CUSHBR - PMF p = 0.025 Cushing Bridge had more bacteroidota
+#GRVBR - PMF p = 0.019 Graves Bridge had more bacteroidota
 
 #Firmicutes
 firm_aran_Bow<-subset(aran_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_aran_Bow, rel_abund ~ Site) #p = 0.619
+kruskal.test(data=firm_aran_Bow, rel_abund ~ Site) #p = 0.062
+dunnTest(data=firm_aran_Bow, rel_abund ~ Site) #No differences
 
-#Cyanobacteria
-cyano_aran_Bow<-subset(aran_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_aran_Bow, rel_abund ~ Site) #p < 0.001, chi-sq: 23.0
-dunnTest(data=cyano_aran_Bow, rel_abund ~ Site)
-#COCH - PMF 
-#COCH - SUN 
-#CUSHBR - SUN 
 
 
 ## Tetragnathidae ##
 
 tetra_phylum_Bow<-subset(Phylum_Bow_graphing_df, sample_Family=="Tetragnathidae")
 
-tetra_phylum_Bow$taxon<-factor(tetra_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Cyanobacteria", "Proteobacteria"))
+tetra_phylum_Bow$taxon<-factor(tetra_phylum_Bow$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 tetra_phylum_Bow$Site<-factor(tetra_phylum_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
@@ -3265,75 +3198,16 @@ shapiro.test(tetra_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal 
 
 #Proteobacteria
 proteo_tetra_Bow<-subset(tetra_phylum_Bow, taxon=="Proteobacteria")
-kruskal.test(data=proteo_tetra_Bow, rel_abund ~ Site) #p = 0.263
+kruskal.test(data=proteo_tetra_Bow, rel_abund ~ Site) #p = 0.228
 
 #Bacteroidota
 bacter_tetra_Bow<-subset(tetra_phylum_Bow, taxon=="Bacteroidota")
-kruskal.test(data=bacter_tetra_Bow, rel_abund ~ Site) #p = 0.172
+kruskal.test(data=bacter_tetra_Bow, rel_abund ~ Site) #p = 0.204
 
 #Firmicutes
 firm_tetra_Bow<-subset(tetra_phylum_Bow, taxon=="Firmicutes")
-kruskal.test(data=firm_tetra_Bow, rel_abund ~ Site) #p = 0.139
+kruskal.test(data=firm_tetra_Bow, rel_abund ~ Site) #p = 0.077
 
-#Cyanobacteria
-cyano_tetra_Bow<-subset(tetra_phylum_Bow, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_tetra_Bow, rel_abund ~ Site) #p = 0.216
-
-
-### Genus level ###
-
-taxon_rel_abund_Genus_Bow <- otu_rel_abund_Bow %>%
-  dplyr::filter(level=="Genus") %>%
-  dplyr::group_by(Site, sample_Family, Study_ID, taxon) %>%
-  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
-  drop_na(Site, sample_Family, taxon)
-
-taxon_pool_Genus_Bow <- taxon_rel_abund_Genus_Bow %>%
-  dplyr::group_by(Site, sample_Family, taxon) %>%
-  dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
-  dplyr::group_by(taxon) %>%
-  dplyr::summarize(pool = max(median) < 3,
-            median = median(median),
-            .groups="drop")
-
-#Graphing pointrange plot with median and 50% quartiles
-Genus_Bow_graphing_df<- dplyr::inner_join(taxon_rel_abund_Genus_Bow, taxon_pool_Genus_Bow, by="taxon") %>%
- dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
-  dplyr::group_by(Study_ID, Site, sample_Family, taxon) %>%
-  dplyr::summarize(rel_abund = sum(rel_abund),
-            median = min(median),
-            .groups="drop") %>%
-  dplyr::mutate(taxon = factor(taxon),
-         taxon = fct_reorder(taxon, median, .desc=F)) %>%
-  dplyr::mutate(rel_abund = if_else(rel_abund == 0,
-                             2/3 * lod,
-                             rel_abund))
-Genus_Bow_graphing_df
-
-
-## Hydropsychidae ##
-
-hydro_genus_Bow<-subset(Genus_Bow_graphing_df, sample_Family=="Hydropsychidae")
-
-hydro_genus_Bow$Site<-factor(hydro_genus_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
-
-hydro_rel_abun_plot_Bow_genus <- ggplot(hydro_genus_Bow, aes(y=taxon, x=rel_abund, color=Site)) +
-  stat_summary(fun.data=median_hilow, geom = "pointrange",
-               fun.args=list(conf.int=0.5),
-               position = position_dodge(width=1)) +
-  scale_color_manual(name="Site", labels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"), values=c("#66CCFF", "#003399", "#CC9966", "#FF6666", "#990000")) +
-  labs(y="Genus", x="Relative Abundance (%)") +
-  theme_bw() +
-  coord_trans(x="log10")+
-  rremove("grid")+
-  theme(axis.text.y = element_text(color="black"), axis.text.x = element_text(color="black"))
-
-hydro_rel_abun_plot_Bow_genus
-
-#Statistical tests
-
-kruskal.test(data=hydro_genus_Bow, rel_abund ~ Site) #p = 0.98
-dunnTest(data=hydro_genus_Bow, rel_abund ~ Site) #no sig. diff
 
 #### Bow River graphs ####
 
@@ -3355,7 +3229,7 @@ annotate_figure(rel_abun_fig_Bow, left = textGrob("Phylum", rot = 90, vjust = 1,
                     bottom = textGrob("Relative Abundance (%)", gp = gpar(cex = 1.3)))
 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/point range rel abund graph Bow River across taxa.png", height=10, width=10, bg="white")
+ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/point range rel abund graph Bow River across taxa.png", height=12, width=14, bg="white", dpi=1344)
 
 
 #### ACWA Streams ####
@@ -3373,7 +3247,6 @@ otu_rel_abund_ACWA <- dplyr::inner_join(ASVseq_ps_2, metadata_ACWA, by="Study_ID
     names_to="level",
     values_to="taxon") 
 
-#Phylum
 taxon_rel_abund_Phylum_ACWA <- otu_rel_abund_ACWA %>%
   dplyr::filter(level=="Phylum") %>%
   dplyr::group_by(Site, sample_Family, Study_ID, taxon) %>%
@@ -3406,7 +3279,7 @@ Phylum_ACWA_graphing_df
 
 hydro_ACWA_phylum<-subset(Phylum_ACWA_graphing_df, sample_Family=="Hydropsychidae")
 
-hydro_ACWA_phylum$taxon<-factor(hydro_ACWA_phylum$taxon, levels=c("Other", "Cyanobacteria", "Firmicutes", "Proteobacteria", "Bacteroidota"))
+hydro_ACWA_phylum$taxon<-factor(hydro_ACWA_phylum$taxon, levels=c("Other", "Firmicutes", "Proteobacteria", "Bacteroidota"))
 
 hydro_ACWA_phylum$Site<-factor(hydro_ACWA_phylum$Site, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
 
@@ -3430,30 +3303,25 @@ hydro_rel_abun_plot_ACWA
 
 #Proteobacteria
 proteo_hydro_ACWA<-subset(hydro_ACWA_phylum, taxon=="Proteobacteria")
-kruskal.test(data=proteo_hydro_ACWA, rel_abund ~ Site) #p = 0.1054 no diff.
+kruskal.test(data=proteo_hydro_ACWA, rel_abund ~ Site) #p = 0.15 no diff.
 dunnTest(data=proteo_hydro_ACWA, rel_abund ~ Site) #no diff
 
 #Bacteroidota
 bacter_hydro_ACWA<-subset(hydro_ACWA_phylum, taxon=="Bacteroidota")
-kruskal.test(data=bacter_hydro_ACWA, rel_abund ~ Site) #p = 0.123, chi-sq: 4.19 no diff.
+kruskal.test(data=bacter_hydro_ACWA, rel_abund ~ Site) #p = 0.099
+dunnTest(data=bacter_hydro_ACWA, rel_abund ~ Site) #No differences
 
 #Firmicutes
 firm_hydro_Bow<-subset(hydro_ACWA_phylum, taxon=="Firmicutes")
-kruskal.test(data=firm_hydro_Bow, rel_abund ~ Site) #p = 0.0701, chi-sq: 5.32
-dunnTest(data=firm_hydro_Bow, rel_abund ~ Site) #No diff
-
-#Cyanobacteria
-cyano_hydro_Bow<-subset(hydro_ACWA_phylum, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_hydro_Bow, rel_abund ~ Site) #p = 0.032
-dunnTest(data=cyano_hydro_Bow, rel_abund ~ Site) 
-#EFF5 has higher Cyanobacteria proportion compared to REF Z = 2.55, P = 0.0327
+kruskal.test(data=firm_hydro_Bow, rel_abund ~ Site) #p = 0.065
+dunnTest(data=firm_hydro_Bow, rel_abund ~ Site) #No differences
 
 
 ## Baetidae ##
 
 baetid_ACWA_phylum<-subset(Phylum_ACWA_graphing_df, sample_Family=="Baetidae")
 
-baetid_ACWA_phylum$taxon<-factor(baetid_ACWA_phylum$taxon, levels=c("Other", "Firmicutes","Cyanobacteria", "Bacteroidota", "Proteobacteria"))
+baetid_ACWA_phylum$taxon<-factor(baetid_ACWA_phylum$taxon, levels=c("Other", "Firmicutes", "Bacteroidota", "Proteobacteria"))
 
 baetid_ACWA_phylum$Site<-factor(baetid_ACWA_phylum$Site, levels=c("PCR1", "PCR3"), labels=c("EFF5", "EFF15"))
 
@@ -3477,26 +3345,22 @@ baetid_rel_abun_plot_ACWA
 
 #Proteobacteria
 proteo_baetid_ACWA<-subset(baetid_ACWA_phylum, taxon=="Proteobacteria")
-kruskal.test(data=proteo_baetid_ACWA, rel_abund ~ Site) #p = 0.247
+kruskal.test(data=proteo_baetid_ACWA, rel_abund ~ Site) #p = 0.13
 
 #Bacteroidota
 bacter_baetid_ACWA<-subset(baetid_ACWA_phylum, taxon=="Bacteroidota")
-kruskal.test(data=bacter_baetid_ACWA, rel_abund ~ Site) #p = 0.418
+kruskal.test(data=bacter_baetid_ACWA, rel_abund ~ Site) #p = 0.30
 
 #Firmicutes
 firm_baetid_Bow<-subset(baetid_ACWA_phylum, taxon=="Firmicutes")
-kruskal.test(data=firm_baetid_Bow, rel_abund ~ Site) #p = 0.563
-
-#Cyanobacteria
-cyano_baetid_Bow<-subset(baetid_ACWA_phylum, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_baetid_Bow, rel_abund ~ Site) #p = 0.418
+kruskal.test(data=firm_baetid_Bow, rel_abund ~ Site) #p = 0.82
 
 
 ## Ephemeroptera ##
 
 ephem_ACWA_phylum<-subset(Phylum_ACWA_graphing_df, sample_Family=="Ephemeroptera")
 
-ephem_ACWA_phylum$taxon<-factor(ephem_ACWA_phylum$taxon, levels=c("Other", "Cyanobacteria", "Firmicutes", "Proteobacteria", "Bacteroidota"))
+ephem_ACWA_phylum$taxon<-factor(ephem_ACWA_phylum$taxon, levels=c("Other", "Firmicutes", "Proteobacteria", "Bacteroidota"))
 
 ephem_ACWA_phylum$Site<-factor(ephem_ACWA_phylum$Site, levels=c("PCR1", "PCR3"), labels=c("EFF5", "EFF15"))
 
@@ -3520,20 +3384,15 @@ ephem_rel_abun_plot_ACWA
 
 #Proteobacteria
 proteo_ephem_ACWA<-subset(ephem_ACWA_phylum, taxon=="Proteobacteria")
-kruskal.test(data=proteo_ephem_ACWA, rel_abund ~ Site) #p = 0.142
+kruskal.test(data=proteo_ephem_ACWA, rel_abund ~ Site) #p = 0.17
 
 #Bacteroidota
 bacter_ephem_ACWA<-subset(ephem_ACWA_phylum, taxon=="Bacteroidota")
-kruskal.test(data=bacter_ephem_ACWA, rel_abund ~ Site) #p = 0.345
+kruskal.test(data=bacter_ephem_ACWA, rel_abund ~ Site) #p = 0.40
 
 #Firmicutes
 firm_ephem_Bow<-subset(ephem_ACWA_phylum, taxon=="Firmicutes")
-kruskal.test(data=firm_ephem_Bow, rel_abund ~ Site) #p = 0.00865, chi-sq: 6.89
-
-#Cyanobacteria
-cyano_ephem_Bow<-subset(ephem_ACWA_phylum, taxon=="Cyanobacteria")
-kruskal.test(data=cyano_ephem_Bow, rel_abund ~ Site) #p = 0.916
-
+kruskal.test(data=firm_ephem_Bow, rel_abund ~ Site) #p = 0.0033, chi-sq: 8.65
 
 #### ACWA graphs ####
 
@@ -3549,7 +3408,7 @@ annotate_figure(rel_abun_fig_ACWA, left = textGrob("Phylum", rot = 90, vjust = 1
                     bottom = textGrob("Relative Abundance (%)", gp = gpar(cex = 1.3)))
 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/point range rel abund graph ACWA across taxa.png", height=6, width=10, bg="white")
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/point range rel abund graph ACWA across taxa.png", height=6, width=12, bg="white")
 ```
 
 
@@ -3806,16 +3665,16 @@ top30genusplotBow <- ggplot(top30genusdf_Bow, aes(x=factor(Site_code, labels = c
   guides (fill=guide_legend(nrow=31)) +
   theme(axis.title.y=element_text(size=26),
         axis.text.y=element_text(size=22, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black", face=colorado(df0_bow$Site_code, c("GRVBR", "PMF"))),
+        axis.text.x=element_text(angle=45, hjust=1, size=22, color="black", face=colorado(top30genusdf_Bow$Site_code, c("GRVBR", "PMF"))),
                         axis.title=element_text(size=26))+
-  scale_fill_manual(name="Genus", values=c("#fcff5d", "#7dfc00", "#0ec434", "#228c68", "#8ad8e8", "#235b54", "#29bdab", "#3998f5", "#37294f", "#277da7", "#3750db", "#f22020", "#991919", "#ffcba5", "#e68f66", "#c56133", "#96341c", "#632819", "#ffc413", "#f47a22", "#2f2aa0", "#b732cc", "#772b9d", "#f07cab", "#d30b94", "#edeff3", "#c3a5b4", "#946aa2", "#5d4c86","#FEA1B3","#43464B"))+
+  scale_fill_manual(name="Genus", values=c("#fcff5d", "#7dfc00", "#0ec434", "#228c68", "#8ad8e8", "#235b54", "#29bdab", "#3998f5", "#37294f", "#277da7", "#3750db", "#f22020", "#991919", "#ffcba5", "#e68f66", "#c56133", "#96341c", "#632819", "#ffc413", "#f47a22", "#2f2aa0", "#b732cc", "#772b9d", "#f07cab", "#d30b94", "#FEBA4F", "#c3a5b4", "#946aa2", "#5d4c86","#FEA1B3","#43464B"))+
   scale_y_continuous(label = scales::percent)+
   xlab("Site")+
   rremove("grid")
 
 top30genusplotBow 
 
-#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 30 genera Bow.png", height=10, width=26)
+ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 30 genera Bow.png", height=10, width=30)
 
 #Need to make sure the top genera aren't being biased by a few taxa so we will plot it by the top 10 genera from each type of bug and see how it compares.
 
@@ -11557,99 +11416,9 @@ ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus, l
 
 endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia")
 endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
-endo #31 taxa
+endo #46 taxa
 
-#Metadata
-
-sample_data_endo<-as.data.frame(sample_data(endo))
-row_names_endo<-row.names(sample_data_endo) 
-sample_data_endo_1<-cbind(row_names_endo, sample_data_endo)
-sample_data_endo_1<-sample_data_endo_1 %>% dplyr::rename(Study_ID = row_names_endo)
-sample_data_endo_2<-sample_data_endo_1[ , c("Study_ID",  "Site", "Family", "Stream_Type")]
-sample_data_endo_3<-sample_data_endo_2 %>% dplyr::rename(sample_Family = Family)
-sample_data_endo_4<-sample_data_endo_3 %>% drop_na(Site, sample_Family)
-
-
-#ASV table from filtered phyloseq
-ASVseq_endo<- as.data.frame(otu_table(endo))
-Sequences<-row.names(ASVseq_endo) 
-ASVseq_endo_1<-cbind(Sequences, ASVseq_endo)
- 
-ASVseq_endo_2<-ASVseq_endo_1 %>% pivot_longer(-Sequences, names_to="Study_ID", values_to = "count")
-
-#Taxonomy table
-taxonomy_endo<-as.data.frame(tax_table(endo)) %>% rownames_to_column(var="Sequences")
-
-nseqs_per_sample_endo <- ASVseq_endo_2 %>%
-  dplyr::group_by(Study_ID) %>%
-  dplyr::summarize(N = sum(count), .groups="drop") %>% 
-  dplyr::count(N) %>%
-  dplyr::pull(N)
-
-lod_endo <- 100* 1/max(nseqs_per_sample_endo) #Determines the limit of detection (0.000449)
-
-metadata_endo_Bow<-subset(sample_data_endo_4, Stream_Type=="Bow River")
-
-otu_rel_abund_endo_Bow <- dplyr::inner_join(ASVseq_endo_2, metadata_endo_Bow, by="Study_ID") %>%
-  dplyr::inner_join(., taxonomy_endo, by="Sequences") %>% #joins taxonomy, abundances, and metadata
-  dplyr::group_by(Study_ID) %>%
-  dplyr::mutate(rel_abund = count / sum(count)) %>% #transforms to relative abundance
-  dplyr::ungroup() %>%
-  dplyr::select(-count) %>%
-  pivot_longer(
-    c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Sequences"),
-    names_to="level",
-    values_to="taxon") 
-
-#Genus
-taxon_rel_abund_Genus_endo_Bow <- otu_rel_abund_endo_Bow %>%
-  dplyr::filter(level=="Genus") %>%
-  dplyr::group_by(Site, sample_Family, Study_ID, taxon) %>%
-  dplyr::summarize(rel_abund = 100*sum(rel_abund), .groups="drop") %>%
-  drop_na(Site, sample_Family, taxon)
-
-taxon_pool_Genus_endo_Bow <- taxon_rel_abund_Genus_endo_Bow %>%
-  dplyr::group_by(Site, sample_Family, taxon) %>%
-  dplyr::summarize(median=median(rel_abund), .groups="drop") %>%
-  dplyr::group_by(taxon) %>%
-  dplyr::summarize(pool = max(median) < 0,
-            median = median(median),
-            .groups="drop")
-
-#Graphing pointrange plot with median and 50% quartiles
-Genus_endo_Bow_graphing_df<- dplyr::inner_join(taxon_rel_abund_Genus_endo_Bow, taxon_pool_Genus_endo_Bow, by="taxon") %>%
- dplyr::mutate(taxon = if_else(pool, "Other", taxon)) %>%
-  dplyr::group_by(Study_ID, Site, sample_Family, taxon) %>%
-  dplyr::summarize(rel_abund = sum(rel_abund),
-            median = min(median),
-            .groups="drop") %>%
-  dplyr::mutate(taxon = factor(taxon),
-         taxon = fct_reorder(taxon, median, .desc=T)) %>%
-  dplyr::mutate(rel_abund = if_else(rel_abund == 0,
-                             2/3 * lod_endo,
-                             rel_abund))
-Genus_endo_Bow_graphing_df
-
-
-## Hydropsychidae ##
-hydro_endo_Bow<-subset(Genus_endo_Bow_graphing_df, sample_Family=="Hydropsychidae")
-
-hydro_endo_Bow$Site<-factor(hydro_endo_Bow$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
-
-ggplot(hydro_endo_Bow, aes(y=taxon, x=rel_abund, color=Site)) +
-  stat_summary(fun.data=median_hilow, geom = "pointrange",
-               fun.args=list(conf.int=0.5),
-               position = position_dodge(width=1)) +
-  coord_trans(x="log10") +
-  scale_x_continuous(limits=c(NA, 100),
-                     breaks=c(0.01, 0.1, 1, 10, 100),
-                     labels=c(0.01, 0.1, 1, 10, 100)) +
-  scale_color_manual(name="Site", labels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"), values=c("#66CCFF", "#003399", "#CC9966", "#FF6666", "#990000")) +
-  labs(y="Phylum", x="Relative Abundance (%)") +
-  theme_bw() +
-  rremove("grid")+
-  theme(axis.text.y = element_text(color="black"), axis.text.x = element_text(color="black"))
-
+#
 
 #Statistical tests
 
@@ -11663,7 +11432,7 @@ kruskal.test(data=ricket_hydro_Bow, rel_abund ~ Site) #p = 0.778 no diff.
 
 ```
 
-# Wastewater associated bacteria 
+# Effluent associated bacteria 
 ## Mean +/- SD of top effluent associated bac across inverts and sites
 ```{r}
 #### Filtering for wastewater effluent-associated bacteria and potential pathogens ####
