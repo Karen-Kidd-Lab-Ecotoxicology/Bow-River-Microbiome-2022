@@ -3674,7 +3674,7 @@ top30genusplotBow <- ggplot(top30genusdf_Bow, aes(x=factor(Site_code, labels = c
 
 top30genusplotBow 
 
-ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 30 genera Bow.png", height=10, width=30)
+#ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/Mean rel abun top 30 genera Bow.png", height=16, width=30)
 
 #Need to make sure the top genera aren't being biased by a few taxa so we will plot it by the top 10 genera from each type of bug and see how it compares.
 
@@ -7627,28 +7627,8 @@ ALDEX2 (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microb
 
 DAtest package can test a bunch of different DA methods and see which one is the best
 
-## Using DA test to test all methods of differential abundance and determine which is best
-```{r}
-Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-DA_test <- testDA(Bow_ps, predictor = "Exposure", paired = "Family")
 
-
-#### Hydropsychidae ####
-
-hydro_Bow_ps<-subset_samples(Bow_ps, Family=="Hydropsychidae")
-
-DA_res_hydro_Bow <- allDA(data = hydro_Bow_ps, predictor ="Site", relative=FALSE, cores = 2)
-DA_res_hydro_Bow
-
-
-#### Heptageniidae ####
-
-
-```
-
-
-
-## DESeq2 all sites compared to reference - Cochrane/REF stream - inverts separated
+## DESeq2 all sites compared to reference - Cochrane/REF - inverts separated
 ```{r}
 #### Hydropsychidae Bow ####
 
@@ -9352,34 +9332,67 @@ ggarrange(diff_abund_hydro_plot_1, diff_abund_hep_plot_1, diff_abund_chiro_plot_
 
 ```
 
-## ANCOMBC
-```{r}
-#### Hydropsychidae ####
-hydro_ACWA<-subset_samples(ACWA_ps, Family=="Hydropsychidae")
-nsamples(hydro_ACWA) #24
-
-# ancombc
-hydro_ancom_out <- ancombc(phyloseq = hydro_ACWA, formula = "Site",
-              p_adj_method = "holm", lib_cut = 1000, 
-              group = "Site", struc_zero = TRUE, neg_lb = TRUE, tol = 1e-5, 
-              max_iter = 100, conserve = TRUE, alpha = 0.01, global = TRUE)
-hydro_ancom_res <- hydro_ancom_out$res
-
-tab_lfc = hydro_ancom_res$lfc
-
-hydro_tax<-as.data.frame(tax_table(hydro_ACWA))
-hydro_tax<-rownames_to_column(hydro_tax, var="taxon")
-
-hydro_ancom_res_combined<-dplyr::inner_join(hydro_tax, tab_lfc, by="taxon")
-
-
-
-```
-
 ## ALDEx2
 ```{r}
+library(ALDEx2)
+
+ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
+
+#### Hydropsychidae Bow ####
+
+hydro_Bow_ps<-subset_samples(Bow_ps, Family=="Hydropsychidae")
+DA_test_hydro_Bow_exposed <- testDA(hydro_Bow_ps, predictor = "Exposure", relative=FALSE)
+summary(DA_test_hydro_Bow_exposed)
+vennDA(DA_test_hydro_Bow_exposed, tests = c("adx.t","wil"), split = TRUE)
 
 
+# Cochrane - Sunalta #
+hydro_coch_sun<-subset_samples(hydro_Bow_ps, Site=="Cochrane" | Site=="Sunalta")
+
+aldex_hydro_coch_sun <- DA.adx(data = hydro_Coch_Sun, predictor = "Site")
+sig_aldex_hydro_coch_sun<-subset(aldex_hydro_coch_sun, wi.eBH < 0.05) #filtering for a Benjamini-Hochberg corrected p-value of Wilcoxon test less than 0.05
+
+# Cochrane - Cushing bridge #
+hydro_coch_cush<-subset_samples(hydro_Bow_ps, Site=="Cochrane" | Site=="Cushing Bridge")
+
+aldex_hydro_coch_cush <- DA.adx(data = hydro_coch_cush, predictor = "Site")
+sig_aldex_hydro_coch_cush<-subset(aldex_hydro_coch_cush, wi.eBH < 0.05)
+
+# Cochrane - Graves Bridge #
+hydro_coch_grvbr<-subset_samples(hydro_Bow_ps, Site=="Cochrane" | Site=="Graves Bridge")
+
+aldex_hydro_coch_grvbr <- DA.adx(data = hydro_coch_grvbr, predictor = "Site")
+sig_aldex_hydro_coch_grvbr<-subset(aldex_hydro_coch_grvbr, wi.eBH < 0.05)
+
+
+
+#### Hydropsychidae ACWA ####
+
+hydro_ACWA<-subset_samples(ACWA_ps, Family=="Hydropsychidae")
+
+# REF - EFF5 #
+
+hydro_REF_EFF5<-subset_samples(hydro_ACWA, Site!="PCR3")
+
+aldex_hydro_REF_EFF5 <- DA.adx(data = hydro_REF_EFF5, predictor = "Site")
+sig_aldex_hydro_REF_EFF5<-subset(aldex_hydro_REF_EFF5, wi.eBH < 0.05) 
+#filtering for a Benjamini-Hochberg corrected p-value of Wilcoxon test less than 0.05
+
+
+# REF - EFF15 #
+
+hydro_REF_EFF15<-subset_samples(hydro_ACWA, Site!="PCR1")
+
+aldex_hydro_REF_EFF15 <- DA.adx(data = hydro_REF_EFF15, predictor = "Site")
+sig_aldex_hydro_REF_EFF15<-subset(aldex_hydro_REF_EFF15, wi.eBH < 0.05) 
+
+
+# EFF5 - EFF15 #
+
+hydro_EFF5_EFF15<-subset_samples(hydro_ACWA, Site!="BRR2")
+
+aldex_hydro_EFF5_EFF15 <- DA.adx(data = hydro_EFF5_EFF15, predictor = "Site")
+sig_aldex_hydro_EFF5_EFF15<-subset(aldex_hydro_EFF5_EFF15, wi.eBH < 0.05) 
 ```
 
 ### Effluent bacteria in Bow River samples ###
@@ -11236,9 +11249,9 @@ tax_select(sample_ps, tax_list="Spiroplasma") #14 taxa
 tax_select(sample_ps, tax_list="Hamiltonella") #1 taxa
 tax_select(sample_ps, tax_list="Arsenophonus") #none matched
 
-endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Hamiltonella")
+endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira")
 endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
-endo #46 taxa 
+endo #48 taxa 
 
 #### Bow River ####
 
@@ -11412,22 +11425,6 @@ ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus, l
 
 ## Statistically testing the difference in endosymbiont relative abundance
 ```{r}
-#First transform the endosymbiont phyloseq data to a dataframe as we did with all the rel. abund. data
-
-endo<-subset_taxa(sample_ps, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia")
-endo<-prune_taxa(taxa_sums(endo) > 0, endo) 
-endo #46 taxa
-
-#
-
-#Statistical tests
-
-hist(hydro_phylum_Bow$rel_abund)
-shapiro.test(hydro_phylum_Bow$rel_abund) #not normal. Right skewed. Use Kruskal Wallis
-
-#Rickettsia
-ricket_hydro_Bow<-subset(hydro_phylum_Bow, taxon=="Rickettsia")
-kruskal.test(data=ricket_hydro_Bow, rel_abund ~ Site) #p = 0.778 no diff.
 
 
 ```
@@ -11439,7 +11436,7 @@ kruskal.test(data=ricket_hydro_Bow, rel_abund ~ Site) #p = 0.778 no diff.
 
 #First aggregate by genus and see how many we have. 
 genus_all <- tax_glom(sample_ps, taxrank = "Genus")
-genus_all #493 genera
+genus_all #739 genera
 
 rel_abun_genus_all <- transform_sample_counts(genus_all, function(x) x/sum(x))
 
@@ -11452,132 +11449,13 @@ sort_genus_all <- agg_all %>%
     group_by(Genus, Site_code) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange()
-sort_genus_all
+View(sort_genus_all)
 
-# Researched all genera on Google Scholar to see if they were wastewater associated #
-# Achromobacter - Jin et al., (2015). Int. J. Environ. Res. Public Health. Kundu et al., (2011). Bioprocess and Biosystems Engineering. 
-# Acidovorax - Wang et al., (2009). Water Science and Technology. Heylen et al., (2008). Int. J. Sys. Evol. Biology. 
-# Acinetobacter - Higgins et al., (2018). Water Research. Liu et al., (2017). Bioresource Technology. 
-# Aeromonas - Harnisz and Korzeniewska, (2018). Sci. Total Environ. Figueira et al., (2011). Water Research. 
-# Afipia - Zhang et al., (2009). FEMS Microbiology. Kim et al., (2014). J. Microbiol. Biotechnol.
-# Ahniella - Tang et al., (2023). Environ. Research. 
-# Alcaligenes (faecalis or aquatilis) - Joo et al., (2006). Water Research. Cao et al., (2022). Bioresource Technol. 
-# Amaricoccus - Maszenan et al., (2000). J Appl. Microbiology. Maszenan et al., (1997). INT. J. SYST. BACTERIology.
-#Anaerocella - Yan et al., (2021). Environ. Science and Pollution Research. Abe et al., (2012). J Gen. Appl. Microbiol.
-#Anaerovorax - Zhu et al., (2018). Biochem Engineering J. Chu et al., (2021). Environ. Science and Pollut. research. 
-#	Arenimonas - Liu et al., (2018). Int J Microbiol. Research. Feng et al., (2022). J Water Process eng.
-#Arthrobacter - Roh et al., (2008). J Microbiol. Agunbiade et al., (2017). BMC Biotechn. 
-#Bacillus - Ertugrul et al., (2007). J Hazardous Mater. Deng et al., (2003). App. Microbiol. and biotech.
-#Bacteroides - Srinivasan et al., (2011). Water Research. Niestępski et al., (2020). J Hazardous Mat. 
-# Barnesiella - Morotomi et al., (2008). Int J Microbol. Research.
-#Blastocatella - Ouyang et al., (2017). Environ. Technol. Huang et al., (2017). Bioresource Technol.
-#	Blautia - Cai & Zhang (2014). Appl. Microbiol. and biotechnol.
-#Bordetella - Sanuth et al., (2013). Indian J Microbiol. Awad et al., (2022). Sci total environ.
-#Bosea - Lee et al., (2017). Kor. J. Fisheries. Aquat. Sci.
-#Brevundimonas - Ryu et al., (2007). Int. J. Sys. Evol. Biology. Sforza et al., (2018). Bioresource Technol. 
-#Candidatus Accumulibacter - He & McMahon, 2011. Microbial biotechnology. 
-#Candidatus Competibacter - Rubio-Rincon et al., (2017). Water Research.
-#Candidatus Contendobacter - Zhou et al., (2023). Int. Biodeterioration and biodegredation.
-#Candidatus Microthrix - Blackall et al., (1996). Int J Sys Evol Microbiology
-#Candidatus Nitrotoga - Zheng et al., (2021). Environ Sci Tech
-#Cetobacterium - Wang et al., 2022. Ecotox.  Environ. safety
-#Chitinivorax - Begmatov et al., (2022). Scientific reports. 
-#Chryseobacterium - Kundu et al., (2014). Biomed research. Kamper et al., (2003). Int. J Sys. Evol Microbiology
-#Chthoniobacter - Feng et al., (2020). Bioresource technol.
-#Citrobacter - Owoseni and Okoh, (2017). Environ monitroing assessment. 
-#	Cloacibacterium - Allen et al., (2006). Int J Sys Evol Microbiology
-#Clostridium sensu stricto 1 - Wang et al., (2003). J Biotechnol. 
-#	Clostridium sensu stricto 13 - Yin et al., (2021). Int J Hydro Energy
-#Comamonas - Gumaelius et al., (2001). Int J Sys Evol biology
-#Corynebacterium - Liu et al., (2023). Front. Bioengineer. biotechnol. 
-#Curtobacterium - Li et al., (2021). Sci total environ.
-#Curvibacter - Zielinska et al., 2016. Environ. technol.
-#	Cytophaga - Manz et al., 1994. Water research.
-#Dechloromonas - Mcllroy et al., (2016). Environ. Microbiology
-#Defluviicoccus - Maszenan et al., (2022). Water Research. Burow et al., (2007). Microbiology research.
-#Delftia - Shigematsu et al., (2003). Int. J Sys. Evol. Microbiology
-#Desulfatirhabdium - Balk et al., (2008). Int. J Sys. Evol. Micro
-#Desulfobacca - oude Elferink et al., (1999). Int. J Sys. Evol. Micro
-#Desulfobulbus - Houari et al., (2017). Int. J Sys. Evol. Micro
-#Desulfoprunum - Junghare et al., (2015). Int. J Sys. Evol. Micro
-#Desulfosporosinus - Houari et al., (2020). Processes
-#Ellin6067 - Feng et al., (2022). J Water Process engineering
-#Enterococcus - Taučer-Kapteijn et al., (2017). Delft University of Technology.
-#Erysipelothrix - Ma et al., (2023). J. Environ. Manage.
-#	Escherichia-Shigella - Yang et al., (2021). J Cleaner Product.
-#Faecalibacterium - Wery et al., (2010). Water research.
-#Ferruginibacter - Wijaya et al., (2023). Environ. Research. 
-#Flavobacterium sasangense - Yoon et al., (2009).  Int. J Sys. Evol. Micro.
-#Flavobacterium anseonense - Chen et al., (2019). Water.
-#Fusicatenibacter - Takada et al., (2013). Int. J. Sys. Evol. Micro.
-#Haliangium - Mcllroy et al., (2016). Environ. Micro.
-#Haliscomenobacter - Van Veen et al., (1973). Antonie van Leeuwenhoek
-#Halomonas - Li et al., (2023). Environ. Sci. Pollut.
-#Hydrogenophaga - Kampfer et al., (2005). Int. J. Sys. Evol. Micro
-#Hyphomicrobium - Leyton et al., (2000). Appl. Environ. Microbiology
-#Ideonella - Kraigher et al., (2008). Water Research
-#Inhella - Zeng et al., (2019). Environ. Engin. research
-#Intestinibacter - Major et al., (2022). Waste Management. 
-#Lachnoclostridium - Liang et al., (2020). Gut. 
-#Lacunisphaera - Wang et al., (2020). Water Research.
-#Leptothrix - Hirota et al., (2016). J Environ. Sci.
-#Longivirga - Ren et al., (2024). J Environ. Sci.
-#Luteimonas - Cydzik-Kwiatkowska & Zielinska, (2017). J Environ. Sci and Health
-#Massilia - Zhang et al., (2016). Bioresource technol
-#Methylobacillus - Bassin et al., (2017). Int biodeterioration biodegredation
-#Methylocystis - Siniscalchi et al., (2014). Environ. Technol
-#Methylotenera - Zhang et al., (2017). Scientific reports
-#Micrococcus - Zheng et al., (2009). J Hazardous Mat.
-#Monoglobus - Kim et al., (2017). Int J Sys Evol Micro
-#Moraxella - Batinovic et al., (2020). Microbiology Resource. Qu et al., (2022). Bioprocess Biosystems
-#Mycobacterium abscessus - To et al., (2020). J Clinical Med.
-#Nitratireductor - Zhang et al., (2023). J Hazardous Mat
-#Nitrosomonas - Silyn-Roberts et al., (2001). Water Research
-#Nitrospira - Daims et al., (2001). Appl. Environ. Micro.
-#Nocardioides - Ma et al., (2023). Molecules.
-#Novosphingobium - Hashimotot et al., (2010). J Environ. Eng
-#OLB12 - Hei et al., (2022). J Cleaner Prod.
-#OLB8 - Aqueel et al., (2020). Front. Micro.
-#Opitutus - Meng et al., (2015). Chem Eng J.
-#P3OB-42 - Chen et al., (2022). Bioresource technol
-#Paludibacter - Liang et al., (2013). Chem eng J
-#Paraclostridium - Fang et al., (2021). Water Research
-#Paracoccus - Zheng et al., (2010). Int J Sys Evol Micro
-#Pelomonas - Trebuch et al., (2020). Water Research
-#Phaeodactylibacter - Wang et al., (2022). Sci Total Env
-#Phenylobacterium - Yang et al., (2022). Proc. Safety Environ. Protec.
-#Planococcus - Chanwala et al., (2019). Environ. Technol. Innova.
-#Polaromonas - Jankowski et al., (2022). Environ. Micro
-#Polyangium - Liu et al., (2021). Bioresource technol
-#Propionivibrio - Wu et al., (2023). Water Research.
-#Pseudarcobacter - Aoki et al., (2023). Plos One.
-#Pseudomonas - Yong et al., (2015). Chemosphere.
-#Pseudorhodobacter - Bian et al., (2023). J Hazardous Mat
-#Pseudoxanthomonas - Meng et al., (2015). Bioresource Tecnol.
-#Ralstonia - Gan et al., (2011). Chemosphere
-#Rhizorhapis - Carbreros et al., (2023). Sci. total envir.
-#Rhodobacter - Hiraishi et al., (1995). J ferment. bioeng.
-#Rhodoferax - Mcllroy et al., (2014). Environ. Micro
-#Roseomonas - Xin et al., (2008). Earth Sci Front.
-#Rubellimicrobium - Xing et al., (2018). Environ. Sci Technol
-#Rubrivivax - Ponsano et al., (2008). Bioresource technol
-#Ruminococcus - Mansfeldt et al., (2020). Sci Total Environ
-#Runella - Ryu et al., (2006). J Sys Evol Micro
-#Saprospira - Chen et al., (2016). Scientific reports.
-#Sediminibacterium - Lee et al., (2013). Micro Technol
-#Serratia - Chojinak et al., (2015). Acta Biochem.
-#Sphingobium - Qin et al., (2020). Int J Sys Evol Micro
-#Staphylococcus - Zielinski et al., (2020). Environ. Int.
-#Stenotrophomonas - Wierzba, (2015). Polish J CHem Technol
-#Sulfurospirillum - Shi et al., (2022). Environ. Poll.
-#Syntrophobacter - Kong et al., (2022). Sci total environ
-#Trichococcus - Wang et al., (2016). Environ. Micro
-#Youngiibacter - Shi et al., (2023). Fuel
-#Zoogloea - Lajoie, et al., (2000). Water environ. research
+              # Researched all genera on Google Scholar to see if they were wastewater associated #
 
-effluent_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Species=="sasangense" | Species=="anseonense" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseomonas" | Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Thermomonas" | Genus=="Youngiibacter" | Genus=="Zoogloea")
+effluent_bac<-subset_taxa(sample_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
 effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
-effluent_bac #974 taxa 322 samples
+effluent_bac #1327 taxa 316 samples
 
 
 #### Hydropsychidae larvae ####
@@ -11585,6 +11463,8 @@ effluent_bac #974 taxa 322 samples
 #Top 3 most abundant effluent associated bacteria from Hydropsychidae larvae
 
 hydro_eff_Bow<-subset_samples(effluent_bac, Family=="Hydropsychidae" & Stream_Type=="Bow River") 
+hydro_eff_Bow<-hydro_eff_Bow(prune_taxa(taxa_sums) > 0, hydro_eff_Bow)
+hydro_eff_Bow
 
 hydro_eff_Bow_glom = tax_glom(hydro_eff_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
 
@@ -11597,7 +11477,13 @@ hydro_eff_Bow_genus <- psmelt(hydro_eff_Bow_glom) %>% #Transform to dataframe an
 
 # Cochrane #
 
-hydro_eff_coch<-subset_samples(hydro_eff_Bow, Site=="Cochrane")
+nsamples(hydro_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Hydropsychidae")) #8
+
+hydro_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Hydropsychidae")
+hydro_eff_coch<-prune_taxa(taxa_sums(hydro_eff_coch) > 0, hydro_eff_coch) 
+hydro_eff_coch #105 taxa, 8 samples = 100% prevalence
+
+sample_sums(hydro_eff_coch) #100% prevalence
 
 hydro_eff_coch_glom = tax_glom(hydro_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_coch_glom<-prune_taxa(taxa_sums(hydro_eff_coch_glom) > 0, hydro_eff_coch_glom)
@@ -11615,18 +11501,14 @@ coch_eff_hydro<- hydro_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_coch))
 View(coch_eff_hydro)
 
-coch_eff_hydro$SD_squared ='^'(coch_eff_hydro$SD,2)
-coch_eff_hydro$SD_squared_divided =(coch_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_coch<-aggregate(Mean ~ Genus, data = coch_eff_hydro, FUN = sum)
-top_SD_eff_hydro_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_hydro, FUN = sum)
-
-top_eff_hydro_coch<-merge(top_means_eff_hydro_coch, top_SD_eff_hydro_coch, by=c("Genus"))
-top_eff_hydro_coch$SD_Final<-sqrt(top_eff_hydro_coch$SD_squared_divided)
-View(top_eff_hydro_coch)
-
 # Sunalta #
-hydro_eff_sun<-subset_samples(hydro_eff_Bow, Site=="Sunalta")
+nsamples(hydro_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Hydropsychidae")) #7
+
+hydro_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Hydropsychidae")
+hydro_eff_sun<-prune_taxa(taxa_sums(hydro_eff_sun) > 0, hydro_eff_sun) 
+hydro_eff_sun #92 taxa, 7 samples = 100% prevalence
+
+sample_sums(hydro_eff_sun) #100% prevalence
 
 hydro_eff_sun_glom = tax_glom(hydro_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_sun_glom<-prune_taxa(taxa_sums(hydro_eff_sun_glom) > 0, hydro_eff_sun_glom)
@@ -11644,18 +11526,14 @@ sun_eff_hydro<- hydro_eff_sun_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_sun))
 View(sun_eff_hydro)
 
-sun_eff_hydro$SD_squared ='^'(sun_eff_hydro$SD,2)
-sun_eff_hydro$SD_squared_divided =(sun_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_sun<-aggregate(Mean ~ Genus, data = sun_eff_hydro, FUN = sum)
-top_SD_eff_hydro_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_hydro, FUN = sum)
-
-top_eff_hydro_sun<-merge(top_means_eff_hydro_sun, top_SD_eff_hydro_sun, by=c("Genus"))
-top_eff_hydro_sun$SD_Final<-sqrt(top_eff_hydro_sun$SD_squared_divided)
-View(top_eff_hydro_sun)
-
 # Cushing Bridge #
-hydro_eff_cush<-subset_samples(hydro_eff_Bow, Site=="Cushing Bridge")
+nsamples(hydro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Hydropsychidae")) #5
+
+hydro_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Hydropsychidae")
+hydro_eff_cush<-prune_taxa(taxa_sums(hydro_eff_cush) > 0, hydro_eff_cush) 
+hydro_eff_cush #101 taxa, 5 samples = 100% prevalence
+
+sample_sums(hydro_eff_cush) #100% prevalence
 
 hydro_eff_cush_glom = tax_glom(hydro_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_cush_glom<-prune_taxa(taxa_sums(hydro_eff_cush_glom) > 0, hydro_eff_cush_glom)
@@ -11673,18 +11551,14 @@ cush_eff_hydro<- hydro_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_cush))
 View(cush_eff_hydro)
 
-cush_eff_hydro$SD_squared ='^'(cush_eff_hydro$SD,2)
-cush_eff_hydro$SD_squared_divided =(cush_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_cush<-aggregate(Mean ~ Genus, data = cush_eff_hydro, FUN = sum)
-top_SD_eff_hydro_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_hydro, FUN = sum)
-
-top_eff_hydro_cush<-merge(top_means_eff_hydro_cush, top_SD_eff_hydro_cush, by=c("Genus"))
-top_eff_hydro_cush$SD_Final<-sqrt(top_eff_hydro_cush$SD_squared_divided)
-View(top_eff_hydro_cush)
-
 # Graves Bridge #
-hydro_eff_grvbr<-subset_samples(hydro_eff_Bow, Site=="Graves Bridge")
+nsamples(hydro_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Hydropsychidae")) #8
+
+hydro_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Hydropsychidae")
+hydro_eff_grvbr<-prune_taxa(taxa_sums(hydro_eff_grvbr) > 0, hydro_eff_grvbr) 
+hydro_eff_grvbr #194 taxa, 8 samples = 100% prevalence
+
+sample_sums(hydro_eff_grvbr) #100% prevalence
 
 hydro_eff_grvbr_glom = tax_glom(hydro_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_grvbr_glom<-prune_taxa(taxa_sums(hydro_eff_grvbr_glom) > 0, hydro_eff_grvbr_glom)
@@ -11702,18 +11576,14 @@ grvbr_eff_hydro<- hydro_eff_grvbr_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_grvbr))
 View(grvbr_eff_hydro)
 
-grvbr_eff_hydro$SD_squared ='^'(grvbr_eff_hydro$SD,2)
-grvbr_eff_hydro$SD_squared_divided =(grvbr_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff_hydro, FUN = sum)
-top_SD_eff_hydro_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_hydro, FUN = sum)
-
-top_eff_hydro_grvbr<-merge(top_means_eff_hydro_grvbr, top_SD_eff_hydro_grvbr, by=c("Genus"))
-top_eff_hydro_grvbr$SD_Final<-sqrt(top_eff_hydro_grvbr$SD_squared_divided)
-View(top_eff_hydro_grvbr)
-
 # Policeman Flats #
-hydro_eff_pmf<-subset_samples(hydro_eff_Bow, Site=="Policeman Flats")
+nsamples(hydro_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Hydropsychidae")) #8
+
+hydro_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Hydropsychidae")
+hydro_eff_pmf<-prune_taxa(taxa_sums(hydro_eff_pmf) > 0, hydro_eff_pmf) 
+hydro_eff_pmf #186 taxa, 8 samples = 100% prevalence
+
+sample_sums(hydro_eff_pmf) #100% prevalence
 
 hydro_eff_pmf_glom = tax_glom(hydro_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_pmf_glom<-prune_taxa(taxa_sums(hydro_eff_pmf_glom) > 0, hydro_eff_pmf_glom)
@@ -11731,22 +11601,20 @@ pmf_eff_hydro<- hydro_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_pmf))
 View(pmf_eff_hydro)
 
-pmf_eff_hydro$SD_squared ='^'(pmf_eff_hydro$SD,2)
-pmf_eff_hydro$SD_squared_divided =(pmf_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_hydro, FUN = sum)
-top_SD_eff_hydro_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_hydro, FUN = sum)
-
-top_eff_hydro_pmf<-merge(top_means_eff_hydro_pmf, top_SD_eff_hydro_pmf, by=c("Genus"))
-top_eff_hydro_pmf$SD_Final<-sqrt(top_eff_hydro_pmf$SD_squared_divided)
-View(top_eff_hydro_pmf)
 
 #### Hydropsychidae ACWA ####
+
+hydro_eff_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River" & Family=="Hydropsychidae")
+hydro_eff_ACWA<-prune_taxa(taxa_sums(hydro_eff_ACWA) > 0, hydro_eff_ACWA) 
+hydro_eff_ACWA #296 taxa, 24 samples
+
 # REF #
 
-hydro_eff_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River")
-
 hydro_eff_REF<-subset_samples(hydro_eff_ACWA, Site=="BRR2")
+hydro_eff_REF<-prune_taxa(taxa_sums(hydro_eff_REF) > 0, hydro_eff_REF) 
+hydro_eff_REF #181 taxa, 8 samples
+
+sample_sums(hydro_eff_REF) #100% prevalence
 
 hydro_eff_REF_glom = tax_glom(hydro_eff_REF, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_REF_glom<-prune_taxa(taxa_sums(hydro_eff_REF_glom) > 0, hydro_eff_REF_glom)
@@ -11764,19 +11632,13 @@ REF_eff_hydro<- hydro_eff_REF_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_REF))
 View(REF_eff_hydro)
 
-REF_eff_hydro$SD_squared ='^'(REF_eff_hydro$SD,2)
-REF_eff_hydro$SD_squared_divided =(REF_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_REF<-aggregate(Mean ~ Genus, data = REF_eff_hydro, FUN = sum)
-top_SD_eff_hydro_REF<-aggregate(SD_squared_divided ~ Genus, data = REF_eff_hydro, FUN = sum)
-
-top_eff_hydro_REF<-merge(top_means_eff_hydro_REF, top_SD_eff_hydro_REF, by=c("Genus"))
-top_eff_hydro_REF$SD_Final<-sqrt(top_eff_hydro_REF$SD_squared_divided)
-View(top_eff_hydro_REF)
-
 # EFF5 #
 
 hydro_eff_EFF5<-subset_samples(hydro_eff_ACWA, Site=="PCR1")
+hydro_eff_EFF5<-prune_taxa(taxa_sums(hydro_eff_EFF5) > 0, hydro_eff_EFF5) 
+hydro_eff_EFF5 #230 taxa, 8 samples
+
+sample_sums(hydro_eff_EFF5) #100% prevalence
 
 hydro_eff_EFF5_glom = tax_glom(hydro_eff_EFF5, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_EFF5_glom<-prune_taxa(taxa_sums(hydro_eff_EFF5_glom) > 0, hydro_eff_EFF5_glom)
@@ -11794,19 +11656,13 @@ EFF5_eff_hydro<- hydro_eff_EFF5_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_EFF5))
 View(EFF5_eff_hydro)
 
-EFF5_eff_hydro$SD_squared ='^'(EFF5_eff_hydro$SD,2)
-EFF5_eff_hydro$SD_squared_divided =(EFF5_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_EFF5<-aggregate(Mean ~ Genus, data = EFF5_eff_hydro, FUN = sum)
-top_SD_eff_hydro_EFF5<-aggregate(SD_squared_divided ~ Genus, data = EFF5_eff_hydro, FUN = sum)
-
-top_eff_hydro_EFF5<-merge(top_means_eff_hydro_EFF5, top_SD_eff_hydro_EFF5, by=c("Genus"))
-top_eff_hydro_EFF5$SD_Final<-sqrt(top_eff_hydro_EFF5$SD_squared_divided)
-View(top_eff_hydro_EFF5)
-
 # EFF15 #
 
 hydro_eff_EFF15<-subset_samples(hydro_eff_ACWA, Site=="PCR3")
+hydro_eff_EFF15<-prune_taxa(taxa_sums(hydro_eff_EFF15) > 0, hydro_eff_EFF15) 
+hydro_eff_EFF15 #172 taxa, 8 samples
+
+sample_sums(hydro_eff_EFF15) #100% prevalence
 
 hydro_eff_EFF15_glom = tax_glom(hydro_eff_EFF15, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hydro_eff_EFF15_glom<-prune_taxa(taxa_sums(hydro_eff_EFF15_glom) > 0, hydro_eff_EFF15_glom)
@@ -11824,20 +11680,14 @@ EFF15_eff_hydro<- hydro_eff_EFF15_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_EFF15))
 View(EFF15_eff_hydro)
 
-EFF15_eff_hydro$SD_squared ='^'(EFF15_eff_hydro$SD,2)
-EFF15_eff_hydro$SD_squared_divided =(EFF15_eff_hydro$SD_squared/8) 
-  
-top_means_eff_hydro_EFF15<-aggregate(Mean ~ Genus, data = EFF15_eff_hydro, FUN = sum)
-top_SD_eff_hydro_EFF15<-aggregate(SD_squared_divided ~ Genus, data = EFF15_eff_hydro, FUN = sum)
-
-top_eff_hydro_EFF15<-merge(top_means_eff_hydro_EFF15, top_SD_eff_hydro_EFF15, by=c("Genus"))
-top_eff_hydro_EFF15$SD_Final<-sqrt(top_eff_hydro_EFF15$SD_squared_divided)
-View(top_eff_hydro_EFF15)
-
 #### Heptageniidae larvae ####
 # Cochrane #
 
-nsamples(hep_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Heptageniidae")) #8
+nsamples(hep_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Heptageniidae")) #8
+
+hep_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Heptageniidae")
+hep_eff_coch<-prune_taxa(taxa_sums(hep_eff_coch) > 0, hep_eff_coch) 
+hep_eff_coch #247 taxa, 8 samples = 100% prevalence
 
 sample_sums(hep_eff_coch) #Present in all 8 samples (100% prevalence)
 
@@ -11857,19 +11707,14 @@ coch_eff_hep<- hep_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_coch))
 View(coch_eff_hep)
 
-coch_eff_hep$SD_squared ='^'(coch_eff_hep$SD,2)
-coch_eff_hep$SD_squared_divided =(coch_eff_hep$SD_squared/8) 
-  
-top_means_eff_hep_coch<-aggregate(Mean ~ Genus, data = coch_eff_hep, FUN = sum)
-top_SD_eff_hep_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_hep, FUN = sum)
-
-top_eff_hep_coch<-merge(top_means_eff_hep_coch, top_SD_eff_hep_coch, by=c("Genus"))
-top_eff_hep_coch$SD_Final<-sqrt(top_eff_hep_coch$SD_squared_divided)
-View(top_eff_hep_coch)
 
 # Sunalta #
 
-nsamples(hep_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Heptageniidae")) #8
+nsamples(hep_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Heptageniidae")) #8
+
+hep_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Heptageniidae")
+hep_eff_sun<-prune_taxa(taxa_sums(hep_eff_sun) > 0, hep_eff_sun) 
+hep_eff_sun #273 taxa, 8 samples = 100% prevalence
 
 sample_sums(hep_eff_sun) #Present in all 8 samples (100% prevalence)
 
@@ -11889,21 +11734,17 @@ sun_eff_hep<- hep_eff_sun_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_sun))
 View(sun_eff_hep)
 
-sun_eff_hep$SD_squared ='^'(sun_eff_hep$SD,2)
-sun_eff_hep$SD_squared_divided =(sun_eff_hep$SD_squared/8) 
-  
-top_means_eff_hep_sun<-aggregate(Mean ~ Genus, data = sun_eff_hep, FUN = sum)
-top_SD_eff_hep_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_hep, FUN = sum)
-
-top_eff_hep_sun<-merge(top_means_eff_hep_sun, top_SD_eff_hep_sun, by=c("Genus"))
-top_eff_hep_sun$SD_Final<-sqrt(top_eff_hep_sun$SD_squared_divided)
-View(top_eff_hep_sun)
 
 # Cushing Bridge #
 
-nsamples(hep_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Heptageniidae")) #8
+nsamples(hep_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Heptageniidae")) #8
 
-sample_sums(hep_eff_cush) #Present in all 8 samples (100% prevalence)
+hep_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Heptageniidae")
+hep_eff_cush<-prune_taxa(taxa_sums(hep_eff_cush) > 0, hep_eff_cush) 
+hep_eff_cush #227 taxa, 8 samples = 100% prevalence
+
+sample_sums(hep_eff_cush) #100% prevalence
+
 
 hep_eff_cush_glom = tax_glom(hep_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hep_eff_cush_glom<-prune_taxa(taxa_sums(hep_eff_cush_glom) > 0, hep_eff_cush_glom)
@@ -11921,21 +11762,16 @@ cush_eff_hep<- hep_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_cush))
 View(cush_eff_hep)
 
-cush_eff_hep$SD_squared ='^'(cush_eff_hep$SD,2)
-cush_eff_hep$SD_squared_divided =(cush_eff_hep$SD_squared/8) 
-  
-top_means_eff_hep_cush<-aggregate(Mean ~ Genus, data = cush_eff_hep, FUN = sum)
-top_SD_eff_hep_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_hep, FUN = sum)
-
-top_eff_hep_cush<-merge(top_means_eff_hep_cush, top_SD_eff_hep_cush, by=c("Genus"))
-top_eff_hep_cush$SD_Final<-sqrt(top_eff_hep_cush$SD_squared_divided)
-View(top_eff_hep_cush)
 
 # Graves Bridge #
 
-nsamples(hep_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Heptageniidae")) #8
+nsamples(hep_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Heptageniidae")) #8
 
-sample_sums(hep_eff_grvbr) #Present in all 8 samples (100% prevalence)
+hep_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Heptageniidae")
+hep_eff_grvbr<-prune_taxa(taxa_sums(hep_eff_grvbr) > 0, hep_eff_grvbr) 
+hep_eff_grvbr #246 taxa, 8 samples = 100% prevalence
+
+sample_sums(hep_eff_grvbr) #100% prevalence
 
 hep_eff_grvbr_glom = tax_glom(hep_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hep_eff_grvbr_glom<-prune_taxa(taxa_sums(hep_eff_grvbr_glom) > 0, hep_eff_grvbr_glom)
@@ -11953,21 +11789,16 @@ grvbr_eff_hep<- hep_eff_grvbr_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_grvbr))
 View(grvbr_eff_hep)
 
-grvbr_eff_hep$SD_squared ='^'(grvbr_eff_hep$SD,2)
-grvbr_eff_hep$SD_squared_divided =(grvbr_eff_hep$SD_squared/8) 
-  
-top_means_eff_hep_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff_hep, FUN = sum)
-top_SD_eff_hep_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_hep, FUN = sum)
-
-top_eff_hep_grvbr<-merge(top_means_eff_hep_grvbr, top_SD_eff_hep_grvbr, by=c("Genus"))
-top_eff_hep_grvbr$SD_Final<-sqrt(top_eff_hep_grvbr$SD_squared_divided)
-View(top_eff_hep_grvbr)
 
 # Policeman Flats #
 
-nsamples(hep_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Heptageniidae")) #8
+nsamples(hep_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Heptageniidae")) #8
 
-sample_sums(hep_eff_pmf) #Present in all 8 samples (100% prevalence)
+hep_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Heptageniidae")
+hep_eff_pmf<-prune_taxa(taxa_sums(hep_eff_pmf) > 0, hep_eff_pmf) 
+hep_eff_pmf #336 taxa, 8 samples = 100% prevalence
+
+sample_sums(hep_eff_pmf) #100% prevalence
 
 hep_eff_pmf_glom = tax_glom(hep_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 hep_eff_pmf_glom<-prune_taxa(taxa_sums(hep_eff_pmf_glom) > 0, hep_eff_pmf_glom)
@@ -11985,22 +11816,17 @@ pmf_eff_hep<- hep_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_pmf))
 View(pmf_eff_hep)
 
-pmf_eff_hep$SD_squared ='^'(pmf_eff_hep$SD,2)
-pmf_eff_hep$SD_squared_divided =(pmf_eff_hep$SD_squared/8) 
-  
-top_means_eff_hep_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_hep, FUN = sum)
-top_SD_eff_hep_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_hep, FUN = sum)
-
-top_eff_hep_pmf<-merge(top_means_eff_hep_pmf, top_SD_eff_hep_pmf, by=c("Genus"))
-top_eff_hep_pmf$SD_Final<-sqrt(top_eff_hep_pmf$SD_squared_divided)
-View(top_eff_hep_pmf)
-
 #### Baetidae ACWA ####
-# EFF5 #
 
 eff_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River")
 
+# EFF5 #
+
 baetid_eff_EFF5<-subset_samples(eff_ACWA, Site=="PCR1" & Family=="Baetidae")
+baetid_eff_EFF5<-prune_taxa(taxa_sums(baetid_eff_EFF5) > 0, baetid_eff_EFF5) 
+baetid_eff_EFF5 #215 taxa, 8 samples
+
+sample_sums(baetid_eff_EFF5) #100% prevalence
 
 baetid_eff_EFF5_glom = tax_glom(baetid_eff_EFF5, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 baetid_eff_EFF5_glom<-prune_taxa(taxa_sums(baetid_eff_EFF5_glom) > 0, baetid_eff_EFF5_glom)
@@ -12018,19 +11844,14 @@ EFF5_eff_baetid<- baetid_eff_EFF5_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_baetid_EFF5))
 View(EFF5_eff_baetid)
 
-EFF5_eff_baetid$SD_squared ='^'(EFF5_eff_baetid$SD,2)
-EFF5_eff_baetid$SD_squared_divided =(EFF5_eff_baetid$SD_squared/8) 
-  
-top_means_eff_baetid_EFF5<-aggregate(Mean ~ Genus, data = EFF5_eff_baetid, FUN = sum)
-top_SD_eff_baetid_EFF5<-aggregate(SD_squared_divided ~ Genus, data = EFF5_eff_baetid, FUN = sum)
-
-top_eff_baetid_EFF5<-merge(top_means_eff_baetid_EFF5, top_SD_eff_baetid_EFF5, by=c("Genus"))
-top_eff_baetid_EFF5$SD_Final<-sqrt(top_eff_baetid_EFF5$SD_squared_divided)
-View(top_eff_baetid_EFF5)
 
 # EFF15 #
 
 baetid_eff_EFF15<-subset_samples(eff_ACWA, Site=="PCR3" & Family=="Baetidae")
+baetid_eff_EFF15<-prune_taxa(taxa_sums(baetid_eff_EFF15) > 0, baetid_eff_EFF15) 
+baetid_eff_EFF15 #203 taxa, 7 samples
+
+sample_sums(baetid_eff_EFF15) #100% prevalence
 
 baetid_eff_EFF15_glom = tax_glom(baetid_eff_EFF15, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 baetid_eff_EFF15_glom<-prune_taxa(taxa_sums(baetid_eff_EFF15_glom) > 0, baetid_eff_EFF15_glom)
@@ -12048,23 +11869,18 @@ EFF15_eff_baetid<- baetid_eff_EFF15_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_baetid_EFF15))
 View(EFF15_eff_baetid)
 
-EFF15_eff_baetid$SD_squared ='^'(EFF15_eff_baetid$SD,2)
-EFF15_eff_baetid$SD_squared_divided =(EFF15_eff_baetid$SD_squared/8) 
-  
-top_means_eff_baetid_EFF15<-aggregate(Mean ~ Genus, data = EFF15_eff_baetid, FUN = sum)
-top_SD_eff_baetid_EFF15<-aggregate(SD_squared_divided ~ Genus, data = EFF15_eff_baetid, FUN = sum)
-
-top_eff_baetid_EFF15<-merge(top_means_eff_baetid_EFF15, top_SD_eff_baetid_EFF15, by=c("Genus"))
-top_eff_baetid_EFF15$SD_Final<-sqrt(top_eff_baetid_EFF15$SD_squared_divided)
-View(top_eff_baetid_EFF15)
 
 #### Chironomidae larvae ####
 
 # Cochrane #
 
-nsamples(chiro_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Chironomidae")) #4
+nsamples(perl_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Chironomidae")) #4
 
-sample_sums(chiro_eff_coch) #Present in all 4 samples (100% prevalence)
+chiro_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Chironomidae")
+chiro_eff_coch<-prune_taxa(taxa_sums(chiro_eff_coch) > 0, chiro_eff_coch) 
+chiro_eff_coch #64 taxa, 4 samples = 100% prevalence
+
+sample_sums(chiro_eff_coch) #100% prevalence
 
 chiro_eff_coch_glom = tax_glom(chiro_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 chiro_eff_coch_glom<-prune_taxa(taxa_sums(chiro_eff_coch_glom) > 0, chiro_eff_coch_glom)
@@ -12082,21 +11898,16 @@ coch_eff_chiro<- chiro_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_chiro_coch))
 View(coch_eff_chiro)
 
-coch_eff_chiro$SD_squared ='^'(coch_eff_chiro$SD,2)
-coch_eff_chiro$SD_squared_divided =(coch_eff_chiro$SD_squared/8) 
-  
-top_means_eff_chiro_coch<-aggregate(Mean ~ Genus, data = coch_eff_chiro, FUN = sum)
-top_SD_eff_chiro_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_chiro, FUN = sum)
-
-top_eff_chiro_coch<-merge(top_means_eff_chiro_coch, top_SD_eff_chiro_coch, by=c("Genus"))
-top_eff_chiro_coch$SD_Final<-sqrt(top_eff_chiro_coch$SD_squared_divided)
-View(top_eff_chiro_coch)
 
 # Cushing Bridge #
 
-nsamples(chiro_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Chironomidae")) #6
+nsamples(chiro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Chironomidae")) #4
 
-sample_sums(chiro_eff_cush) #Present in all 6 samples (100% prevalence)
+chiro_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Chironomidae")
+chiro_eff_cush<-prune_taxa(taxa_sums(chiro_eff_cush) > 0, chiro_eff_cush) 
+chiro_eff_cush #102 taxa, 4 samples = 100% prevalence
+
+sample_sums(chiro_eff_cush) #100% prevalence
 
 chiro_eff_cush_glom = tax_glom(chiro_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 chiro_eff_cush_glom<-prune_taxa(taxa_sums(chiro_eff_cush_glom) > 0, chiro_eff_cush_glom)
@@ -12114,21 +11925,15 @@ cush_eff_chiro<- chiro_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_chiro_cush))
 View(cush_eff_chiro)
 
-cush_eff_chiro$SD_squared ='^'(cush_eff_chiro$SD,2)
-cush_eff_chiro$SD_squared_divided =(cush_eff_chiro$SD_squared/8) 
-  
-top_means_eff_chiro_cush<-aggregate(Mean ~ Genus, data = cush_eff_chiro, FUN = sum)
-top_SD_eff_chiro_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_chiro, FUN = sum)
-
-top_eff_chiro_cush<-merge(top_means_eff_chiro_cush, top_SD_eff_chiro_cush, by=c("Genus"))
-top_eff_chiro_cush$SD_Final<-sqrt(top_eff_chiro_cush$SD_squared_divided)
-View(top_eff_chiro_cush)
 
 # Policeman Flats #
 
-nsamples(chiro_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Chironomidae")) #4
+nsamples(chiro_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Chironomidae")) #5
 
-sample_sums(chiro_eff_pmf) #Present in all 6 samples (100% prevalence)
+chiro_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Chironomidae")
+chiro_eff_pmf<-prune_taxa(taxa_sums(chiro_eff_pmf) > 0, chiro_eff_pmf) 
+chiro_eff_pmf #145 taxa, 5 samples = 100% prevalence
+
 
 chiro_eff_pmf_glom = tax_glom(chiro_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 chiro_eff_pmf_glom<-prune_taxa(taxa_sums(chiro_eff_pmf_glom) > 0, chiro_eff_pmf_glom)
@@ -12146,24 +11951,18 @@ pmf_eff_chiro<- chiro_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_chiro_pmf))
 View(pmf_eff_chiro)
 
-pmf_eff_chiro$SD_squared ='^'(pmf_eff_chiro$SD,2)
-pmf_eff_chiro$SD_squared_divided =(pmf_eff_chiro$SD_squared/8) 
-  
-top_means_eff_chiro_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_chiro, FUN = sum)
-top_SD_eff_chiro_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_chiro, FUN = sum)
-
-top_eff_chiro_pmf<-merge(top_means_eff_chiro_pmf, top_SD_eff_chiro_pmf, by=c("Genus"))
-top_eff_chiro_pmf$SD_Final<-sqrt(top_eff_chiro_pmf$SD_squared_divided)
-View(top_eff_chiro_pmf)
-
 
 #### Perlidae larvae ####
 
 # Cochrane #
 
-nsamples(perl_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Perlidae")) #8
+nsamples(perl_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Perlidae")) #8
 
-sample_sums(perl_eff_coch) #Present in all 8 samples (100% prevalence)
+perl_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Perlidae")
+perl_eff_coch<-prune_taxa(taxa_sums(perl_eff_coch) > 0, perl_eff_coch) 
+perl_eff_coch #116 taxa, 8 samples = 100% prevalence
+
+sample_sums(perl_eff_coch) #100% prevalence
 
 perl_eff_coch_glom = tax_glom(perl_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 perl_eff_coch_glom<-prune_taxa(taxa_sums(perl_eff_coch_glom) > 0, perl_eff_coch_glom)
@@ -12181,21 +11980,16 @@ coch_eff_perl<- perl_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_perl_coch))
 View(coch_eff_perl)
 
-coch_eff_perl$SD_squared ='^'(coch_eff_perl$SD,2)
-coch_eff_perl$SD_squared_divided =(coch_eff_perl$SD_squared/8) 
-  
-top_means_eff_perl_coch<-aggregate(Mean ~ Genus, data = coch_eff_perl, FUN = sum)
-top_SD_eff_perl_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_perl, FUN = sum)
-
-top_eff_perl_coch<-merge(top_means_eff_perl_coch, top_SD_eff_perl_coch, by=c("Genus"))
-top_eff_perl_coch$SD_Final<-sqrt(top_eff_perl_coch$SD_squared_divided)
-View(top_eff_perl_coch)
 
 # Cushing Bridge #
 
-nsamples(perl_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Perlidae")) #5
+nsamples(perl_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Perlidae")) #5
 
-sample_sums(perl_eff_cush) #Present in all 5 samples (100% prevalence)
+perl_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Perlidae")
+perl_eff_cush<-prune_taxa(taxa_sums(perl_eff_cush) > 0, perl_eff_cush) 
+perl_eff_cush #228 taxa, 5 samples = 100% prevalence
+
+sample_sums(perl_eff_cush) #100% prevalence
 
 perl_eff_cush_glom = tax_glom(perl_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 perl_eff_cush_glom<-prune_taxa(taxa_sums(perl_eff_cush_glom) > 0, perl_eff_cush_glom)
@@ -12213,21 +12007,15 @@ cush_eff_perl<- perl_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_perl_cush))
 View(cush_eff_perl)
 
-cush_eff_perl$SD_squared ='^'(cush_eff_perl$SD,2)
-cush_eff_perl$SD_squared_divided =(cush_eff_perl$SD_squared/8) 
-  
-top_means_eff_perl_cush<-aggregate(Mean ~ Genus, data = cush_eff_perl, FUN = sum)
-top_SD_eff_perl_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_perl, FUN = sum)
-
-top_eff_perl_cush<-merge(top_means_eff_perl_cush, top_SD_eff_perl_cush, by=c("Genus"))
-top_eff_perl_cush$SD_Final<-sqrt(top_eff_perl_cush$SD_squared_divided)
-View(top_eff_perl_cush)
 
 # Policeman Flats #
 
-nsamples(perl_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Perlidae")) #8
+nsamples(perl_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Perlidae")) #8
 
-sample_sums(perl_eff_pmf) #Present in all 8 samples (100% prevalence)
+perl_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Perlidae")
+perl_eff_pmf<-prune_taxa(taxa_sums(perl_eff_pmf) > 0, perl_eff_pmf) 
+perl_eff_pmf #162 taxa, 8 samples = 100% prevalence
+
 
 perl_eff_pmf_glom = tax_glom(perl_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 perl_eff_pmf_glom<-prune_taxa(taxa_sums(perl_eff_pmf_glom) > 0, perl_eff_pmf_glom)
@@ -12245,22 +12033,15 @@ pmf_eff_perl<- perl_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_perl_pmf))
 View(pmf_eff_perl)
 
-pmf_eff_perl$SD_squared ='^'(pmf_eff_perl$SD,2)
-pmf_eff_perl$SD_squared_divided =(pmf_eff_perl$SD_squared/8) 
-  
-top_means_eff_perl_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_perl, FUN = sum)
-top_SD_eff_perl_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_perl, FUN = sum)
-
-top_eff_perl_pmf<-merge(top_means_eff_perl_pmf, top_SD_eff_perl_pmf, by=c("Genus"))
-top_eff_perl_pmf$SD_Final<-sqrt(top_eff_perl_pmf$SD_squared_divided)
-View(top_eff_perl_pmf)
 
 #### Trichoptera ####
 # Cochrane #
 
-nsamples(trichop_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Trichoptera")) #7
+nsamples(trichop_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Trichoptera")) #8
 
-sample_sums(trichop_eff_coch) #Present in all 7 samples (100% prevalence)
+trichop_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Trichoptera")
+trichop_eff_coch<-prune_taxa(taxa_sums(trichop_eff_coch) > 0, trichop_eff_coch) 
+trichop_eff_coch #159 taxa, 7 samples = 87.5% prevalence
 
 trichop_eff_coch_glom = tax_glom(trichop_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 trichop_eff_coch_glom<-prune_taxa(taxa_sums(trichop_eff_coch_glom) > 0, trichop_eff_coch_glom)
@@ -12278,21 +12059,14 @@ coch_eff_trichop<- trichop_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_coch))
 View(coch_eff_trichop)
 
-coch_eff_trichop$SD_squared ='^'(coch_eff_trichop$SD,2)
-coch_eff_trichop$SD_squared_divided =(coch_eff_trichop$SD_squared/8) 
-  
-top_means_eff_trichop_coch<-aggregate(Mean ~ Genus, data = coch_eff_trichop, FUN = sum)
-top_SD_eff_trichop_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_trichop, FUN = sum)
-
-top_eff_trichop_coch<-merge(top_means_eff_trichop_coch, top_SD_eff_trichop_coch, by=c("Genus"))
-top_eff_trichop_coch$SD_Final<-sqrt(top_eff_trichop_coch$SD_squared_divided)
-View(top_eff_trichop_coch)
 
 # Sunalta #
 
-nsamples(trichop_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Trichoptera")) #7
+nsamples(trichop_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Trichoptera")) #8
 
-sample_sums(trichop_eff_sun) #Present in all 7 samples (100% prevalence)
+trichop_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Trichoptera")
+trichop_eff_sun<-prune_taxa(taxa_sums(trichop_eff_sun) > 0, trichop_eff_sun) 
+trichop_eff_sun #112 taxa, 7 samples = 87.5% prevalence
 
 trichop_eff_sun_glom = tax_glom(trichop_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 trichop_eff_sun_glom<-prune_taxa(taxa_sums(trichop_eff_sun_glom) > 0, trichop_eff_sun_glom)
@@ -12310,21 +12084,14 @@ sun_eff_trichop<- trichop_eff_sun_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_sun))
 View(sun_eff_trichop)
 
-sun_eff_trichop$SD_squared ='^'(sun_eff_trichop$SD,2)
-sun_eff_trichop$SD_squared_divided =(sun_eff_trichop$SD_squared/8) 
-  
-top_means_eff_trichop_sun<-aggregate(Mean ~ Genus, data = sun_eff_trichop, FUN = sum)
-top_SD_eff_trichop_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_trichop, FUN = sum)
-
-top_eff_trichop_sun<-merge(top_means_eff_trichop_sun, top_SD_eff_trichop_sun, by=c("Genus"))
-top_eff_trichop_sun$SD_Final<-sqrt(top_eff_trichop_sun$SD_squared_divided)
-View(top_eff_trichop_sun)
 
 # Cushing Bridge #
 
-nsamples(trichop_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Trichoptera")) #7
+nsamples(trichop_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Trichoptera")) #8
 
-sample_sums(trichop_eff_cush) #Present in all 7 samples (100% prevalence)
+trichop_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Trichoptera")
+trichop_eff_cush<-prune_taxa(taxa_sums(trichop_eff_cush) > 0, trichop_eff_cush) 
+trichop_eff_cush #178 taxa, 7 samples = 87.5% prevalence
 
 trichop_eff_cush_glom = tax_glom(trichop_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 trichop_eff_cush_glom<-prune_taxa(taxa_sums(trichop_eff_cush_glom) > 0, trichop_eff_cush_glom)
@@ -12342,21 +12109,16 @@ cush_eff_trichop<- trichop_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_cush))
 View(cush_eff_trichop)
 
-cush_eff_trichop$SD_squared ='^'(cush_eff_trichop$SD,2)
-cush_eff_trichop$SD_squared_divided =(cush_eff_trichop$SD_squared/8) 
-  
-top_means_eff_trichop_cush<-aggregate(Mean ~ Genus, data = cush_eff_trichop, FUN = sum)
-top_SD_eff_trichop_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_trichop, FUN = sum)
-
-top_eff_trichop_cush<-merge(top_means_eff_trichop_cush, top_SD_eff_trichop_cush, by=c("Genus"))
-top_eff_trichop_cush$SD_Final<-sqrt(top_eff_trichop_cush$SD_squared_divided)
-View(top_eff_trichop_cush)
 
 # Graves Bridge #
 
-nsamples(trichop_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Trichoptera")) #7
+nsamples(trichop_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Trichoptera")) #7
 
-sample_sums(trichop_eff_grvbr) #Present in all 7 samples (100% prevalence)
+trichop_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Trichoptera")
+trichop_eff_grvbr<-prune_taxa(taxa_sums(trichop_eff_grvbr) > 0, trichop_eff_grvbr) 
+trichop_eff_grvbr #166 taxa, 7 samples = 100% prevalence
+
+sample_sums(trichop_eff_grvbr) #100% prevalence
 
 trichop_eff_grvbr_glom = tax_glom(trichop_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 trichop_eff_grvbr_glom<-prune_taxa(taxa_sums(trichop_eff_grvbr_glom) > 0, trichop_eff_grvbr_glom)
@@ -12374,23 +12136,16 @@ grvbr_eff_trichop<- trichop_eff_grvbr_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_grvbr))
 View(grvbr_eff_trichop)
 
-grvbr_eff_trichop$SD_squared ='^'(grvbr_eff_trichop$SD,2)
-grvbr_eff_trichop$SD_squared_divided =(grvbr_eff_trichop$SD_squared/8) 
-  
-top_means_eff_trichop_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff_trichop, FUN = sum)
-top_SD_eff_trichop_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_trichop, FUN = sum)
-
-top_eff_trichop_grvbr<-merge(top_means_eff_trichop_grvbr, top_SD_eff_trichop_grvbr, by=c("Genus"))
-top_eff_trichop_grvbr$SD_Final<-sqrt(top_eff_trichop_grvbr$SD_squared_divided)
-View(top_eff_trichop_grvbr)
-
 
 #### Ephemeroptera Bow ####
 # Cochrane #
+nsamples(ephem_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Ephemeroptera")) #8
 
-nsamples(ephem_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Ephemeroptera")) #8
+ephem_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Ephemeroptera")
+ephem_eff_coch<-prune_taxa(taxa_sums(ephem_eff_coch) > 0, ephem_eff_coch) 
+ephem_eff_coch #89 taxa, 8 samples = 100% prevalence
 
-sample_sums(ephem_eff_coch) #Present in all 7 samples (100% prevalence)
+sample_sums(ephem_eff_coch) #100% prevalence
 
 ephem_eff_coch_glom = tax_glom(ephem_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_coch_glom<-prune_taxa(taxa_sums(ephem_eff_coch_glom) > 0, ephem_eff_coch_glom)
@@ -12408,21 +12163,15 @@ coch_eff_ephem<- ephem_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_coch))
 View(coch_eff_ephem)
 
-coch_eff_ephem$SD_squared ='^'(coch_eff_ephem$SD,2)
-coch_eff_ephem$SD_squared_divided =(coch_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_coch<-aggregate(Mean ~ Genus, data = coch_eff_ephem, FUN = sum)
-top_SD_eff_ephem_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_ephem, FUN = sum)
-
-top_eff_ephem_coch<-merge(top_means_eff_ephem_coch, top_SD_eff_ephem_coch, by=c("Genus"))
-top_eff_ephem_coch$SD_Final<-sqrt(top_eff_ephem_coch$SD_squared_divided)
-View(top_eff_ephem_coch)
 
 # Sunalta #
 
-nsamples(ephem_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Ephemeroptera")) #8
+nsamples(ephem_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Ephemeroptera")) #8
 
-sample_sums(ephem_eff_sun) #Present in all 8 samples (100% prevalence)
+ephem_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Ephemeroptera")
+ephem_eff_sun<-prune_taxa(taxa_sums(ephem_eff_sun) > 0, ephem_eff_sun) 
+ephem_eff_sun #112 taxa, 8 samples = 100% prevalence
+
 
 ephem_eff_sun_glom = tax_glom(ephem_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_sun_glom<-prune_taxa(taxa_sums(ephem_eff_sun_glom) > 0, ephem_eff_sun_glom)
@@ -12440,21 +12189,15 @@ sun_eff_ephem<- ephem_eff_sun_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_sun))
 View(sun_eff_ephem)
 
-sun_eff_ephem$SD_squared ='^'(sun_eff_ephem$SD,2)
-sun_eff_ephem$SD_squared_divided =(sun_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_sun<-aggregate(Mean ~ Genus, data = sun_eff_ephem, FUN = sum)
-top_SD_eff_ephem_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_ephem, FUN = sum)
-
-top_eff_ephem_sun<-merge(top_means_eff_ephem_sun, top_SD_eff_ephem_sun, by=c("Genus"))
-top_eff_ephem_sun$SD_Final<-sqrt(top_eff_ephem_sun$SD_squared_divided)
-View(top_eff_ephem_sun)
 
 # Cushing Bridge #
 
-nsamples(ephem_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Ephemeroptera")) #5
+nsamples(ephem_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Ephemeroptera")) #8
 
-sample_sums(ephem_eff_cush) #Present in all 8 samples (100% prevalence)
+ephem_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Ephemeroptera")
+ephem_eff_cush<-prune_taxa(taxa_sums(ephem_eff_cush) > 0, ephem_eff_cush) 
+ephem_eff_cush #75 taxa, 5 samples = 62.5% prevalence
+
 
 ephem_eff_cush_glom = tax_glom(ephem_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_cush_glom<-prune_taxa(taxa_sums(ephem_eff_cush_glom) > 0, ephem_eff_cush_glom)
@@ -12472,21 +12215,16 @@ cush_eff_ephem<- ephem_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_cush))
 View(cush_eff_ephem)
 
-cush_eff_ephem$SD_squared ='^'(cush_eff_ephem$SD,2)
-cush_eff_ephem$SD_squared_divided =(cush_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_cush<-aggregate(Mean ~ Genus, data = cush_eff_ephem, FUN = sum)
-top_SD_eff_ephem_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_ephem, FUN = sum)
-
-top_eff_ephem_cush<-merge(top_means_eff_ephem_cush, top_SD_eff_ephem_cush, by=c("Genus"))
-top_eff_ephem_cush$SD_Final<-sqrt(top_eff_ephem_cush$SD_squared_divided)
-View(top_eff_ephem_cush)
 
 # Graves Bridge #
 
-nsamples(ephem_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Ephemeroptera")) #8
+nsamples(ephem_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Ephemeroptera")) #8
 
-sample_sums(ephem_eff_grvbr) #Present in all 8 samples (100% prevalence)
+ephem_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Ephemeroptera")
+ephem_eff_grvbr<-prune_taxa(taxa_sums(ephem_eff_grvbr) > 0, ephem_eff_grvbr) 
+ephem_eff_grvbr #86 taxa, 8 samples = 100% prevalence
+
+sample_sums(ephem_eff_grvbr) #100% prevalence
 
 ephem_eff_grvbr_glom = tax_glom(ephem_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_grvbr_glom<-prune_taxa(taxa_sums(ephem_eff_grvbr_glom) > 0, ephem_eff_grvbr_glom)
@@ -12504,21 +12242,15 @@ grvbr_eff_ephem<- ephem_eff_grvbr_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_grvbr))
 View(grvbr_eff_ephem)
 
-grvbr_eff_ephem$SD_squared ='^'(grvbr_eff_ephem$SD,2)
-grvbr_eff_ephem$SD_squared_divided =(grvbr_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff_ephem, FUN = sum)
-top_SD_eff_ephem_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_ephem, FUN = sum)
-
-top_eff_ephem_grvbr<-merge(top_means_eff_ephem_grvbr, top_SD_eff_ephem_grvbr, by=c("Genus"))
-top_eff_ephem_grvbr$SD_Final<-sqrt(top_eff_ephem_grvbr$SD_squared_divided)
-View(top_eff_ephem_grvbr)
 
 # Policeman Flats #
 
-nsamples(ephem_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Ephemeroptera")) #8
+nsamples(ephem_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Ephemeroptera")) #8
 
-sample_sums(ephem_eff_pmf) #Present in all 8 samples (100% prevalence)
+ephem_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Ephemeroptera")
+ephem_eff_pmf<-prune_taxa(taxa_sums(ephem_eff_pmf) > 0, ephem_eff_pmf) 
+ephem_eff_pmf #121 taxa, 7 samples = 87.5% prevalence
+
 
 ephem_eff_pmf_glom = tax_glom(ephem_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_pmf_glom<-prune_taxa(taxa_sums(ephem_eff_pmf_glom) > 0, ephem_eff_pmf_glom)
@@ -12536,20 +12268,16 @@ pmf_eff_ephem<- ephem_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_pmf))
 View(pmf_eff_ephem)
 
-pmf_eff_ephem$SD_squared ='^'(pmf_eff_ephem$SD,2)
-pmf_eff_ephem$SD_squared_divided =(pmf_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_ephem, FUN = sum)
-top_SD_eff_ephem_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_ephem, FUN = sum)
-
-top_eff_ephem_pmf<-merge(top_means_eff_ephem_pmf, top_SD_eff_ephem_pmf, by=c("Genus"))
-top_eff_ephem_pmf$SD_Final<-sqrt(top_eff_ephem_pmf$SD_squared_divided)
-View(top_eff_ephem_pmf)
 
 #### Ephemeroptera ACWA ####
+
 # EFF5 #
 
 ephem_eff_EFF5<-subset_samples(eff_ACWA, Site=="PCR1" & Family=="Ephemeroptera")
+ephem_eff_EFF5<-prune_taxa(taxa_sums(ephem_eff_EFF5) > 0, ephem_eff_EFF5) 
+ephem_eff_EFF5 #34 taxa, 8 samples
+
+sample_sums(ephem_eff_EFF5) #100% prevalence
 
 ephem_eff_EFF5_glom = tax_glom(ephem_eff_EFF5, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_EFF5_glom<-prune_taxa(taxa_sums(ephem_eff_EFF5_glom) > 0, ephem_eff_EFF5_glom)
@@ -12567,19 +12295,14 @@ EFF5_eff_ephem<- ephem_eff_EFF5_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_EFF5))
 View(EFF5_eff_ephem)
 
-EFF5_eff_ephem$SD_squared ='^'(EFF5_eff_ephem$SD,2)
-EFF5_eff_ephem$SD_squared_divided =(EFF5_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_EFF5<-aggregate(Mean ~ Genus, data = EFF5_eff_ephem, FUN = sum)
-top_SD_eff_ephem_EFF5<-aggregate(SD_squared_divided ~ Genus, data = EFF5_eff_ephem, FUN = sum)
-
-top_eff_ephem_EFF5<-merge(top_means_eff_ephem_EFF5, top_SD_eff_ephem_EFF5, by=c("Genus"))
-top_eff_ephem_EFF5$SD_Final<-sqrt(top_eff_ephem_EFF5$SD_squared_divided)
-View(top_eff_ephem_EFF5)
 
 # EFF15 #
 
 ephem_eff_EFF15<-subset_samples(eff_ACWA, Site=="PCR3" & Family=="Ephemeroptera")
+ephem_eff_EFF15<-prune_taxa(taxa_sums(ephem_eff_EFF15) > 0, ephem_eff_EFF15) 
+ephem_eff_EFF15 #73 taxa, 8 samples
+
+sample_sums(ephem_eff_EFF15) #100% prevalence
 
 ephem_eff_EFF15_glom = tax_glom(ephem_eff_EFF15, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 ephem_eff_EFF15_glom<-prune_taxa(taxa_sums(ephem_eff_EFF15_glom) > 0, ephem_eff_EFF15_glom)
@@ -12597,22 +12320,17 @@ EFF15_eff_ephem<- ephem_eff_EFF15_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_EFF15))
 View(EFF15_eff_ephem)
 
-EFF15_eff_ephem$SD_squared ='^'(EFF15_eff_ephem$SD,2)
-EFF15_eff_ephem$SD_squared_divided =(EFF15_eff_ephem$SD_squared/8) 
-  
-top_means_eff_ephem_EFF15<-aggregate(Mean ~ Genus, data = EFF15_eff_ephem, FUN = sum)
-top_SD_eff_ephem_EFF15<-aggregate(SD_squared_divided ~ Genus, data = EFF15_eff_ephem, FUN = sum)
-
-top_eff_ephem_EFF15<-merge(top_means_eff_ephem_EFF15, top_SD_eff_ephem_EFF15, by=c("Genus"))
-top_eff_ephem_EFF15$SD_Final<-sqrt(top_eff_ephem_EFF15$SD_squared_divided)
-View(top_eff_ephem_EFF15)
 
 #### Diptera ####
 # Cochrane #
 
-nsamples(dip_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Diptera")) #5
+nsamples(dip_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Diptera")) #5
 
-sample_sums(dip_eff_coch) 
+dip_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Diptera")
+dip_eff_coch<-prune_taxa(taxa_sums(dip_eff_coch) > 0, dip_eff_coch) 
+dip_eff_coch #74 taxa, 5 samples = 100% prevalence
+
+sample_sums(dip_eff_coch) #100% prevalence
 
 dip_eff_coch_glom = tax_glom(dip_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 dip_eff_coch_glom<-prune_taxa(taxa_sums(dip_eff_coch_glom) > 0, dip_eff_coch_glom)
@@ -12630,21 +12348,16 @@ coch_eff_dip<- dip_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_dip_coch))
 View(coch_eff_dip)
 
-coch_eff_dip$SD_squared ='^'(coch_eff_dip$SD,2)
-coch_eff_dip$SD_squared_divided =(coch_eff_dip$SD_squared/8) 
-  
-top_means_eff_dip_coch<-aggregate(Mean ~ Genus, data = coch_eff_dip, FUN = sum)
-top_SD_eff_dip_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_dip, FUN = sum)
-
-top_eff_dip_coch<-merge(top_means_eff_dip_coch, top_SD_eff_dip_coch, by=c("Genus"))
-top_eff_dip_coch$SD_Final<-sqrt(top_eff_dip_coch$SD_squared_divided)
-View(top_eff_dip_coch)
 
 # Cushing Bridge #
 
-nsamples(dip_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Diptera")) #8
+nsamples(dip_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Diptera")) #8
 
-sample_sums(dip_eff_cush) 
+dip_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Diptera")
+dip_eff_cush<-prune_taxa(taxa_sums(dip_eff_cush) > 0, dip_eff_cush) 
+dip_eff_cush #98 taxa, 8 samples = 100% prevalence
+
+sample_sums(dip_eff_cush) #100% prevalence
 
 dip_eff_cush_glom = tax_glom(dip_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 dip_eff_cush_glom<-prune_taxa(taxa_sums(dip_eff_cush_glom) > 0, dip_eff_cush_glom)
@@ -12662,22 +12375,14 @@ cush_eff_dip<- dip_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_dip_cush))
 View(cush_eff_dip)
 
-cush_eff_dip$SD_squared ='^'(cush_eff_dip$SD,2)
-cush_eff_dip$SD_squared_divided =(cush_eff_dip$SD_squared/8) 
-  
-top_means_eff_dip_cush<-aggregate(Mean ~ Genus, data = cush_eff_dip, FUN = sum)
-top_SD_eff_dip_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_dip, FUN = sum)
-
-top_eff_dip_cush<-merge(top_means_eff_dip_cush, top_SD_eff_dip_cush, by=c("Genus"))
-top_eff_dip_cush$SD_Final<-sqrt(top_eff_dip_cush$SD_squared_divided)
-View(top_eff_dip_cush)
-
 
 # Policeman Flats #
 
-nsamples(dip_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Diptera")) #8
+nsamples(dip_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Diptera")) #6
 
-sample_sums(dip_eff_pmf) 
+dip_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Diptera")
+dip_eff_pmf<-prune_taxa(taxa_sums(dip_eff_pmf) > 0, dip_eff_pmf) 
+dip_eff_pmf #84 taxa, 6 samples = 100% prevalence
 
 dip_eff_pmf_glom = tax_glom(dip_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 dip_eff_pmf_glom<-prune_taxa(taxa_sums(dip_eff_pmf_glom) > 0, dip_eff_pmf_glom)
@@ -12695,22 +12400,17 @@ pmf_eff_dip<- dip_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_dip_pmf))
 View(pmf_eff_dip)
 
-pmf_eff_dip$SD_squared ='^'(pmf_eff_dip$SD,2)
-pmf_eff_dip$SD_squared_divided =(pmf_eff_dip$SD_squared/8) 
-  
-top_means_eff_dip_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_dip, FUN = sum)
-top_SD_eff_dip_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_dip, FUN = sum)
-
-top_eff_dip_pmf<-merge(top_means_eff_dip_pmf, top_SD_eff_dip_pmf, by=c("Genus"))
-top_eff_dip_pmf$SD_Final<-sqrt(top_eff_dip_pmf$SD_squared_divided)
-View(top_eff_dip_pmf)
 
 #### Araneidae ####
 # Cochrane #
 
-nsamples(aran_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Araneidae")) #8
+nsamples(aran_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Araneidae")) #8 
 
-sample_sums(aran_eff_coch) 
+aran_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Araneidae")
+aran_eff_coch<-prune_taxa(taxa_sums(aran_eff_coch) > 0, aran_eff_coch) 
+aran_eff_coch #82 taxa, 8 samples = 100% prevalence
+
+sample_sums(aran_eff_coch) #100% prevalence
 
 aran_eff_coch_glom = tax_glom(aran_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 aran_eff_coch_glom<-prune_taxa(taxa_sums(aran_eff_coch_glom) > 0, aran_eff_coch_glom)
@@ -12728,21 +12428,14 @@ coch_eff_aran<- aran_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_coch))
 View(coch_eff_aran)
 
-coch_eff_aran$SD_squared ='^'(coch_eff_aran$SD,2)
-coch_eff_aran$SD_squared_divided =(coch_eff_aran$SD_squared/8) 
-  
-top_means_eff_aran_coch<-aggregate(Mean ~ Genus, data = coch_eff_aran, FUN = sum)
-top_SD_eff_aran_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_aran, FUN = sum)
-
-top_eff_aran_coch<-merge(top_means_eff_aran_coch, top_SD_eff_aran_coch, by=c("Genus"))
-top_eff_aran_coch$SD_Final<-sqrt(top_eff_aran_coch$SD_squared_divided)
-View(top_eff_aran_coch)
 
 # Sunalta #
 
-nsamples(aran_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Araneidae")) #8
+nsamples(aran_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Araneidae")) #7
 
-sample_sums(aran_eff_sun) 
+aran_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Araneidae")
+aran_eff_sun<-prune_taxa(taxa_sums(aran_eff_sun) > 0, aran_eff_sun) 
+aran_eff_sun #114 taxa, 7 samples = 100% prevalence
 
 aran_eff_sun_glom = tax_glom(aran_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 aran_eff_sun_glom<-prune_taxa(taxa_sums(aran_eff_sun_glom) > 0, aran_eff_sun_glom)
@@ -12760,21 +12453,15 @@ sun_eff_aran<- aran_eff_sun_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_sun))
 View(sun_eff_aran)
 
-sun_eff_aran$SD_squared ='^'(sun_eff_aran$SD,2)
-sun_eff_aran$SD_squared_divided =(sun_eff_aran$SD_squared/8) 
-  
-top_means_eff_aran_sun<-aggregate(Mean ~ Genus, data = sun_eff_aran, FUN = sum)
-top_SD_eff_aran_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_aran, FUN = sum)
-
-top_eff_aran_sun<-merge(top_means_eff_aran_sun, top_SD_eff_aran_sun, by=c("Genus"))
-top_eff_aran_sun$SD_Final<-sqrt(top_eff_aran_sun$SD_squared_divided)
-View(top_eff_aran_sun)
 
 # Cushing Bridge #
 
-nsamples(aran_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Araneidae")) #7
+nsamples(aran_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Araneidae")) #7
 
-sample_sums(aran_eff_cush) 
+aran_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Araneidae")
+aran_eff_cush<-prune_taxa(taxa_sums(aran_eff_cush) > 0, aran_eff_cush) 
+aran_eff_cush #89 taxa, 7 samples = 100% prevalence
+
 
 aran_eff_cush_glom = tax_glom(aran_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 aran_eff_cush_glom<-prune_taxa(taxa_sums(aran_eff_cush_glom) > 0, aran_eff_cush_glom)
@@ -12792,21 +12479,15 @@ cush_eff_aran<- aran_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_cush))
 View(cush_eff_aran)
 
-cush_eff_aran$SD_squared ='^'(cush_eff_aran$SD,2)
-cush_eff_aran$SD_squared_divided =(cush_eff_aran$SD_squared/8) 
-  
-top_means_eff_aran_cush<-aggregate(Mean ~ Genus, data = cush_eff_aran, FUN = sum)
-top_SD_eff_aran_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_aran, FUN = sum)
-
-top_eff_aran_cush<-merge(top_means_eff_aran_cush, top_SD_eff_aran_cush, by=c("Genus"))
-top_eff_aran_cush$SD_Final<-sqrt(top_eff_aran_cush$SD_squared_divided)
-View(top_eff_aran_cush)
 
 # Graves Bridge #
 
-nsamples(aran_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Araneidae")) #8
+nsamples(aran_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Araneidae")) #8
 
-sample_sums(aran_eff_grvbr) 
+aran_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Araneidae")
+aran_eff_grvbr<-prune_taxa(taxa_sums(aran_eff_grvbr) > 0, aran_eff_grvbr) 
+aran_eff_grvbr #103 taxa, 8 samples = 100% prevalence
+
 
 aran_eff_grvbr_glom = tax_glom(aran_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 aran_eff_grvbr_glom<-prune_taxa(taxa_sums(aran_eff_grvbr_glom) > 0, aran_eff_grvbr_glom)
@@ -12824,21 +12505,15 @@ grvbr_eff_aran<- aran_eff_grvbr_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_grvbr))
 View(grvbr_eff_aran)
 
-grvbr_eff_aran$SD_squared ='^'(grvbr_eff_aran$SD,2)
-grvbr_eff_aran$SD_squared_divided =(grvbr_eff_aran$SD_squared/8) 
-  
-top_means_eff_aran_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff_aran, FUN = sum)
-top_SD_eff_aran_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_aran, FUN = sum)
-
-top_eff_aran_grvbr<-merge(top_means_eff_aran_grvbr, top_SD_eff_aran_grvbr, by=c("Genus"))
-top_eff_aran_grvbr$SD_Final<-sqrt(top_eff_aran_grvbr$SD_squared_divided)
-View(top_eff_aran_grvbr)
 
 # Policeman Flats #
 
-nsamples(aran_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Araneidae")) #6
+nsamples(aran_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Araneidae")) #6
 
-sample_sums(aran_eff_pmf) 
+aran_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Araneidae")
+aran_eff_pmf<-prune_taxa(taxa_sums(aran_eff_pmf) > 0, aran_eff_pmf) 
+aran_eff_pmf #126 taxa, 6 samples = 100% prevalence
+
 
 aran_eff_pmf_glom = tax_glom(aran_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 aran_eff_pmf_glom<-prune_taxa(taxa_sums(aran_eff_pmf_glom) > 0, aran_eff_pmf_glom)
@@ -12856,22 +12531,17 @@ pmf_eff_aran<- aran_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_pmf))
 View(pmf_eff_aran)
 
-pmf_eff_aran$SD_squared ='^'(pmf_eff_aran$SD,2)
-pmf_eff_aran$SD_squared_divided =(pmf_eff_aran$SD_squared/8) 
-  
-top_means_eff_aran_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_aran, FUN = sum)
-top_SD_eff_aran_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_aran, FUN = sum)
-
-top_eff_aran_pmf<-merge(top_means_eff_aran_pmf, top_SD_eff_aran_pmf, by=c("Genus"))
-top_eff_aran_pmf$SD_Final<-sqrt(top_eff_aran_pmf$SD_squared_divided)
-View(top_eff_aran_pmf)
 
 #### Tetragnathidae ####
 # Cochrane #
 
-nsamples(tetra_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Tetragnathidae")) #6
+nsamples(tetra_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Tetragnathidae")) #8 
 
-sample_sums(tetra_eff_coch) 
+tetra_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Tetragnathidae")
+tetra_eff_coch<-prune_taxa(taxa_sums(tetra_eff_coch) > 0, tetra_eff_coch) 
+tetra_eff_coch #58 taxa, 6 samples = 75% prevalence
+
+sample_sums(tetra_eff_coch) #100% prevalence
 
 tetra_eff_coch_glom = tax_glom(tetra_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 tetra_eff_coch_glom<-prune_taxa(taxa_sums(tetra_eff_coch_glom) > 0, tetra_eff_coch_glom)
@@ -12889,21 +12559,15 @@ coch_eff_tetra<- tetra_eff_coch_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_coch))
 View(coch_eff_tetra)
 
-coch_eff_tetra$SD_squared ='^'(coch_eff_tetra$SD,2)
-coch_eff_tetra$SD_squared_divided =(coch_eff_tetra$SD_squared/8) 
-  
-top_means_eff_tetra_coch<-aggregate(Mean ~ Genus, data = coch_eff_tetra, FUN = sum)
-top_SD_eff_tetra_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_tetra, FUN = sum)
-
-top_eff_tetra_coch<-merge(top_means_eff_tetra_coch, top_SD_eff_tetra_coch, by=c("Genus"))
-top_eff_tetra_coch$SD_Final<-sqrt(top_eff_tetra_coch$SD_squared_divided)
-View(top_eff_tetra_coch)
 
 # Sunalta #
 
-nsamples(tetra_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Tetragnathidae")) #6
+nsamples(tetra_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Tetragnathidae")) #8 
 
-sample_sums(tetra_eff_sun) 
+tetra_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Tetragnathidae")
+tetra_eff_sun<-prune_taxa(taxa_sums(tetra_eff_sun) > 0, tetra_eff_sun) 
+tetra_eff_sun #9 taxa, 5 samples = 62.5% prevalence
+
 
 tetra_eff_sun_glom = tax_glom(tetra_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 tetra_eff_sun_glom<-prune_taxa(taxa_sums(tetra_eff_sun_glom) > 0, tetra_eff_sun_glom)
@@ -12921,21 +12585,15 @@ sun_eff_tetra<- tetra_eff_sun_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_sun))
 View(sun_eff_tetra)
 
-sun_eff_tetra$SD_squared ='^'(sun_eff_tetra$SD,2)
-sun_eff_tetra$SD_squared_divided =(sun_eff_tetra$SD_squared/8) 
-  
-top_means_eff_tetra_sun<-aggregate(Mean ~ Genus, data = sun_eff_tetra, FUN = sum)
-top_SD_eff_tetra_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_tetra, FUN = sum)
-
-top_eff_tetra_sun<-merge(top_means_eff_tetra_sun, top_SD_eff_tetra_sun, by=c("Genus"))
-top_eff_tetra_sun$SD_Final<-sqrt(top_eff_tetra_sun$SD_squared_divided)
-View(top_eff_tetra_sun)
 
 # Cushing Bridge #
 
-nsamples(tetra_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Tetragnathidae")) #8
+nsamples(tetra_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Tetragnathidae")) #8
 
-sample_sums(tetra_eff_cush) 
+tetra_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Tetragnathidae")
+tetra_eff_cush<-prune_taxa(taxa_sums(tetra_eff_cush) > 0, tetra_eff_cush) 
+tetra_eff_cush #92 taxa, 8 samples = 100% prevalence
+
 
 tetra_eff_cush_glom = tax_glom(tetra_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 tetra_eff_cush_glom<-prune_taxa(taxa_sums(tetra_eff_cush_glom) > 0, tetra_eff_cush_glom)
@@ -12953,21 +12611,15 @@ cush_eff_tetra<- tetra_eff_cush_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_cush))
 View(cush_eff_tetra)
 
-cush_eff_tetra$SD_squared ='^'(cush_eff_tetra$SD,2)
-cush_eff_tetra$SD_squared_divided =(cush_eff_tetra$SD_squared/8) 
-  
-top_means_eff_tetra_cush<-aggregate(Mean ~ Genus, data = cush_eff_tetra, FUN = sum)
-top_SD_eff_tetra_cush<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_tetra, FUN = sum)
-
-top_eff_tetra_cush<-merge(top_means_eff_tetra_cush, top_SD_eff_tetra_cush, by=c("Genus"))
-top_eff_tetra_cush$SD_Final<-sqrt(top_eff_tetra_cush$SD_squared_divided)
-View(top_eff_tetra_cush)
 
 # Graves Bridge #
 
-nsamples(tetra_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Tetragnathidae")) #8
+nsamples(tetra_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Tetragnathidae")) #8
 
-sample_sums(tetra_eff_grvbr) 
+tetra_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Tetragnathidae")
+tetra_eff_grvbr<-prune_taxa(taxa_sums(tetra_eff_grvbr) > 0, tetra_eff_grvbr) 
+tetra_eff_grvbr #31 taxa, 5 samples = 62.5% prevalence
+
 
 tetra_eff_grvbr_glom = tax_glom(tetra_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 tetra_eff_grvbr_glom<-prune_taxa(taxa_sums(tetra_eff_grvbr_glom) > 0, tetra_eff_grvbr_glom)
@@ -12985,21 +12637,15 @@ grvbr_eff_tetra<- tetra_eff_grvbr_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_grvbr))
 View(grvbr_eff_tetra)
 
-grvbr_eff_tetra$SD_squared ='^'(grvbr_eff_tetra$SD,2)
-grvbr_eff_tetra$SD_squared_divided =(grvbr_eff_tetra$SD_squared/8) 
-  
-top_means_eff_tetra_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff_tetra, FUN = sum)
-top_SD_eff_tetra_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_tetra, FUN = sum)
-
-top_eff_tetra_grvbr<-merge(top_means_eff_tetra_grvbr, top_SD_eff_tetra_grvbr, by=c("Genus"))
-top_eff_tetra_grvbr$SD_Final<-sqrt(top_eff_tetra_grvbr$SD_squared_divided)
-View(top_eff_tetra_grvbr)
 
 # Policeman Flats #
 
-nsamples(tetra_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Tetragnathidae")) #8
+nsamples(tetra_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Tetragnathidae")) #8
 
-sample_sums(tetra_eff_pmf) 
+tetra_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Tetragnathidae")
+tetra_eff_pmf<-prune_taxa(taxa_sums(tetra_eff_pmf) > 0, tetra_eff_pmf) 
+tetra_eff_pmf #104 taxa, 8 samples = 100% prevalence
+ 
 
 tetra_eff_pmf_glom = tax_glom(tetra_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
 tetra_eff_pmf_glom<-prune_taxa(taxa_sums(tetra_eff_pmf_glom) > 0, tetra_eff_pmf_glom)
@@ -13016,16 +12662,6 @@ top_3_eff_bac_tetra_pmf<-tetra_eff_pmf_genus$Genus[1:3]
 pmf_eff_tetra<- tetra_eff_pmf_genus %>%
   mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_pmf))
 View(pmf_eff_tetra)
-
-pmf_eff_tetra$SD_squared ='^'(pmf_eff_tetra$SD,2)
-pmf_eff_tetra$SD_squared_divided =(pmf_eff_tetra$SD_squared/8) 
-  
-top_means_eff_tetra_pmf<-aggregate(Mean ~ Genus, data = pmf_eff_tetra, FUN = sum)
-top_SD_eff_tetra_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_tetra, FUN = sum)
-
-top_eff_tetra_pmf<-merge(top_means_eff_tetra_pmf, top_SD_eff_tetra_pmf, by=c("Genus"))
-top_eff_tetra_pmf$SD_Final<-sqrt(top_eff_tetra_pmf$SD_squared_divided)
-View(top_eff_tetra_pmf)
 
 
 #### Bow River relative abundance graph of effluent bacteria ####
@@ -13151,56 +12787,57 @@ ggplot(sample.df.agg.effluent.fam.ACWA, aes(x=Site, y=Abundance, fill=Family)) +
 ## Plotting eff-assoc. bac. relative to non eff-assoc. bac. across sites + taxa
 
 ```{r}
-effluents_bac<-subset_taxa(sample_ps, Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Ahniella" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerocella" | Genus=="Anaerovorax" | Genus=="Arenimonas" | Genus=="Arthrobacter" | Genus=="Bacillus" | Genus == "Barnesiella" | Genus=="Blastocatella" | Genus=="Blautia" | Genus=="Bordetella" | Genus=="Bosea" | Genus=="Brevundimonas" | Genus=="Candidatus Accumulibacter" | Genus=="Candidatus Competibacter" | Genus=="Candidatus Contendobacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus =="Chitinivorax" | Genus=="Chryseobacterium" | Genus=="Chthoniobacter" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 13" | Genus=="Clostridium sensu stricto 5" | Genus=="Corynebacterium" | Genus=="Curtobacterium" | Genus=="Curvibacter" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Delftia" | Genus=="Desulfatirhabdium" | Genus=="Desulfobacca" | Genus=="Desulfobulbus" | Genus=="Desulfoprunum" | Genus=="Desulfosporosinus" | Genus=="Ellin6067" | Genus=="Enterococcus" | Genus=="Erysipelothrix" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Ferruginibacter" | Genus=="Fusicatenibacter" | Genus=="Haliangium" | Genus=="Haliscomenobacter" | Genus=="Halomonas" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Ideonella" | Genus=="Inhella" | Genus=="Intestinibacter" | Genus=="Lachnoclostridium" | Genus=="Lacunisphaera" | Genus=="Leptothrix" | Genus=="Longivirga" | Genus=="Luteimonas" | Genus=="Massilia" | Genus=="Methylobacillus" | Genus=="Methylocystis" | Genus=="Methylotenera" | Genus=="Micrococcus" | Genus=="Monoglobus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Nitratireductor" | Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="OLB12" | Genus=="OLB8" | Genus=="Opitutus" | Genus=="P3OB-42" | Genus=="Paludibacter" | Genus=="Paraclostridium" | Genus=="Paracoccus" | Genus=="Pelomonas" | Genus=="Phaeodactylibacter" | Genus=="Phenylobacterium" | Genus=="Planococcus" | Genus=="Polaromonas" | Genus=="Polyangium" | Genus=="Propionivibrio" | Genus=="Pseudarcobacter" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Pseudoxanthomonas" | Genus=="Ralstonia" | Genus=="Rhizorhapis" | Genus=="Rhodobacter" | Genus=="Rhodoferax" | Genus=="Roseburia" | Genus=="Roseomonas" |  Genus=="Rubellimicrobium" | Genus=="Rubrivivax" | Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Saprospira" | Genus=="Sediminibacterium" | Genus=="Serratia" | Genus=="Sphaerotilus" | Genus=="Sphingobium" | Genus=="Staphylococcus" | Genus=="Stenotrophomonas" | Genus=="Sulfurospirillum" | Genus=="Syntrophobacter" | Genus=="Trichococcus" | Genus=="Thermomonas" | Genus=="Youngiibacter" | Genus=="Zoogloea")
-
-tax_select(sample_ps, tax_list="intestinalis") #8 taxa
+effluent_bac<-subset_taxa(sample_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
+effluent_bac #1327 taxa 316 samples
 
 #### Bow River ####
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps) 
-Bow_ps #4191 taxa, 280 samples
+Bow_ps #7527 taxa, 276 samples
 
 effluent_Bow<-subset_samples(effluent_bac, Stream_Type=="Bow River")
 effluent_Bow<-prune_taxa(taxa_sums(effluent_Bow) > 0, effluent_Bow) 
 sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #117 genera
-#Rhodoferax (10.4%), Pseudorhodobacter (6.39%), Hyphomicrobium (4.33%)
+#Hyphomicrobium (5.39%), Pseudorhodobacter (5.31%), Ferruginibacter (5.23%)
 sum(sample_sums(effluent_Bow))/sum(sample_sums(Bow_ps))*100
-#Effluent bacteria comprises 10.1% of the total microbiome in the Bow River (across all invertebrate types). Decently small amount.
+#Effluent bacteria comprises 9.06% of the total microbiome in the Bow River (across all invertebrate types). Decently small amount.
 
 ## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
 
 #Color code by Family level since there are too many genera to distinguish them on the graph
 
-Bow_fam <- tax_glom(Bow_ps, taxrank = "Family")
-Bow_fam<-prune_taxa(taxa_sums(Bow_fam) > 0, Bow_fam) 
-Bow_fam #239 families, 280 samples
-comp_Bow_fam <- transform_sample_counts(Bow_fam, function(x) x/sum(x))
+Bow_genus <- tax_glom(Bow_ps, taxrank = "Genus")
+Bow_genus<-prune_taxa(taxa_sums(Bow_genus) > 0, Bow_genus) 
+Bow_genus #715 genera, 276 samples
+comp_Bow_genus <- transform_sample_counts(Bow_genus, function(x) x/sum(x))
 
-Bow_fam_df <- psmelt(comp_Bow_fam)
+Bow_genus_df <- psmelt(comp_Bow_genus)
 
-Bow_agg_fam <- aggregate(Abundance ~ Family + Site_code + sample_Family + Stage, data = Bow_fam_df, FUN = mean) #aggregate to Genus level, take the mean
+Bow_agg_genus <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = Bow_genus_df, FUN = mean) #aggregate to Genus level, take the mean
 
 #Sort abundance of each genus by mean at each site
-sort_fam_Bow <- Bow_agg_fam %>%
-    group_by(Family, Site_code) %>%
+sort_genus_Bow <- Bow_agg_genus %>%
+    group_by(Genus, Site_code) %>%
     summarize(Mean = mean(Abundance)) %>%
     arrange()
-sort_fam_Bow
+View(sort_genus_Bow)
 
-effluents_Bow <- sort_genus_Bow$Genus[c(31:35, 46:55, 81:85, 101:105, 111:115, 146:150, 156:160, 166:170, 191:195, 201:205, 241:260, 276:290, 301:305, 361:365, 396:405, 426:430, 436:440, 501:505, 516:520, 531:540, 546:550, 556:575, 601:605, 616:625, 636:640, 656:660, 666:670, 681:685, 691:715, 771:775, 796:800, 806:810, 821:825, 831:835, 856:860, 931:935, 1006:1020, 1026:1030, 1036:1040, 1066:1070, 1086:1095, 1141:1145, 1191:1195, 1226:1230, 1246:1255, 1296:1300, 1306:1310, 1326:1335, 1351:1360, 1376:1380, 1431:1450, 1461:1475, 1486:1490, 1506:1510, 1531:1535, 1561:1570, 1606:1610, 1621:1625, 1636:1640, 1656:1660, 1671:1680, 1711:1715, 1736:1740, 1756:1760, 1766:1770, 1776:1780, 1791:1795, 1826:1835, 1841:1845, 1881:1885, 1896:1900, 1911:1915, 1926:1935, 1961:1965, 1976:1985, 2006:2010, 2056:2060, 2071:2075, 2101:2105, 2121:2125, 2161:2165, 2176:2180, 2306:2310, 2321:2325)] 
+effluents_Bow <- sort_genus_Bow$Genus[c(11:15, 41:45, 61:70, 101:105, 131:135, 176:180, 226:230, 281:285, 291:305, 331:340, 356:360, 366:370, 376:385, 396:400, 406:410, 416:430, 436:440, 471:475, 541:545, 551:560, 591:595, 636:640, 646:650, 746:750, 781:785, 811:815, 821:865, 891:895, 911:915, 956:960, 976:980, 986:990, 1051:1055, 1061:1065, 1161:1170, 1191:1195, 1211:1215, 1221:1225, 1246:1250, 1296:1300, 1301:1305, 1381:1385, 1446:1450, 1466:1470, 1481:1485, 1521:1525, 1531:1540, 1571:1575, 1646:1650, 1671:1675, 1756:1760, 1976:1985, 2016:2020, 2036:2040, 2071:2075, 2106:2125, 2146:2150, 2216:2220, 2266:2270, 2276:2280, 2286:2290, 2301:2305, 2601:2605, 2611:2615, 2656:2660, 2701:2710, 2761:2770, 2851:2855, 2861:2865, 2956:2965, 3081:3085, 3091:3100, 3106:3110, 3141:3145, 3171:3180, 3186:3190, 3226:3230, 3251:3255, 3276:3280, 3436:3440, 3476:3480)] 
   
-eff_df_Bow_fam <- Bow_agg_fam %>%
-    mutate(Family = fct_other(Family, effluents_bac))
+eff_df_Bow_genus <- Bow_agg_genus %>%
+    mutate(Genus = fct_other(Genus, effluents_Bow))
 
-eff_agg_df_Bow<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_Bow, FUN = sum)
+eff_agg_df_Bow<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_Bow_genus, FUN = sum)
 
 eff_agg_df_Bow$Site_code <- factor(eff_agg_df_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 eff_agg_df_Bow$sample_Family<-factor(eff_agg_df_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
 
-pal <- gg_color_hue(117)
-pal[117] <- "#43464B"
+library(metafolio)
+pal <- gg_color_hue(109)
+pal[109] <- "#43464B"
 
 eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)) +
   geom_bar(stat="identity", color="black") + 
