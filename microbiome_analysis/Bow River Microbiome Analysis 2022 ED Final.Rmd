@@ -5283,20 +5283,6 @@ kruskal.test(Shannon~Site_code, data=div.df.Bow.tetra) #p=0.28
 
 ```{r}
 
-colorado <- function(src, boulder) {
-  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
-  src_levels <- levels(src)                                 # retrieve the levels in their order
-  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
-  if (all(brave)) {                                         # if so
-    b_pos <- purrr::map_int(boulder, ~which(.==src_levels)) # then find out where they are
-    b_vec <- rep("plain", length(src_levels))               # make'm all plain first
-    b_vec[b_pos] <- "bold"                                  # make our targets bold
-    b_vec                                                   # return the new vector
-  } else {
-    stop("All elements of 'boulder' must be in src")
-  }
-}
-
 ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
 
 adiv_ACWA <- data.frame(
@@ -5314,7 +5300,7 @@ shan.plot.taxa.ACWA<-ggplot(adiv_ACWA, aes(x=Site, y=Shannon, fill=Site))+
   geom_boxplot() +
   labs(x = "Site", y = "Shannon Diversity") +
   theme_bw()+
-  theme(legend.position="none", axis.text.x=element_text(angle=45, hjust=1, size=22, color="black", face=colorado(adiv_ACWA$Site, c("EFF5", "EFF15"))),
+  theme(legend.position="none", axis.text.x=element_text(angle=45, hjust=1, size=22, color="black"),
         strip.text.x = element_text(size=22), 
         axis.text.y = element_text(size=22, color="black"), axis.title.x = element_text(size=24), axis.title.y = element_text(size=24))+
   rremove("grid")+
