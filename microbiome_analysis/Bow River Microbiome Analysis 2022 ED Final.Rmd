@@ -92,7 +92,7 @@ library(phyloseqCompanion)
 library(ANCOMBC)
 #devtools::install_github("Russel88/DAtest")
 library(DAtest)
-#remotes::install_github("Russel88/MicEco")
+#remotes::install_github("Russel88/MicEco", force=T)
 library(MicEco)
 library(readxl)
 library(rdacca.hp) #Used to determine importance of each explanatory variable in RDA
@@ -6132,7 +6132,7 @@ Bow_bray_chiro = phyloseq::distance(Bow_rel_abun_chiro, method="bray")
 metadata_Bow_chiro <- data.frame(sample_data(Bow_rel_abun_chiro))
 
 test.adonis.Bow.chiro <- adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
-test.adonis.Bow.chiro #p=0.091. 
+test.adonis.Bow.chiro #p=0.07. 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
@@ -6168,7 +6168,7 @@ Bow_bray_trichop = phyloseq::distance(Bow_rel_abun_trichop, method="bray")
 metadata_Bow_trichop <- data.frame(sample_data(Bow_rel_abun_trichop))
 
 test.adonis.Bow.trichop <- adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-test.adonis.Bow.trichop #p = 0.021
+test.adonis.Bow.trichop #p = 0.013
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
@@ -6211,7 +6211,7 @@ Bow_bray_dip = phyloseq::distance(Bow_rel_abun_dip, method="bray")
 metadata_Bow_dip <- data.frame(sample_data(Bow_rel_abun_dip))
 
 test.adonis.Bow.dip <- adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-test.adonis.Bow.dip #p = 0.162
+test.adonis.Bow.dip #p = 0.179
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
@@ -6253,7 +6253,7 @@ Bow_bray_tetra = phyloseq::distance(Bow_rel_abun_tetra, method="bray")
 metadata_Bow_tetra <- data.frame(sample_data(Bow_rel_abun_tetra))
 
 test.adonis.Bow.tetra <- adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
-test.adonis.Bow.tetra #p = 0.574
+test.adonis.Bow.tetra #p = 0.595
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
@@ -11416,9 +11416,13 @@ ggplot(sample.df.agg.endo_phy_ACWA, aes(x=Sample_ID , y=Abundance, fill=Genus, l
 ```{r}
 #### Filtering for wastewater effluent-associated bacteria and potential pathogens ####
 
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
 Bow_genus<-tax_glom(Bow_ps, taxrank="Genus")
 Bow_genus<-prune_taxa(taxa_sums(Bow_genus)>0, Bow_genus)
 Bow_genus #715
+
+ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")
 
 ACWA_genus<-tax_glom(ACWA_ps, taxrank="Genus")
 ACWA_genus<-prune_taxa(taxa_sums(ACWA_genus)>0, ACWA_genus)
@@ -11447,238 +11451,451 @@ effluent_bac<-subset_taxa(sample_ps, Genus == "AAP99" | Genus=="Achromobacter" |
 effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
 effluent_bac #1327 taxa 316 samples
 
+((sum(sample_sums(effluent_bac)))/(sum(sample_sums(sample_ps)))*100) #9.31%
+
 effluent_Bow<-subset_taxa(Bow_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
 effluent_Bow<-prune_samples(sample_sums(effluent_Bow) > 0, effluent_Bow) 
 effluent_Bow
 
-effluent_Bow_genus<-tax_glom(effluent_Bow, taxrank="Genus")
-effluent_Bow_genus #107
-
-((sum(sample_sums(effluent_Bow)))/(sum(sample_sums(Bow_ps)))*100)
+((sum(sample_sums(effluent_Bow)))/(sum(sample_sums(Bow_ps)))*100) #9.06%
 
 effluent_ACWA<-subset_taxa(ACWA_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
 effluent_ACWA<-prune_samples(sample_sums(effluent_ACWA) > 0, effluent_ACWA) 
 effluent_ACWA
 
-effluent_ACWA_genus<-tax_glom(effluent_ACWA, taxrank="Genus")
-effluent_ACWA_genus<-prune_taxa(taxa_sums(effluent_ACWA) >0, effluent_ACWA)
-effluent_ACWA_genus 
-
-((sum(sample_sums(effluent_ACWA)))/(sum(sample_sums(ACWA_ps)))*100)
-#10.4%
+((sum(sample_sums(effluent_ACWA)))/(sum(sample_sums(ACWA_ps)))*100) #10.4%
 
 #### Cochrane ####
 
-nsamples(cochrane<-subset_samples(sample_ps, Site=="Cochrane")) #65
+# Larvae #
 
-coch_genus = tax_glom(cochrane, "Genus") %>% 
+nsamples(cochrane_lar<-subset_samples(sample_ps, Site=="Cochrane" & Stage=="Larvae")) #28
+
+coch_genus_lar = tax_glom(cochrane_lar, "Genus") %>% 
   transform_sample_counts(function(x) {x * 100/sum(x)}) 
-coch_genus<-prune_taxa(taxa_sums(coch_genus) > 0, coch_genus)
+coch_genus_lar<-prune_taxa(taxa_sums(coch_genus_lar) > 0, coch_genus_lar)
 
-coch_genus_df <- psmelt(coch_genus) %>%  
+coch_genus_df_lar <- psmelt(coch_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-coch_eff<- coch_genus_df %>%
+coch_eff_lar<- coch_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(coch_eff)
+View(coch_eff_lar)
 
-coch_eff$SD_squared ='^'(coch_eff$SD,2)
-coch_eff$SD_squared_divided =(coch_eff$SD_squared/65) 
+coch_eff_lar$SD_squared ='^'(coch_eff_lar$SD,2)
+coch_eff_lar$SD_squared_divided =(coch_eff_lar$SD_squared/28) 
   
-top_means_eff_coch<-aggregate(Mean ~ Genus, data = coch_eff, FUN = sum)
-top_SD_eff_coch<-aggregate(SD_squared_divided ~ Genus, data = coch_eff, FUN = sum)
+top_means_eff_coch_lar<-aggregate(Mean ~ Genus, data = coch_eff_lar, FUN = sum)
+top_SD_eff_coch_lar<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_lar, FUN = sum)
 
-top_eff_coch<-merge(top_means_eff_coch, top_SD_eff_coch, by=c("Genus"))
-top_eff_coch$SD_Final<-sqrt(top_eff_coch$SD_squared_divided)
-View(top_eff_coch)
+top_eff_coch_lar<-merge(top_means_eff_coch_lar, top_SD_eff_coch_lar, by=c("Genus"))
+top_eff_coch_lar$SD_Final<-sqrt(top_eff_coch_lar$SD_squared_divided)
+View(top_eff_coch_lar)
 
 # Finding prevalence of effluent bacteria #
 
-coch_genus_df <- psmelt(coch_genus) %>%  
+coch_genus_df_lar <- psmelt(coch_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
-  coch_eff<- coch_genus_df %>%
+  coch_eff_lar<- coch_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(coch_eff)
+View(coch_eff_lar)
 
+
+# Adults #
+
+nsamples(cochrane_ad<-subset_samples(sample_ps, Site=="Cochrane" & Stage=="Adults")) #21
+
+coch_genus_ad = tax_glom(cochrane_ad, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+coch_genus_ad<-prune_taxa(taxa_sums(coch_genus_ad) > 0, coch_genus_ad)
+
+coch_genus_df_ad <- psmelt(coch_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+coch_eff_ad<- coch_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(coch_eff_ad)
+
+coch_eff_ad$SD_squared ='^'(coch_eff_ad$SD,2)
+coch_eff_ad$SD_squared_divided =(coch_eff_ad$SD_squared/21) 
+  
+top_means_eff_coch_ad<-aggregate(Mean ~ Genus, data = coch_eff_ad, FUN = sum)
+top_SD_eff_coch_ad<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_ad, FUN = sum)
+
+top_eff_coch_ad<-merge(top_means_eff_coch_ad, top_SD_eff_coch_ad, by=c("Genus"))
+top_eff_coch_ad$SD_Final<-sqrt(top_eff_coch_ad$SD_squared_divided)
+View(top_eff_coch_ad)
+
+# Finding prevalence of effluent bacteria #
+
+coch_genus_df_ad <- psmelt(coch_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  coch_eff_ad<- coch_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(coch_eff_ad)
 
 
 #### Sunalta ####
 
-nsamples(sunalta<-subset_samples(sample_ps, Site=="Sunalta")) #46
+# Larvae #
+nsamples(sunalta_lar<-subset_samples(sample_ps, Site=="Sunalta" & Stage=="Larvae")) #15
 
-sun_genus = tax_glom(sunalta, "Genus") %>% 
+sun_genus_lar = tax_glom(sunalta_lar, "Genus") %>% 
   transform_sample_counts(function(x) {x * 100/sum(x)}) 
-sun_genus<-prune_taxa(taxa_sums(sun_genus) > 0, sun_genus)
+sun_genus_lar<-prune_taxa(taxa_sums(sun_genus_lar) > 0, sun_genus_lar)
 
-sun_genus_df <- psmelt(sun_genus) %>%  
+sun_genus_df_lar <- psmelt(sun_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-sun_eff<- sun_genus_df %>%
+sun_eff_lar<- sun_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(sun_eff)
+View(sun_eff_lar)
 
-sun_eff$SD_squared ='^'(sun_eff$SD,2)
-sun_eff$SD_squared_divided =(sun_eff$SD_squared/46) 
+sun_eff_lar$SD_squared ='^'(sun_eff_lar$SD,2)
+sun_eff_lar$SD_squared_divided =(sun_eff_lar$SD_squared/15) 
   
-top_means_eff_sun<-aggregate(Mean ~ Genus, data = sun_eff, FUN = sum)
-top_SD_eff_sun<-aggregate(SD_squared_divided ~ Genus, data = sun_eff, FUN = sum)
+top_means_eff_sun_lar<-aggregate(Mean ~ Genus, data = sun_eff_lar, FUN = sum)
+top_SD_eff_sun_lar<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_lar, FUN = sum)
 
-top_eff_sun<-merge(top_means_eff_sun, top_SD_eff_sun, by=c("Genus"))
-top_eff_sun$SD_Final<-sqrt(top_eff_sun$SD_squared_divided)
-View(top_eff_sun)
+top_eff_sun_lar<-merge(top_means_eff_sun_lar, top_SD_eff_sun_lar, by=c("Genus"))
+top_eff_sun_lar$SD_Final<-sqrt(top_eff_sun_lar$SD_squared_divided)
+View(top_eff_sun_lar)
 
 # Finding prevalence of effluent bacteria #
 
-sun_genus_df <- psmelt(sun_genus) %>%  
+sun_genus_df_lar <- psmelt(sun_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
-  sun_eff<- sun_genus_df %>%
+  sun_eff_lar<- sun_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(sun_eff)
+View(sun_eff_lar)
+
+
+# Adults #
+nsamples(sunalta_ad<-subset_samples(sample_ps, Site=="Sunalta" & Stage=="Adults")) #16
+
+sun_genus_ad = tax_glom(sunalta_ad, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+sun_genus_ad<-prune_taxa(taxa_sums(sun_genus_ad) > 0, sun_genus_ad)
+
+sun_genus_df_ad <- psmelt(sun_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+sun_eff_ad<- sun_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(sun_eff_ad)
+
+sun_eff_ad$SD_squared ='^'(sun_eff_ad$SD,2)
+sun_eff_ad$SD_squared_divided =(sun_eff_ad$SD_squared/16) 
+  
+top_means_eff_sun_ad<-aggregate(Mean ~ Genus, data = sun_eff_ad, FUN = sum)
+top_SD_eff_sun_ad<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_ad, FUN = sum)
+
+top_eff_sun_ad<-merge(top_means_eff_sun_ad, top_SD_eff_sun_ad, by=c("Genus"))
+top_eff_sun_ad$SD_Final<-sqrt(top_eff_sun_ad$SD_squared_divided)
+View(top_eff_sun_ad)
+
+# Finding prevalence of effluent bacteria #
+
+sun_genus_df_ad <- psmelt(sun_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  sun_eff_ad<- sun_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(sun_eff_ad)
 
 #### Cushing Bridge ####
 
-nsamples(cushbr<-subset_samples(sample_ps, Site=="Cushing Bridge")) #61
+# Larvae #
 
-cushbr_genus = tax_glom(cushbr, "Genus") %>% 
+nsamples(cushbr_lar<-subset_samples(sample_ps, Site=="Cushing Bridge" & Stage=="Larvae")) #22
+
+cushbr_genus_lar = tax_glom(cushbr_lar, "Genus") %>% 
   transform_sample_counts(function(x) {x * 100/sum(x)}) 
-cushbr_genus<-prune_taxa(taxa_sums(cushbr_genus) > 0, cushbr_genus)
+cushbr_genus_lar<-prune_taxa(taxa_sums(cushbr_genus_lar) > 0, cushbr_genus_lar)
 
-cushbr_genus_df <- psmelt(cushbr_genus) %>%  
+cushbr_genus_df_lar <- psmelt(cushbr_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-cushbr_eff<- cushbr_genus_df %>%
+cushbr_eff_lar<- cushbr_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(cushbr_eff)
+View(cushbr_eff_lar)
 
-cushbr_eff$SD_squared ='^'(cushbr_eff$SD,2)
-cushbr_eff$SD_squared_divided =(cushbr_eff$SD_squared/61) 
+cushbr_eff_lar$SD_squared ='^'(cushbr_eff_lar$SD,2)
+cushbr_eff_lar$SD_squared_divided =(cushbr_eff_lar$SD_squared/22) 
   
-top_means_eff_cushbr<-aggregate(Mean ~ Genus, data = cushbr_eff, FUN = sum)
-top_SD_eff_cushbr<-aggregate(SD_squared_divided ~ Genus, data = cushbr_eff, FUN = sum)
+top_means_eff_cushbr_lar<-aggregate(Mean ~ Genus, data = cushbr_eff_lar, FUN = sum)
+top_SD_eff_cushbr_lar<-aggregate(SD_squared_divided ~ Genus, data = cushbr_eff_lar, FUN = sum)
 
-top_eff_cushbr<-merge(top_means_eff_cushbr, top_SD_eff_cushbr, by=c("Genus"))
-top_eff_cushbr$SD_Final<-sqrt(top_eff_cushbr$SD_squared_divided)
-View(top_eff_cushbr)
+top_eff_cushbr_lar<-merge(top_means_eff_cushbr_lar, top_SD_eff_cushbr_lar, by=c("Genus"))
+top_eff_cushbr_lar$SD_Final<-sqrt(top_eff_cushbr_lar$SD_squared_divided)
+View(top_eff_cushbr_lar)
 
 # Finding prevalence of effluent bacteria #
 
-cushbr_genus_df <- psmelt(cushbr_genus) %>%  
+cushbr_genus_df_lar <- psmelt(cushbr_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
- cushbr_eff<- cushbr_genus_df %>%
+ cushbr_eff_lar<- cushbr_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(cushbr_eff)
+View(cushbr_eff_lar)
+
+# Adults #
+
+nsamples(cushbr_ad<-subset_samples(sample_ps, Site=="Cushing Bridge" & Stage=="Adults")) #24
+
+cushbr_genus_ad = tax_glom(cushbr_ad, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+cushbr_genus_ad<-prune_taxa(taxa_sums(cushbr_genus_ad) > 0, cushbr_genus_ad)
+
+cushbr_genus_df_ad <- psmelt(cushbr_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+cushbr_eff_ad<- cushbr_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(cushbr_eff_ad)
+
+cushbr_eff_ad$SD_squared ='^'(cushbr_eff_ad$SD,2)
+cushbr_eff_ad$SD_squared_divided =(cushbr_eff_ad$SD_squared/24) 
+  
+top_means_eff_cushbr_ad<-aggregate(Mean ~ Genus, data = cushbr_eff_ad, FUN = sum)
+top_SD_eff_cushbr_ad<-aggregate(SD_squared_divided ~ Genus, data = cushbr_eff_ad, FUN = sum)
+
+top_eff_cushbr_ad<-merge(top_means_eff_cushbr_ad, top_SD_eff_cushbr_ad, by=c("Genus"))
+top_eff_cushbr_ad$SD_Final<-sqrt(top_eff_cushbr_ad$SD_squared_divided)
+View(top_eff_cushbr_ad)
+
+# Finding prevalence of effluent bacteria #
+
+cushbr_genus_df_ad <- psmelt(cushbr_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+ cushbr_eff_ad<- cushbr_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(cushbr_eff_ad)
 
 #### Graves Bridge ####
 
-nsamples(grvbr<-subset_samples(sample_ps, Site=="Graves Bridge")) #47
+# Larvae #
 
-grvbr_genus = tax_glom(grvbr, "Genus") %>% 
+nsamples(grvbr_lar<-subset_samples(sample_ps, Site=="Graves Bridge" & Stage=="Larvae")) #16
+
+grvbr_genus_lar = tax_glom(grvbr_lar, "Genus") %>% 
   transform_sample_counts(function(x) {x * 100/sum(x)}) 
-grvbr_genus<-prune_taxa(taxa_sums(grvbr_genus) > 0, grvbr_genus)
+grvbr_genus_lar<-prune_taxa(taxa_sums(grvbr_genus_lar) > 0, grvbr_genus_lar)
 
-grvbr_genus_df <- psmelt(grvbr_genus) %>%  
+grvbr_genus_df_lar <- psmelt(grvbr_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-grvbr_eff<- grvbr_genus_df %>%
+grvbr_eff_lar<- grvbr_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(grvbr_eff)
+View(grvbr_eff_lar)
 
-grvbr_eff$SD_squared ='^'(grvbr_eff$SD,2)
-grvbr_eff$SD_squared_divided =(grvbr_eff$SD_squared/47) 
+grvbr_eff_lar$SD_squared ='^'(grvbr_eff_lar$SD,2)
+grvbr_eff_lar$SD_squared_divided =(grvbr_eff_lar$SD_squared/16) 
   
-top_means_eff_grvbr<-aggregate(Mean ~ Genus, data = grvbr_eff, FUN = sum)
-top_SD_eff_grvbr<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff, FUN = sum)
+top_means_eff_grvbr_lar<-aggregate(Mean ~ Genus, data = grvbr_eff_lar, FUN = sum)
+top_SD_eff_grvbr_lar<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_lar, FUN = sum)
 
-top_eff_grvbr<-merge(top_means_eff_grvbr, top_SD_eff_grvbr, by=c("Genus"))
-top_eff_grvbr$SD_Final<-sqrt(top_eff_grvbr$SD_squared_divided)
-View(top_eff_grvbr)
+top_eff_grvbr_lar<-merge(top_means_eff_grvbr_lar, top_SD_eff_grvbr_lar, by=c("Genus"))
+top_eff_grvbr_lar$SD_Final<-sqrt(top_eff_grvbr_lar$SD_squared_divided)
+View(top_eff_grvbr_lar)
 
 # Finding prevalence of effluent bacteria #
 
-grvbr_genus_df <- psmelt(grvbr_genus) %>%  
+grvbr_genus_df_lar <- psmelt(grvbr_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
-grvbr_eff<- grvbr_genus_df %>%
+grvbr_eff_lar<- grvbr_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(grvbr_eff)
+View(grvbr_eff_lar)
+
+# Adults #
+
+nsamples(grvbr_ad<-subset_samples(sample_ps, Site=="Graves Bridge" & Stage=="Adults")) #15
+
+grvbr_genus_ad = tax_glom(grvbr_ad, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+grvbr_genus_ad<-prune_taxa(taxa_sums(grvbr_genus_ad) > 0, grvbr_genus_ad)
+
+grvbr_genus_df_ad <- psmelt(grvbr_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+grvbr_eff_ad<- grvbr_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(grvbr_eff_ad)
+
+grvbr_eff_ad$SD_squared ='^'(grvbr_eff_ad$SD,2)
+grvbr_eff_ad$SD_squared_divided =(grvbr_eff_ad$SD_squared/15) 
+  
+top_means_eff_grvbr_ad<-aggregate(Mean ~ Genus, data = grvbr_eff_ad, FUN = sum)
+top_SD_eff_grvbr_ad<-aggregate(SD_squared_divided ~ Genus, data = grvbr_eff_ad, FUN = sum)
+
+top_eff_grvbr_ad<-merge(top_means_eff_grvbr_ad, top_SD_eff_grvbr_ad, by=c("Genus"))
+top_eff_grvbr_ad$SD_Final<-sqrt(top_eff_grvbr_ad$SD_squared_divided)
+View(top_eff_grvbr_ad)
+
+# Finding prevalence of effluent bacteria #
+
+grvbr_genus_df_ad <- psmelt(grvbr_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+grvbr_eff_ad<- grvbr_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(grvbr_eff_ad)
 
 
 #### Policeman Flats ####
 
-nsamples(pmf<-subset_samples(sample_ps, Site=="Policeman Flats")) #57
+# Larvae #
 
-pmf_genus = tax_glom(pmf, "Genus") %>% 
+nsamples(pmf_lar<-subset_samples(sample_ps, Site=="Policeman Flats" & Stage=="Larvae")) #29
+
+pmf_genus_lar = tax_glom(pmf_lar, "Genus") %>% 
   transform_sample_counts(function(x) {x * 100/sum(x)}) 
-pmf_genus<-prune_taxa(taxa_sums(pmf_genus) > 0, pmf_genus)
+pmf_genus_lar<-prune_taxa(taxa_sums(pmf_genus_lar) > 0, pmf_genus_lar)
 
-pmf_genus_df <- psmelt(pmf_genus) %>%  
+pmf_genus_df_lar <- psmelt(pmf_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-pmf_eff<- pmf_genus_df %>%
+pmf_eff_lar<- pmf_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(pmf_eff)
+View(pmf_eff_lar)
 
-pmf_eff$SD_squared ='^'(pmf_eff$SD,2)
-pmf_eff$SD_squared_divided =(pmf_eff$SD_squared/57) 
+pmf_eff_lar$SD_squared ='^'(pmf_eff_lar$SD,2)
+pmf_eff_lar$SD_squared_divided =(pmf_eff_lar$SD_squared/29) 
   
-top_means_eff_pmf<-aggregate(Mean ~ Genus, data = pmf_eff, FUN = sum)
-top_SD_eff_pmf<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff, FUN = sum)
+top_means_eff_pmf_lar<-aggregate(Mean ~ Genus, data = pmf_eff_lar, FUN = sum)
+top_SD_eff_pmf_lar<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_lar, FUN = sum)
 
-top_eff_pmf<-merge(top_means_eff_pmf, top_SD_eff_pmf, by=c("Genus"))
-top_eff_pmf$SD_Final<-sqrt(top_eff_pmf$SD_squared_divided)
-View(top_eff_pmf)
+top_eff_pmf_lar<-merge(top_means_eff_pmf_lar, top_SD_eff_pmf_lar, by=c("Genus"))
+top_eff_pmf_lar$SD_Final<-sqrt(top_eff_pmf_lar$SD_squared_divided)
+View(top_eff_pmf_lar)
 
 # Finding prevalence of effluent bacteria #
 
-pmf_genus_df <- psmelt(pmf_genus) %>%  
+pmf_genus_df_lar <- psmelt(pmf_genus_lar) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
-pmf_eff<- pmf_genus_df %>%
+pmf_eff_lar<- pmf_genus_df_lar %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(pmf_eff)
+View(pmf_eff_lar)
+
+# Adults #
+
+nsamples(pmf_ad<-subset_samples(sample_ps, Site=="Policeman Flats" & Stage=="Adults")) #14
+
+pmf_genus_ad = tax_glom(pmf_ad, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+pmf_genus_ad<-prune_taxa(taxa_sums(pmf_genus_ad) > 0, pmf_genus_ad)
+
+pmf_genus_df_ad <- psmelt(pmf_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+pmf_eff_ad<- pmf_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(pmf_eff_ad)
+
+pmf_eff_ad$SD_squared ='^'(pmf_eff_ad$SD,2)
+pmf_eff_ad$SD_squared_divided =(pmf_eff_ad$SD_squared/14) 
+  
+top_means_eff_pmf_ad<-aggregate(Mean ~ Genus, data = pmf_eff_ad, FUN = sum)
+top_SD_eff_pmf_ad<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_ad, FUN = sum)
+
+top_eff_pmf_ad<-merge(top_means_eff_pmf_ad, top_SD_eff_pmf_ad, by=c("Genus"))
+top_eff_pmf_ad$SD_Final<-sqrt(top_eff_pmf_ad$SD_squared_divided)
+View(top_eff_pmf_ad)
+
+# Finding prevalence of effluent bacteria #
+
+pmf_genus_df_ad <- psmelt(pmf_genus_ad) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+pmf_eff_ad<- pmf_genus_df_ad %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(pmf_eff_ad)
 
 #### REF ACWA Stream ####
 
@@ -11805,1245 +12022,6 @@ EFF15_eff<- EFF15_genus_df %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
 View(EFF15_eff)
-
-
-#### Hydropsychidae larvae ####
-
-nsamples(hydro_Bow<-subset_samples(Bow_ps, Family=="Hydropsychidae")) #36
-
-# Cochrane #
-
-nsamples(hydro_coch<-subset_samples(hydro_Bow, Site=="Cochrane")) #8
-
-hydro_coch_genus = tax_glom(hydro_coch, "Genus") %>% 
-  transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_coch_genus<-prune_taxa(taxa_sums(hydro_coch_genus) > 0, hydro_coch_genus)
-
-hydro_coch_genus_df <- psmelt(hydro_coch_genus) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
-
-hydro_coch_eff<- hydro_coch_genus_df %>%
-  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
-  ungroup()
-View(hydro_coch_eff)
-
-hydro_coch_eff$SD_squared ='^'(hydro_coch_eff$SD,2)
-hydro_coch_eff$SD_squared_divided =(hydro_coch_eff$SD_squared/36) 
-  
-hydro_top_means_eff_coch<-aggregate(Mean ~ Genus, data = hydro_coch_eff, FUN = sum)
-hydro_top_SD_eff_coch<-aggregate(SD_squared_divided ~ Genus, data = hydro_coch_eff, FUN = sum)
-
-hydro_top_eff_coch<-merge(hydro_top_means_eff_coch, hydro_top_SD_eff_coch, by=c("Genus"))
-hydro_top_eff_coch$SD_Final<-sqrt(hydro_top_eff_coch$SD_squared_divided)
-View(hydro_top_eff_coch)
-
-
-#Top 3 most abundant effluent associated bacteria from Hydropsychidae larvae
-
-hydro_eff_Bow<-subset_samples(effluent_bac, Family=="Hydropsychidae" & Stream_Type=="Bow River") 
-hydro_eff_Bow<-hydro_eff_Bow(prune_taxa(taxa_sums) > 0, hydro_eff_Bow)
-hydro_eff_Bow
-
-hydro_eff_Bow_glom = tax_glom(hydro_eff_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
-
-hydro_eff_Bow_genus <- psmelt(hydro_eff_Bow_glom) %>% #Transform to dataframe and summarize to get the mean and standard deviation. 
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>% ungroup  #Top 3 most abundant phyla across all sites (Rhodoferax, Pseudorhodobacter, Rhizorhapis)
-
-
-# Cochrane #
-
-nsamples(hydro_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Hydropsychidae")) #8
-
-hydro_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Hydropsychidae")
-hydro_eff_coch<-prune_taxa(taxa_sums(hydro_eff_coch) > 0, hydro_eff_coch) 
-hydro_eff_coch #105 taxa, 8 samples = 100% prevalence
-
-sample_sums(hydro_eff_coch) #100% prevalence
-
-hydro_eff_coch_glom = tax_glom(hydro_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_coch_glom<-prune_taxa(taxa_sums(hydro_eff_coch_glom) > 0, hydro_eff_coch_glom)
-
-hydro_eff_coch_genus <- psmelt(hydro_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_coch<-hydro_eff_coch_genus$Genus[1:3]
-
-coch_eff_hydro<- hydro_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_coch))
-View(coch_eff_hydro)
-
-# Sunalta #
-nsamples(hydro_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Hydropsychidae")) #7
-
-hydro_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Hydropsychidae")
-hydro_eff_sun<-prune_taxa(taxa_sums(hydro_eff_sun) > 0, hydro_eff_sun) 
-hydro_eff_sun #92 taxa, 7 samples = 100% prevalence
-
-sample_sums(hydro_eff_sun) #100% prevalence
-
-hydro_eff_sun_glom = tax_glom(hydro_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_sun_glom<-prune_taxa(taxa_sums(hydro_eff_sun_glom) > 0, hydro_eff_sun_glom)
-
-hydro_eff_sun_genus <- psmelt(hydro_eff_sun_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_sun<-hydro_eff_sun_genus$Genus[1:3]
-
-sun_eff_hydro<- hydro_eff_sun_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_sun))
-View(sun_eff_hydro)
-
-# Cushing Bridge #
-nsamples(hydro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Hydropsychidae")) #5
-
-hydro_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Hydropsychidae")
-hydro_eff_cush<-prune_taxa(taxa_sums(hydro_eff_cush) > 0, hydro_eff_cush) 
-hydro_eff_cush #101 taxa, 5 samples = 100% prevalence
-
-sample_sums(hydro_eff_cush) #100% prevalence
-
-hydro_eff_cush_glom = tax_glom(hydro_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_cush_glom<-prune_taxa(taxa_sums(hydro_eff_cush_glom) > 0, hydro_eff_cush_glom)
-
-hydro_eff_cush_genus <- psmelt(hydro_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_cush<-hydro_eff_cush_genus$Genus[1:3]
-
-cush_eff_hydro<- hydro_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_cush))
-View(cush_eff_hydro)
-
-# Graves Bridge #
-nsamples(hydro_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Hydropsychidae")) #8
-
-hydro_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Hydropsychidae")
-hydro_eff_grvbr<-prune_taxa(taxa_sums(hydro_eff_grvbr) > 0, hydro_eff_grvbr) 
-hydro_eff_grvbr #194 taxa, 8 samples = 100% prevalence
-
-sample_sums(hydro_eff_grvbr) #100% prevalence
-
-hydro_eff_grvbr_glom = tax_glom(hydro_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_grvbr_glom<-prune_taxa(taxa_sums(hydro_eff_grvbr_glom) > 0, hydro_eff_grvbr_glom)
-
-hydro_eff_grvbr_genus <- psmelt(hydro_eff_grvbr_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_grvbr<-hydro_eff_grvbr_genus$Genus[1:3]
-
-grvbr_eff_hydro<- hydro_eff_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_grvbr))
-View(grvbr_eff_hydro)
-
-# Policeman Flats #
-nsamples(hydro_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Hydropsychidae")) #8
-
-hydro_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Hydropsychidae")
-hydro_eff_pmf<-prune_taxa(taxa_sums(hydro_eff_pmf) > 0, hydro_eff_pmf) 
-hydro_eff_pmf #186 taxa, 8 samples = 100% prevalence
-
-sample_sums(hydro_eff_pmf) #100% prevalence
-
-hydro_eff_pmf_glom = tax_glom(hydro_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_pmf_glom<-prune_taxa(taxa_sums(hydro_eff_pmf_glom) > 0, hydro_eff_pmf_glom)
-
-hydro_eff_pmf_genus <- psmelt(hydro_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_pmf<-hydro_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_hydro<- hydro_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_pmf))
-View(pmf_eff_hydro)
-
-
-#### Hydropsychidae ACWA ####
-
-hydro_eff_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River" & Family=="Hydropsychidae")
-hydro_eff_ACWA<-prune_taxa(taxa_sums(hydro_eff_ACWA) > 0, hydro_eff_ACWA) 
-hydro_eff_ACWA #296 taxa, 24 samples
-
-# REF #
-
-hydro_eff_REF<-subset_samples(hydro_eff_ACWA, Site=="BRR2")
-hydro_eff_REF<-prune_taxa(taxa_sums(hydro_eff_REF) > 0, hydro_eff_REF) 
-hydro_eff_REF #181 taxa, 8 samples
-
-sample_sums(hydro_eff_REF) #100% prevalence
-
-hydro_eff_REF_glom = tax_glom(hydro_eff_REF, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_REF_glom<-prune_taxa(taxa_sums(hydro_eff_REF_glom) > 0, hydro_eff_REF_glom)
-
-hydro_eff_REF_genus <- psmelt(hydro_eff_REF_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_REF<-hydro_eff_REF_genus$Genus[1:3]
-
-REF_eff_hydro<- hydro_eff_REF_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_REF))
-View(REF_eff_hydro)
-
-# EFF5 #
-
-hydro_eff_EFF5<-subset_samples(hydro_eff_ACWA, Site=="PCR1")
-hydro_eff_EFF5<-prune_taxa(taxa_sums(hydro_eff_EFF5) > 0, hydro_eff_EFF5) 
-hydro_eff_EFF5 #230 taxa, 8 samples
-
-sample_sums(hydro_eff_EFF5) #100% prevalence
-
-hydro_eff_EFF5_glom = tax_glom(hydro_eff_EFF5, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_EFF5_glom<-prune_taxa(taxa_sums(hydro_eff_EFF5_glom) > 0, hydro_eff_EFF5_glom)
-
-hydro_eff_EFF5_genus <- psmelt(hydro_eff_EFF5_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_EFF5<-hydro_eff_EFF5_genus$Genus[1:3]
-
-EFF5_eff_hydro<- hydro_eff_EFF5_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_EFF5))
-View(EFF5_eff_hydro)
-
-# EFF15 #
-
-hydro_eff_EFF15<-subset_samples(hydro_eff_ACWA, Site=="PCR3")
-hydro_eff_EFF15<-prune_taxa(taxa_sums(hydro_eff_EFF15) > 0, hydro_eff_EFF15) 
-hydro_eff_EFF15 #172 taxa, 8 samples
-
-sample_sums(hydro_eff_EFF15) #100% prevalence
-
-hydro_eff_EFF15_glom = tax_glom(hydro_eff_EFF15, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hydro_eff_EFF15_glom<-prune_taxa(taxa_sums(hydro_eff_EFF15_glom) > 0, hydro_eff_EFF15_glom)
-
-hydro_eff_EFF15_genus <- psmelt(hydro_eff_EFF15_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hydro_EFF15<-hydro_eff_EFF15_genus$Genus[1:3]
-
-EFF15_eff_hydro<- hydro_eff_EFF15_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hydro_EFF15))
-View(EFF15_eff_hydro)
-
-#### Heptageniidae larvae ####
-# Cochrane #
-
-nsamples(hep_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Heptageniidae")) #8
-
-hep_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Heptageniidae")
-hep_eff_coch<-prune_taxa(taxa_sums(hep_eff_coch) > 0, hep_eff_coch) 
-hep_eff_coch #247 taxa, 8 samples = 100% prevalence
-
-sample_sums(hep_eff_coch) #Present in all 8 samples (100% prevalence)
-
-hep_eff_coch_glom = tax_glom(hep_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hep_eff_coch_glom<-prune_taxa(taxa_sums(hep_eff_coch_glom) > 0, hep_eff_coch_glom)
-
-hep_eff_coch_genus <- psmelt(hep_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hep_coch<-hep_eff_coch_genus$Genus[1:3]
-
-coch_eff_hep<- hep_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_coch))
-View(coch_eff_hep)
-
-
-# Sunalta #
-
-nsamples(hep_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Heptageniidae")) #8
-
-hep_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Heptageniidae")
-hep_eff_sun<-prune_taxa(taxa_sums(hep_eff_sun) > 0, hep_eff_sun) 
-hep_eff_sun #273 taxa, 8 samples = 100% prevalence
-
-sample_sums(hep_eff_sun) #Present in all 8 samples (100% prevalence)
-
-hep_eff_sun_glom = tax_glom(hep_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hep_eff_sun_glom<-prune_taxa(taxa_sums(hep_eff_sun_glom) > 0, hep_eff_sun_glom)
-
-hep_eff_sun_genus <- psmelt(hep_eff_sun_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hep_sun<-hep_eff_sun_genus$Genus[1:3]
-
-sun_eff_hep<- hep_eff_sun_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_sun))
-View(sun_eff_hep)
-
-
-# Cushing Bridge #
-
-nsamples(hep_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Heptageniidae")) #8
-
-hep_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Heptageniidae")
-hep_eff_cush<-prune_taxa(taxa_sums(hep_eff_cush) > 0, hep_eff_cush) 
-hep_eff_cush #227 taxa, 8 samples = 100% prevalence
-
-sample_sums(hep_eff_cush) #100% prevalence
-
-
-hep_eff_cush_glom = tax_glom(hep_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hep_eff_cush_glom<-prune_taxa(taxa_sums(hep_eff_cush_glom) > 0, hep_eff_cush_glom)
-
-hep_eff_cush_genus <- psmelt(hep_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hep_cush<-hep_eff_cush_genus$Genus[1:3]
-
-cush_eff_hep<- hep_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_cush))
-View(cush_eff_hep)
-
-
-# Graves Bridge #
-
-nsamples(hep_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Heptageniidae")) #8
-
-hep_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Heptageniidae")
-hep_eff_grvbr<-prune_taxa(taxa_sums(hep_eff_grvbr) > 0, hep_eff_grvbr) 
-hep_eff_grvbr #246 taxa, 8 samples = 100% prevalence
-
-sample_sums(hep_eff_grvbr) #100% prevalence
-
-hep_eff_grvbr_glom = tax_glom(hep_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hep_eff_grvbr_glom<-prune_taxa(taxa_sums(hep_eff_grvbr_glom) > 0, hep_eff_grvbr_glom)
-
-hep_eff_grvbr_genus <- psmelt(hep_eff_grvbr_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hep_grvbr<-hep_eff_grvbr_genus$Genus[1:3]
-
-grvbr_eff_hep<- hep_eff_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_grvbr))
-View(grvbr_eff_hep)
-
-
-# Policeman Flats #
-
-nsamples(hep_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Heptageniidae")) #8
-
-hep_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Heptageniidae")
-hep_eff_pmf<-prune_taxa(taxa_sums(hep_eff_pmf) > 0, hep_eff_pmf) 
-hep_eff_pmf #336 taxa, 8 samples = 100% prevalence
-
-sample_sums(hep_eff_pmf) #100% prevalence
-
-hep_eff_pmf_glom = tax_glom(hep_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-hep_eff_pmf_glom<-prune_taxa(taxa_sums(hep_eff_pmf_glom) > 0, hep_eff_pmf_glom)
-
-hep_eff_pmf_genus <- psmelt(hep_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_hep_pmf<-hep_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_hep<- hep_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_hep_pmf))
-View(pmf_eff_hep)
-
-#### Baetidae ACWA ####
-
-eff_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River")
-
-# EFF5 #
-
-baetid_eff_EFF5<-subset_samples(eff_ACWA, Site=="PCR1" & Family=="Baetidae")
-baetid_eff_EFF5<-prune_taxa(taxa_sums(baetid_eff_EFF5) > 0, baetid_eff_EFF5) 
-baetid_eff_EFF5 #215 taxa, 8 samples
-
-sample_sums(baetid_eff_EFF5) #100% prevalence
-
-baetid_eff_EFF5_glom = tax_glom(baetid_eff_EFF5, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-baetid_eff_EFF5_glom<-prune_taxa(taxa_sums(baetid_eff_EFF5_glom) > 0, baetid_eff_EFF5_glom)
-
-baetid_eff_EFF5_genus <- psmelt(baetid_eff_EFF5_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_baetid_EFF5<-baetid_eff_EFF5_genus$Genus[1:3]
-
-EFF5_eff_baetid<- baetid_eff_EFF5_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_baetid_EFF5))
-View(EFF5_eff_baetid)
-
-
-# EFF15 #
-
-baetid_eff_EFF15<-subset_samples(eff_ACWA, Site=="PCR3" & Family=="Baetidae")
-baetid_eff_EFF15<-prune_taxa(taxa_sums(baetid_eff_EFF15) > 0, baetid_eff_EFF15) 
-baetid_eff_EFF15 #203 taxa, 7 samples
-
-sample_sums(baetid_eff_EFF15) #100% prevalence
-
-baetid_eff_EFF15_glom = tax_glom(baetid_eff_EFF15, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-baetid_eff_EFF15_glom<-prune_taxa(taxa_sums(baetid_eff_EFF15_glom) > 0, baetid_eff_EFF15_glom)
-
-baetid_eff_EFF15_genus <- psmelt(baetid_eff_EFF15_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_baetid_EFF15<-baetid_eff_EFF15_genus$Genus[1:3]
-
-EFF15_eff_baetid<- baetid_eff_EFF15_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_baetid_EFF15))
-View(EFF15_eff_baetid)
-
-
-#### Chironomidae larvae ####
-
-# Cochrane #
-
-nsamples(perl_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Chironomidae")) #4
-
-chiro_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Chironomidae")
-chiro_eff_coch<-prune_taxa(taxa_sums(chiro_eff_coch) > 0, chiro_eff_coch) 
-chiro_eff_coch #64 taxa, 4 samples = 100% prevalence
-
-sample_sums(chiro_eff_coch) #100% prevalence
-
-chiro_eff_coch_glom = tax_glom(chiro_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-chiro_eff_coch_glom<-prune_taxa(taxa_sums(chiro_eff_coch_glom) > 0, chiro_eff_coch_glom)
-
-chiro_eff_coch_genus <- psmelt(chiro_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_chiro_coch<-chiro_eff_coch_genus$Genus[1:3]
-
-coch_eff_chiro<- chiro_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_chiro_coch))
-View(coch_eff_chiro)
-
-
-# Cushing Bridge #
-
-nsamples(chiro_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Chironomidae")) #4
-
-chiro_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Chironomidae")
-chiro_eff_cush<-prune_taxa(taxa_sums(chiro_eff_cush) > 0, chiro_eff_cush) 
-chiro_eff_cush #102 taxa, 4 samples = 100% prevalence
-
-sample_sums(chiro_eff_cush) #100% prevalence
-
-chiro_eff_cush_glom = tax_glom(chiro_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-chiro_eff_cush_glom<-prune_taxa(taxa_sums(chiro_eff_cush_glom) > 0, chiro_eff_cush_glom)
-
-chiro_eff_cush_genus <- psmelt(chiro_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_chiro_cush<-chiro_eff_cush_genus$Genus[1:3]
-
-cush_eff_chiro<- chiro_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_chiro_cush))
-View(cush_eff_chiro)
-
-
-# Policeman Flats #
-
-nsamples(chiro_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Chironomidae")) #5
-
-chiro_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Chironomidae")
-chiro_eff_pmf<-prune_taxa(taxa_sums(chiro_eff_pmf) > 0, chiro_eff_pmf) 
-chiro_eff_pmf #145 taxa, 5 samples = 100% prevalence
-
-
-chiro_eff_pmf_glom = tax_glom(chiro_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-chiro_eff_pmf_glom<-prune_taxa(taxa_sums(chiro_eff_pmf_glom) > 0, chiro_eff_pmf_glom)
-
-chiro_eff_pmf_genus <- psmelt(chiro_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_chiro_pmf<-chiro_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_chiro<- chiro_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_chiro_pmf))
-View(pmf_eff_chiro)
-
-
-#### Perlidae larvae ####
-
-# Cochrane #
-
-nsamples(perl_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Perlidae")) #8
-
-perl_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Perlidae")
-perl_eff_coch<-prune_taxa(taxa_sums(perl_eff_coch) > 0, perl_eff_coch) 
-perl_eff_coch #116 taxa, 8 samples = 100% prevalence
-
-sample_sums(perl_eff_coch) #100% prevalence
-
-perl_eff_coch_glom = tax_glom(perl_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-perl_eff_coch_glom<-prune_taxa(taxa_sums(perl_eff_coch_glom) > 0, perl_eff_coch_glom)
-
-perl_eff_coch_genus <- psmelt(perl_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_perl_coch<-perl_eff_coch_genus$Genus[1:3]
-
-coch_eff_perl<- perl_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_perl_coch))
-View(coch_eff_perl)
-
-
-# Cushing Bridge #
-
-nsamples(perl_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Perlidae")) #5
-
-perl_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Perlidae")
-perl_eff_cush<-prune_taxa(taxa_sums(perl_eff_cush) > 0, perl_eff_cush) 
-perl_eff_cush #228 taxa, 5 samples = 100% prevalence
-
-sample_sums(perl_eff_cush) #100% prevalence
-
-perl_eff_cush_glom = tax_glom(perl_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-perl_eff_cush_glom<-prune_taxa(taxa_sums(perl_eff_cush_glom) > 0, perl_eff_cush_glom)
-
-perl_eff_cush_genus <- psmelt(perl_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_perl_cush<-perl_eff_cush_genus$Genus[1:3]
-
-cush_eff_perl<- perl_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_perl_cush))
-View(cush_eff_perl)
-
-
-# Policeman Flats #
-
-nsamples(perl_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Perlidae")) #8
-
-perl_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Perlidae")
-perl_eff_pmf<-prune_taxa(taxa_sums(perl_eff_pmf) > 0, perl_eff_pmf) 
-perl_eff_pmf #162 taxa, 8 samples = 100% prevalence
-
-
-perl_eff_pmf_glom = tax_glom(perl_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-perl_eff_pmf_glom<-prune_taxa(taxa_sums(perl_eff_pmf_glom) > 0, perl_eff_pmf_glom)
-
-perl_eff_pmf_genus <- psmelt(perl_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_perl_pmf<-perl_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_perl<- perl_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_perl_pmf))
-View(pmf_eff_perl)
-
-
-#### Trichoptera ####
-# Cochrane #
-
-nsamples(trichop_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Trichoptera")) #8
-
-trichop_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Trichoptera")
-trichop_eff_coch<-prune_taxa(taxa_sums(trichop_eff_coch) > 0, trichop_eff_coch) 
-trichop_eff_coch #159 taxa, 7 samples = 87.5% prevalence
-
-trichop_eff_coch_glom = tax_glom(trichop_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-trichop_eff_coch_glom<-prune_taxa(taxa_sums(trichop_eff_coch_glom) > 0, trichop_eff_coch_glom)
-
-trichop_eff_coch_genus <- psmelt(trichop_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_trichop_coch<-trichop_eff_coch_genus$Genus[1:3]
-
-coch_eff_trichop<- trichop_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_coch))
-View(coch_eff_trichop)
-
-
-# Sunalta #
-
-nsamples(trichop_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Trichoptera")) #8
-
-trichop_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Trichoptera")
-trichop_eff_sun<-prune_taxa(taxa_sums(trichop_eff_sun) > 0, trichop_eff_sun) 
-trichop_eff_sun #112 taxa, 7 samples = 87.5% prevalence
-
-trichop_eff_sun_glom = tax_glom(trichop_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-trichop_eff_sun_glom<-prune_taxa(taxa_sums(trichop_eff_sun_glom) > 0, trichop_eff_sun_glom)
-
-trichop_eff_sun_genus <- psmelt(trichop_eff_sun_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_trichop_sun<-trichop_eff_sun_genus$Genus[1:3]
-
-sun_eff_trichop<- trichop_eff_sun_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_sun))
-View(sun_eff_trichop)
-
-
-# Cushing Bridge #
-
-nsamples(trichop_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Trichoptera")) #8
-
-trichop_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Trichoptera")
-trichop_eff_cush<-prune_taxa(taxa_sums(trichop_eff_cush) > 0, trichop_eff_cush) 
-trichop_eff_cush #178 taxa, 7 samples = 87.5% prevalence
-
-trichop_eff_cush_glom = tax_glom(trichop_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-trichop_eff_cush_glom<-prune_taxa(taxa_sums(trichop_eff_cush_glom) > 0, trichop_eff_cush_glom)
-
-trichop_eff_cush_genus <- psmelt(trichop_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_trichop_cush<-trichop_eff_cush_genus$Genus[1:3]
-
-cush_eff_trichop<- trichop_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_cush))
-View(cush_eff_trichop)
-
-
-# Graves Bridge #
-
-nsamples(trichop_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Trichoptera")) #7
-
-trichop_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Trichoptera")
-trichop_eff_grvbr<-prune_taxa(taxa_sums(trichop_eff_grvbr) > 0, trichop_eff_grvbr) 
-trichop_eff_grvbr #166 taxa, 7 samples = 100% prevalence
-
-sample_sums(trichop_eff_grvbr) #100% prevalence
-
-trichop_eff_grvbr_glom = tax_glom(trichop_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-trichop_eff_grvbr_glom<-prune_taxa(taxa_sums(trichop_eff_grvbr_glom) > 0, trichop_eff_grvbr_glom)
-
-trichop_eff_grvbr_genus <- psmelt(trichop_eff_grvbr_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_trichop_grvbr<-trichop_eff_grvbr_genus$Genus[1:3]
-
-grvbr_eff_trichop<- trichop_eff_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_trichop_grvbr))
-View(grvbr_eff_trichop)
-
-
-#### Ephemeroptera Bow ####
-# Cochrane #
-nsamples(ephem_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Ephemeroptera")) #8
-
-ephem_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Ephemeroptera")
-ephem_eff_coch<-prune_taxa(taxa_sums(ephem_eff_coch) > 0, ephem_eff_coch) 
-ephem_eff_coch #89 taxa, 8 samples = 100% prevalence
-
-sample_sums(ephem_eff_coch) #100% prevalence
-
-ephem_eff_coch_glom = tax_glom(ephem_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_coch_glom<-prune_taxa(taxa_sums(ephem_eff_coch_glom) > 0, ephem_eff_coch_glom)
-
-ephem_eff_coch_genus <- psmelt(ephem_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_coch<-ephem_eff_coch_genus$Genus[1:3]
-
-coch_eff_ephem<- ephem_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_coch))
-View(coch_eff_ephem)
-
-
-# Sunalta #
-
-nsamples(ephem_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Ephemeroptera")) #8
-
-ephem_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Ephemeroptera")
-ephem_eff_sun<-prune_taxa(taxa_sums(ephem_eff_sun) > 0, ephem_eff_sun) 
-ephem_eff_sun #112 taxa, 8 samples = 100% prevalence
-
-
-ephem_eff_sun_glom = tax_glom(ephem_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_sun_glom<-prune_taxa(taxa_sums(ephem_eff_sun_glom) > 0, ephem_eff_sun_glom)
-
-ephem_eff_sun_genus <- psmelt(ephem_eff_sun_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_sun<-ephem_eff_sun_genus$Genus[1:3]
-
-sun_eff_ephem<- ephem_eff_sun_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_sun))
-View(sun_eff_ephem)
-
-
-# Cushing Bridge #
-
-nsamples(ephem_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Ephemeroptera")) #8
-
-ephem_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Ephemeroptera")
-ephem_eff_cush<-prune_taxa(taxa_sums(ephem_eff_cush) > 0, ephem_eff_cush) 
-ephem_eff_cush #75 taxa, 5 samples = 62.5% prevalence
-
-
-ephem_eff_cush_glom = tax_glom(ephem_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_cush_glom<-prune_taxa(taxa_sums(ephem_eff_cush_glom) > 0, ephem_eff_cush_glom)
-
-ephem_eff_cush_genus <- psmelt(ephem_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_cush<-ephem_eff_cush_genus$Genus[1:3]
-
-cush_eff_ephem<- ephem_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_cush))
-View(cush_eff_ephem)
-
-
-# Graves Bridge #
-
-nsamples(ephem_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Ephemeroptera")) #8
-
-ephem_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Ephemeroptera")
-ephem_eff_grvbr<-prune_taxa(taxa_sums(ephem_eff_grvbr) > 0, ephem_eff_grvbr) 
-ephem_eff_grvbr #86 taxa, 8 samples = 100% prevalence
-
-sample_sums(ephem_eff_grvbr) #100% prevalence
-
-ephem_eff_grvbr_glom = tax_glom(ephem_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_grvbr_glom<-prune_taxa(taxa_sums(ephem_eff_grvbr_glom) > 0, ephem_eff_grvbr_glom)
-
-ephem_eff_grvbr_genus <- psmelt(ephem_eff_grvbr_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_grvbr<-ephem_eff_grvbr_genus$Genus[1:3]
-
-grvbr_eff_ephem<- ephem_eff_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_grvbr))
-View(grvbr_eff_ephem)
-
-
-# Policeman Flats #
-
-nsamples(ephem_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Ephemeroptera")) #8
-
-ephem_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Ephemeroptera")
-ephem_eff_pmf<-prune_taxa(taxa_sums(ephem_eff_pmf) > 0, ephem_eff_pmf) 
-ephem_eff_pmf #121 taxa, 7 samples = 87.5% prevalence
-
-
-ephem_eff_pmf_glom = tax_glom(ephem_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_pmf_glom<-prune_taxa(taxa_sums(ephem_eff_pmf_glom) > 0, ephem_eff_pmf_glom)
-
-ephem_eff_pmf_genus <- psmelt(ephem_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_pmf<-ephem_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_ephem<- ephem_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_pmf))
-View(pmf_eff_ephem)
-
-
-#### Ephemeroptera ACWA ####
-
-# EFF5 #
-
-ephem_eff_EFF5<-subset_samples(eff_ACWA, Site=="PCR1" & Family=="Ephemeroptera")
-ephem_eff_EFF5<-prune_taxa(taxa_sums(ephem_eff_EFF5) > 0, ephem_eff_EFF5) 
-ephem_eff_EFF5 #34 taxa, 8 samples
-
-sample_sums(ephem_eff_EFF5) #100% prevalence
-
-ephem_eff_EFF5_glom = tax_glom(ephem_eff_EFF5, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_EFF5_glom<-prune_taxa(taxa_sums(ephem_eff_EFF5_glom) > 0, ephem_eff_EFF5_glom)
-
-ephem_eff_EFF5_genus <- psmelt(ephem_eff_EFF5_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_EFF5<-ephem_eff_EFF5_genus$Genus[1:3]
-
-EFF5_eff_ephem<- ephem_eff_EFF5_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_EFF5))
-View(EFF5_eff_ephem)
-
-
-# EFF15 #
-
-ephem_eff_EFF15<-subset_samples(eff_ACWA, Site=="PCR3" & Family=="Ephemeroptera")
-ephem_eff_EFF15<-prune_taxa(taxa_sums(ephem_eff_EFF15) > 0, ephem_eff_EFF15) 
-ephem_eff_EFF15 #73 taxa, 8 samples
-
-sample_sums(ephem_eff_EFF15) #100% prevalence
-
-ephem_eff_EFF15_glom = tax_glom(ephem_eff_EFF15, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-ephem_eff_EFF15_glom<-prune_taxa(taxa_sums(ephem_eff_EFF15_glom) > 0, ephem_eff_EFF15_glom)
-
-ephem_eff_EFF15_genus <- psmelt(ephem_eff_EFF15_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_ephem_EFF15<-ephem_eff_EFF15_genus$Genus[1:3]
-
-EFF15_eff_ephem<- ephem_eff_EFF15_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_ephem_EFF15))
-View(EFF15_eff_ephem)
-
-
-#### Diptera ####
-# Cochrane #
-
-nsamples(dip_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Diptera")) #5
-
-dip_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Diptera")
-dip_eff_coch<-prune_taxa(taxa_sums(dip_eff_coch) > 0, dip_eff_coch) 
-dip_eff_coch #74 taxa, 5 samples = 100% prevalence
-
-sample_sums(dip_eff_coch) #100% prevalence
-
-dip_eff_coch_glom = tax_glom(dip_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-dip_eff_coch_glom<-prune_taxa(taxa_sums(dip_eff_coch_glom) > 0, dip_eff_coch_glom)
-
-dip_eff_coch_genus <- psmelt(dip_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_dip_coch<-dip_eff_coch_genus$Genus[1:3]
-
-coch_eff_dip<- dip_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_dip_coch))
-View(coch_eff_dip)
-
-
-# Cushing Bridge #
-
-nsamples(dip_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Diptera")) #8
-
-dip_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Diptera")
-dip_eff_cush<-prune_taxa(taxa_sums(dip_eff_cush) > 0, dip_eff_cush) 
-dip_eff_cush #98 taxa, 8 samples = 100% prevalence
-
-sample_sums(dip_eff_cush) #100% prevalence
-
-dip_eff_cush_glom = tax_glom(dip_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-dip_eff_cush_glom<-prune_taxa(taxa_sums(dip_eff_cush_glom) > 0, dip_eff_cush_glom)
-
-dip_eff_cush_genus <- psmelt(dip_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_dip_cush<-dip_eff_cush_genus$Genus[1:3]
-
-cush_eff_dip<- dip_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_dip_cush))
-View(cush_eff_dip)
-
-
-# Policeman Flats #
-
-nsamples(dip_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Diptera")) #6
-
-dip_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Diptera")
-dip_eff_pmf<-prune_taxa(taxa_sums(dip_eff_pmf) > 0, dip_eff_pmf) 
-dip_eff_pmf #84 taxa, 6 samples = 100% prevalence
-
-dip_eff_pmf_glom = tax_glom(dip_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-dip_eff_pmf_glom<-prune_taxa(taxa_sums(dip_eff_pmf_glom) > 0, dip_eff_pmf_glom)
-
-dip_eff_pmf_genus <- psmelt(dip_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_dip_pmf<-dip_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_dip<- dip_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_dip_pmf))
-View(pmf_eff_dip)
-
-
-#### Araneidae ####
-# Cochrane #
-
-nsamples(aran_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Araneidae")) #8 
-
-aran_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Araneidae")
-aran_eff_coch<-prune_taxa(taxa_sums(aran_eff_coch) > 0, aran_eff_coch) 
-aran_eff_coch #82 taxa, 8 samples = 100% prevalence
-
-sample_sums(aran_eff_coch) #100% prevalence
-
-aran_eff_coch_glom = tax_glom(aran_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-aran_eff_coch_glom<-prune_taxa(taxa_sums(aran_eff_coch_glom) > 0, aran_eff_coch_glom)
-
-aran_eff_coch_genus <- psmelt(aran_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_aran_coch<-aran_eff_coch_genus$Genus[1:3]
-
-coch_eff_aran<- aran_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_coch))
-View(coch_eff_aran)
-
-
-# Sunalta #
-
-nsamples(aran_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Araneidae")) #7
-
-aran_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Araneidae")
-aran_eff_sun<-prune_taxa(taxa_sums(aran_eff_sun) > 0, aran_eff_sun) 
-aran_eff_sun #114 taxa, 7 samples = 100% prevalence
-
-aran_eff_sun_glom = tax_glom(aran_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-aran_eff_sun_glom<-prune_taxa(taxa_sums(aran_eff_sun_glom) > 0, aran_eff_sun_glom)
-
-aran_eff_sun_genus <- psmelt(aran_eff_sun_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_aran_sun<-aran_eff_sun_genus$Genus[1:3]
-
-sun_eff_aran<- aran_eff_sun_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_sun))
-View(sun_eff_aran)
-
-
-# Cushing Bridge #
-
-nsamples(aran_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Araneidae")) #7
-
-aran_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Araneidae")
-aran_eff_cush<-prune_taxa(taxa_sums(aran_eff_cush) > 0, aran_eff_cush) 
-aran_eff_cush #89 taxa, 7 samples = 100% prevalence
-
-
-aran_eff_cush_glom = tax_glom(aran_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-aran_eff_cush_glom<-prune_taxa(taxa_sums(aran_eff_cush_glom) > 0, aran_eff_cush_glom)
-
-aran_eff_cush_genus <- psmelt(aran_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_aran_cush<-aran_eff_cush_genus$Genus[1:3]
-
-cush_eff_aran<- aran_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_cush))
-View(cush_eff_aran)
-
-
-# Graves Bridge #
-
-nsamples(aran_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Araneidae")) #8
-
-aran_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Araneidae")
-aran_eff_grvbr<-prune_taxa(taxa_sums(aran_eff_grvbr) > 0, aran_eff_grvbr) 
-aran_eff_grvbr #103 taxa, 8 samples = 100% prevalence
-
-
-aran_eff_grvbr_glom = tax_glom(aran_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-aran_eff_grvbr_glom<-prune_taxa(taxa_sums(aran_eff_grvbr_glom) > 0, aran_eff_grvbr_glom)
-
-aran_eff_grvbr_genus <- psmelt(aran_eff_grvbr_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_aran_grvbr<-aran_eff_grvbr_genus$Genus[1:3]
-
-grvbr_eff_aran<- aran_eff_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_grvbr))
-View(grvbr_eff_aran)
-
-
-# Policeman Flats #
-
-nsamples(aran_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Araneidae")) #6
-
-aran_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Araneidae")
-aran_eff_pmf<-prune_taxa(taxa_sums(aran_eff_pmf) > 0, aran_eff_pmf) 
-aran_eff_pmf #126 taxa, 6 samples = 100% prevalence
-
-
-aran_eff_pmf_glom = tax_glom(aran_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-aran_eff_pmf_glom<-prune_taxa(taxa_sums(aran_eff_pmf_glom) > 0, aran_eff_pmf_glom)
-
-aran_eff_pmf_genus <- psmelt(aran_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_aran_pmf<-aran_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_aran<- aran_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_aran_pmf))
-View(pmf_eff_aran)
-
-
-#### Tetragnathidae ####
-# Cochrane #
-
-nsamples(tetra_coch<-subset_samples(sample_ps, Site=="Cochrane" & Family=="Tetragnathidae")) #8 
-
-tetra_eff_coch<-subset_samples(effluent_bac, Site=="Cochrane" & Family=="Tetragnathidae")
-tetra_eff_coch<-prune_taxa(taxa_sums(tetra_eff_coch) > 0, tetra_eff_coch) 
-tetra_eff_coch #58 taxa, 6 samples = 75% prevalence
-
-sample_sums(tetra_eff_coch) #100% prevalence
-
-tetra_eff_coch_glom = tax_glom(tetra_eff_coch, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-tetra_eff_coch_glom<-prune_taxa(taxa_sums(tetra_eff_coch_glom) > 0, tetra_eff_coch_glom)
-
-tetra_eff_coch_genus <- psmelt(tetra_eff_coch_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_tetra_coch<-tetra_eff_coch_genus$Genus[1:3]
-
-coch_eff_tetra<- tetra_eff_coch_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_coch))
-View(coch_eff_tetra)
-
-
-# Sunalta #
-
-nsamples(tetra_sun<-subset_samples(sample_ps, Site=="Sunalta" & Family=="Tetragnathidae")) #8 
-
-tetra_eff_sun<-subset_samples(effluent_bac, Site=="Sunalta" & Family=="Tetragnathidae")
-tetra_eff_sun<-prune_taxa(taxa_sums(tetra_eff_sun) > 0, tetra_eff_sun) 
-tetra_eff_sun #9 taxa, 5 samples = 62.5% prevalence
-
-
-tetra_eff_sun_glom = tax_glom(tetra_eff_sun, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-tetra_eff_sun_glom<-prune_taxa(taxa_sums(tetra_eff_sun_glom) > 0, tetra_eff_sun_glom)
-
-tetra_eff_sun_genus <- psmelt(tetra_eff_sun_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_tetra_sun<-tetra_eff_sun_genus$Genus[1:3]
-
-sun_eff_tetra<- tetra_eff_sun_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_sun))
-View(sun_eff_tetra)
-
-
-# Cushing Bridge #
-
-nsamples(tetra_cush<-subset_samples(sample_ps, Site=="Cushing Bridge" & Family=="Tetragnathidae")) #8
-
-tetra_eff_cush<-subset_samples(effluent_bac, Site=="Cushing Bridge" & Family=="Tetragnathidae")
-tetra_eff_cush<-prune_taxa(taxa_sums(tetra_eff_cush) > 0, tetra_eff_cush) 
-tetra_eff_cush #92 taxa, 8 samples = 100% prevalence
-
-
-tetra_eff_cush_glom = tax_glom(tetra_eff_cush, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-tetra_eff_cush_glom<-prune_taxa(taxa_sums(tetra_eff_cush_glom) > 0, tetra_eff_cush_glom)
-
-tetra_eff_cush_genus <- psmelt(tetra_eff_cush_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_tetra_cush<-tetra_eff_cush_genus$Genus[1:3]
-
-cush_eff_tetra<- tetra_eff_cush_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_cush))
-View(cush_eff_tetra)
-
-
-# Graves Bridge #
-
-nsamples(tetra_grvbr<-subset_samples(sample_ps, Site=="Graves Bridge" & Family=="Tetragnathidae")) #8
-
-tetra_eff_grvbr<-subset_samples(effluent_bac, Site=="Graves Bridge" & Family=="Tetragnathidae")
-tetra_eff_grvbr<-prune_taxa(taxa_sums(tetra_eff_grvbr) > 0, tetra_eff_grvbr) 
-tetra_eff_grvbr #31 taxa, 5 samples = 62.5% prevalence
-
-
-tetra_eff_grvbr_glom = tax_glom(tetra_eff_grvbr, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-tetra_eff_grvbr_glom<-prune_taxa(taxa_sums(tetra_eff_grvbr_glom) > 0, tetra_eff_grvbr_glom)
-
-tetra_eff_grvbr_genus <- psmelt(tetra_eff_grvbr_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_tetra_grvbr<-tetra_eff_grvbr_genus$Genus[1:3]
-
-grvbr_eff_tetra<- tetra_eff_grvbr_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_grvbr))
-View(grvbr_eff_tetra)
-
-
-# Policeman Flats #
-
-nsamples(tetra_pmf<-subset_samples(sample_ps, Site=="Policeman Flats" & Family=="Tetragnathidae")) #8
-
-tetra_eff_pmf<-subset_samples(effluent_bac, Site=="Policeman Flats" & Family=="Tetragnathidae")
-tetra_eff_pmf<-prune_taxa(taxa_sums(tetra_eff_pmf) > 0, tetra_eff_pmf) 
-tetra_eff_pmf #104 taxa, 8 samples = 100% prevalence
- 
-
-tetra_eff_pmf_glom = tax_glom(tetra_eff_pmf, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) 
-tetra_eff_pmf_glom<-prune_taxa(taxa_sums(tetra_eff_pmf_glom) > 0, tetra_eff_pmf_glom)
-
-tetra_eff_pmf_genus <- psmelt(tetra_eff_pmf_glom) %>%  
-  as_tibble %>%
-    group_by(Genus) %>%
-  dplyr::select(c("Abundance", "Genus")) %>%
-  summarize(Mean = mean(Abundance), SD = sd(Abundance), sample_size= n()) %>% ungroup %>%
-  arrange(desc(Mean))
-
-top_3_eff_bac_tetra_pmf<-tetra_eff_pmf_genus$Genus[1:3]
-
-pmf_eff_tetra<- tetra_eff_pmf_genus %>%
-  mutate(Genus = fct_other(Genus, top_3_eff_bac_tetra_pmf))
-View(pmf_eff_tetra)
-
 
 
 #### Bow River relative abundance graph of effluent bacteria ####
@@ -13352,53 +12330,44 @@ eff_plot_ACWA
 ```{r}
 #Need to create a fasta file which requires an ASV identifier in the first column (ex. 'ASV1', 'ASV2', etc.) and the bacterial DNA sequence in the second column.
 
-#Also need a .biom file with the otu/asv table (ASVs are labeleld with a unique identifier that matches the fasta file)
+#Also need a .biom file with the otu/asv table (ASVs are labelled with a unique identifier that matches the fasta file)
 
-#.biom file
-
-taxa_names(sample_ps) <- paste0("ASV", seq(ntaxa(sample_ps)))
-otu<-as(otu_table(sample_ps),"matrix")
-otu_df<-as.data.frame(otu)
-otu_df<- rownames_to_column(otu_df, "ASV")
-otu_biom<-make_biom(data=otu_df)
-write_biom(otu_biom,"microbiome_analysis/PICRUSt2 Data/otu_biom.biom")
-
-#After filtering steps, convert the phyloseq object back into an ASV table and save as data frame. 
+#### Creating FASTA file with first column as the ASV identifier ("ASV1", "ASV2", "ASV3"...) and the second column as the genetic sequence of the amplicon. ####
 
 # Extract abundance matrix from the phyloseq object
 OTU1 = as(otu_table(sample_ps), "matrix")
 # Coerce to data.frame
 OTUdf = as.data.frame(OTU1)
+#View(OTUdf)
 #Move row names into the first column and call it 'Sequences' so that it can be pulled into another data frame
-OTUdf<- rownames_to_column(OTUdf, "Sequences")
+OTUdf1<- rownames_to_column(OTUdf, "Sequences")
 
 #Take the first column of the filtered OTU table to retrieve bacterial DNA sequences for the fasta file. 
-seq<-OTUdf[,1] #Makes a column of sequences
+seq<-OTUdf1[,1] #Makes a column of sequences
 
 #Now we need to create a new column with an ASV identifer for those sequences that we pulled.
-taxa_names(sample_ps) <- paste0("ASV", seq(ntaxa(sample_ps))) #this will change the sequences to a numbered ASV ID
+sample_ps_1<-sample_ps
+taxa_names(sample_ps_1) <- paste0("ASV", seq(ntaxa(sample_ps_1))) #this will change the sequences to a numbered ASV ID
 
 
 # Extract abundance matrix from the phyloseq object
-OTU2 = as(otu_table(sample_ps), "matrix")
+OTU2 = as(otu_table(sample_ps_1), "matrix")
 # Coerce to data.frame
 OTUdf2 = as.data.frame(OTU2)
 #Change the rownames to a column called ASVs
 OTUdf2<- rownames_to_column(OTUdf2, "ASV")
+View(OTUdf2)
 
 ASV<-OTUdf2[,1] #Makes a column of ASV identifiers
 
 #Now we add the columns together to create the fasta dataframe
-ASVfasta<-data.frame(c(rbind(ASV, seq))) #Combines the ASV IDs and the sequences in a dataframe
+ASVfasta<-data.frame(cbind(ASV, seq)) #Combines the ASV IDs and the sequences in a dataframe
 #Remove headers
+#View(ASVfasta)
 
 #Converts data frame to fasta file
-ASV.fasta = dataframe2fas(ASVfasta, file="Microbiome_ED/PICRUSt2 Data/ASV_Sequences_4.fna")
-asv_csv<-read.csv("C:\\Users\\Emilie\\OneDrive - McMaster University\\PICRUSt2 data\\ASV_Sequences.csv")
-ASV_fasta = dataframe2fas(asv_csv, file="Microbiome_ED/PICRUSt2 Data/ASV_Sequences_2.fna")
+ASVfasta = dataframe2fas(ASVfasta, file="microbiome_analysis/PICRUSt2 Data/ASV_sequences.fna")
 
-ASV_table<-read.table("C:\\Users\\Emilie\\OneDrive - McMaster University\\PICRUSt2 data\\ASV_table.tsv")
-ASV_table_df<-as.data.frame(ASV_table)
 
 #### BIOM file/ tab separated values file (tsv) ####
 
@@ -13409,12 +12378,18 @@ ASV_table_df<-as.data.frame(ASV_table)
 #BiocManager::install("biomformat")
 
 library(biomformat) #Need this package for converting to biom files
-OTUbiom<-make_biom(OTUdf1) #Turns dataframe to biom format
-write_biom(OTUbiom, biom_file="Microbiome_ED/PICRUSt2 Data/ASV_table.biom") #Saves biom format as file
-write.table(OTUdf1, file="Microbiome_ED/PICRUSt2 Data/ASV_table.tsv", sep="\t") #Saves dataframe to text file (tab separated values)
 
+#View(OTUdf2) #Change ASVs to a row name
 
+OTUdf3<-column_to_rownames(OTUdf2, "ASV")
+#View(OTUdf3)
 
+OTUbiom<-make_biom(OTUdf3) #Turns dataframe to biom format
+write_biom(OTUbiom, biom_file="microbiome_analysis/PICRUSt2 Data/ASV_table.biom") #Saves biom format as file
+#Can also be used as a .tsv (text) file. 
+write.table(OTUdf3, file="microbiome_analysis/PICRUSt2 Data/ASV_table.tsv", sep="\t") #Saves dataframe to text file (tab separated values)
+
+#The row and column names have quotations when you open the file since they are saved as strings from R. You have to delete those quotations before running the PICRUSt pipeline. I did this directly in my text editor.
 
 #### Preparing taxa table, otu table, and metadata ####
 # Export taxonomy table as "tax.txt"

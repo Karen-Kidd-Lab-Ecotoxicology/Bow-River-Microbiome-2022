@@ -1,0 +1,72 @@
+1. Installing Virtual Box (Linux emulator):
+
+Download and install virtual box for Windows using this link: 
+
+
+https://www.virtualbox.org/wiki/Downloads
+
+
+2. Installing conda:
+
+Download the .sh file (Anaconda for Linux) from this link:
+
+https://www.anaconda.com/download/#linux
+
+
+Follow this tutorial in the command terminal in your Linux system: 
+
+https://docs.anaconda.com/free/anaconda/install/linux/
+
+
+Commands:
+emilie@emilie-VirtualBox:~$ shasum -a 256 /home/emilie/Downloads/Anaconda3-2023.03-1-Linux-x86_64.sh
+
+
+emilie@emilie-VirtualBox:~$ bash ~/Downloads/Anaconda3-2023.03-1-Linux-x86_64.sh
+
+emilie@emilie-VirtualBox:~$ ~/.bashrc
+
+
+
+3. Installing PICRUSt2:
+
+There are different ways of installing picrust2 including using a QIIME2 plugin, Mambaforge from bioconda or from source. Trying from bioconda with and without using mamba. 
+
+Steps from source:
+
+Download Mambaforge for Linux using this link: https://github.com/conda-forge/miniforge#mambaforge
+
+Follow the tutorial for installation instructions from this link: https://mamba.readthedocs.io/en/latest/installation.html
+
+
+Commands:
+(base) emilie@emilie-VirtualBox:~$ conda install -n base --override-channels -c conda-forge mamba 'python_abi=*=*cp*'
+
+ *This took a very long time to solve the environment but eventually worked*
+
+Download the tar.gz zip file into the anaconda3 directory to install picrust2 from source using this link: https://github.com/picrust/picrust2/releases
+
+Follow this tutorial for installation instructions: https://github.com/picrust/picrust2/wiki/Installation
+
+
+
+4. Running PICRUSt2:
+
+Requires two very pricesly formatted data files. One is a FASTA file (.fasta or .fna extension) that is a converted dataframe with the first column as a unique ASV identifier (ex. "ASV1", "ASV2", "ASV3", etc.) and the second column as the corresponding amplicon DNA sequence. 
+
+The other file is a .BIOM or .tsv file with the otu table. The first column in the otu table should match the ASV IDs from the FASTA file. 
+
+
+There is onyl one line of code that will run all analyses. 
+
+Command once your data is formatted correctly:
+
+picrust2_pipeline.py -s study_seqs.fna -i study_seqs.biom -o picrust2_out_pipeline -p 1
+
+
+
+* Notes for analysis *
+
+Use a p-value of 0.01 take results with a grain of salt. Discuss that picrust2 is only based on taxonomy and not testing functional gene pathways. 
+
+Convert to relative abundance and not raw abundances
