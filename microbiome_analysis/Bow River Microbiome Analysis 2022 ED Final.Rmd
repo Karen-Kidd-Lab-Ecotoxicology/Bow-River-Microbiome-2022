@@ -12396,11 +12396,9 @@ write.table(OTUdf3, file="microbiome_analysis/PICRUSt2 Data/ASV_table.tsv", sep=
 
 ## Loading and modifying data format of PICRUSt2 output (turning it into a phyloseq object)
 
-'description' is the description of the individual pathway and 'Pathway_type' is a higher order classification (pathway class). Multiple individual pathways can be cateogrized into a pathway class.
+'description' is a higher order classification (pathway class). Multiple individual pathways can be categorized into a pathway class.
 
 ```{r}
-#### Merge picrust data to phyloseq ####
-
 #The MetaCyc abundance data acts as the "ASV" file
 metacyc<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\picrust2_out_pipeline\\pathways_out\\path_abun_unstrat.tsv")
 
@@ -12423,20 +12421,21 @@ metacyc_only<-metacyc[,!names(metacyc) %in% c("description")] #Remove columns wi
 metacyc_only_column_to_row<-column_to_rownames(metacyc_only, "Pathways")
 
 metacyc_rounded<-ceiling(metacyc_only_column_to_row) #Have to round it to nearest value for it to work
-metacyc_rounded_mat<-as.matrix(metacyc_rounded) #Final table we will use for otu table
+metacyc_rounded_mat<-as.matrix(metacyc_rounded) #Turn into matrix
+metacyc_rounded_mat_1 = otu_table(metacyc_rounded_mat, taxa_are_rows = TRUE) #Final table we will use for otu table
 
 #Descriptions of the pathways acts as the taxonomy file
 descriptions<-metacyc_combined[,names(metacyc_combined) %in% c("Pathways", "description")]
 descriptions_1<-column_to_rownames(descriptions, "Pathways")
 descriptions_mat<-as.matrix(descriptions_1)
+descriptions_mat_1 = tax_table(descriptions_mat) #Final table to use for taxonomy table
 
 
 #Metadata is treated the same
 metadata_picrust<-sample_ps@sam_data
 
-metadata_picrust<-read_delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\sample-metadata-2.txt", delim="\t", escape_double = FALSE, trim_ws = TRUE)
-
-picrust_ps<-phyloseq(metacyc_table, sample_data(metadata_picrust), descrip_table)
+#Put data all together in phyloseq object
+picrust_ps<-phyloseq(metacyc_rounded_mat_1, sample_data(metadata_picrust), descriptions_mat_1)
 ```
 
 
@@ -12463,7 +12462,7 @@ colorado <- function(src, boulder) {
   }
 }
 
-Bow_ps_picrust<-subset_samples(picrust_ps, Stream_Type=="Bow River")
+nsamples(Bow_ps_picrust<-subset_samples(picrust_ps, Stream_Type=="Bow River")) #276
 
 rel_abun_bow <- speedyseq::tax_glom(Bow_ps_picrust, taxrank = "description")
 comp_rel_abun_bow <- transform_sample_counts(rel_abun_bow, function(x) x/sum(x))
@@ -12516,10 +12515,9 @@ toppathwaysplot_bow
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/Top 25 MetaCyc pathway classes across sites and taxa Bow.png", height=10, width=24)
 
 
-
 #### ACWA ####
 
-ACWA_ps_picrust<-subset_samples(picrust_ps, Stream_Type!="Bow River")
+nsamples(ACWA_ps_picrust<-subset_samples(picrust_ps, Stream_Type!="Bow River")) #55
 
 rel_abun_ACWA<- speedyseq::tax_glom(ACWA_ps_picrust, taxrank = "description")
 comp_rel_abun_ACWA <- transform_sample_counts(rel_abun_ACWA, function(x) x/sum(x))
@@ -12713,6 +12711,7 @@ ggarrange(a, b, c, nrow=1)
 picrust_hydro_ps_Bow<-subset_samples(picrust_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
 
 picrust_deseq_exposed_hydro_Bow <- phyloseq_to_deseq2(picrust_hydro_ps_Bow, ~ Exposure)
+
 #Re level the reference variable so that the comparison is exposed vs unexposed
 picrust_deseq_exposed_hydro_Bow$Exposure <-relevel(picrust_deseq_exposed_hydro_Bow$Exposure, "Unexposed")
 
@@ -12735,6 +12734,8 @@ picrust_diff_abund_hydro_Bow_plot<-ggplot(picrust_sigtab_exposed_hydro_Bow, aes(
   scale_color_brewer(palette = "Set3")
 
 picrust_diff_abund_hydro_Bow_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed hydro diff abun pathways.png", height=24, width=22)
 
 
 #COCH - SUN
@@ -12877,6 +12878,8 @@ picrust_diff_abund_hep_Bow_plot<-ggplot(picrust_sigtab_exposed_hep_Bow, aes(x=lo
 
 picrust_diff_abund_hep_Bow_plot
 
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed hep diff abun pathways.png", height=24, width=22)
+
 
 #COCH - SUN
 
@@ -12905,7 +12908,7 @@ picrust_res_deseq_cush_coch_hep <- results(picrust_deseq_cush_coch_hep, cooksCut
 alpha = 0.001
 picrust_sigtab_cush_coch_hep = picrust_res_deseq_cush_coch_hep[which(picrust_res_deseq_cush_coch_hep$padj < alpha), ]
 picrust_sigtab_cush_coch_hep = cbind(as(picrust_sigtab_cush_coch_hep, "data.frame"), as(tax_table(picrust_hep_cush_coch)[rownames(picrust_sigtab_cush_coch_hep), ], "matrix"))
-#10 diff abun pathways
+#15 diff abun pathways
 
 picrust_diff_abund_hep_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_hep, aes(x=log2FoldChange, y=description))+
   geom_point(size=6) + 
@@ -12935,11 +12938,7 @@ picrust_res_deseq_grvbr_coch_hep <- results(picrust_deseq_grvbr_coch_hep, cooksC
 alpha = 0.001
 picrust_sigtab_grvbr_coch_hep = picrust_res_deseq_grvbr_coch_hep[which(picrust_res_deseq_grvbr_coch_hep$padj < alpha), ]
 picrust_sigtab_grvbr_coch_hep = cbind(as(picrust_sigtab_grvbr_coch_hep, "data.frame"), as(tax_table(picrust_hep_grvbr_coch)[rownames(picrust_sigtab_grvbr_coch_hep), ], "matrix"))
-
-picrust_grvbr_coch_hep = tapply(picrust_sigtab_grvbr_coch_hep$log2FoldChange, picrust_sigtab_grvbr_coch_hep$Phylum, function(x) max(x))
-picrust_grvbr_coch_hep = sort(picrust_grvbr_coch_hep, TRUE)
-picrust_sigtab_grvbr_coch_hep$Phylum = factor(as.character(picrust_sigtab_grvbr_coch_hep$Phylum), levels=names(picrust_grvbr_coch_hep))
-#79 diff abun pathways
+#31 diff abun pathways
 
 picrust_diff_abund_hep_grvbr_coch_plot<-ggplot(picrust_sigtab_grvbr_coch_hep, aes(y=description, x=log2FoldChange))+
   geom_point(size=6) + 
@@ -12970,7 +12969,7 @@ picrust_res_deseq_pmf_coch_hep <- results(picrust_deseq_pmf_coch_hep, cooksCutof
 alpha = 0.001
 picrust_sigtab_pmf_coch_hep = picrust_res_deseq_pmf_coch_hep[which(picrust_res_deseq_pmf_coch_hep$padj < alpha), ]
 picrust_sigtab_pmf_coch_hep = cbind(as(picrust_sigtab_pmf_coch_hep, "data.frame"), as(tax_table(picrust_hep_pmf_coch)[rownames(picrust_sigtab_pmf_coch_hep), ], "matrix"))
-#170 observations
+#62 observations
 
 picrust_diff_abund_hep_pmf_coch_plot<-ggplot(picrust_sigtab_pmf_coch_hep, aes(y=description, x=log2FoldChange))+
   geom_point(size=6) + 
@@ -12987,7 +12986,185 @@ picrust_diff_abund_hep_pmf_coch_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch hep diff abun pathways.png", height=24, width=22)
 
+#### Chironomidae ####
 
+#Exposed vs non wastewater exposed sites
+
+picrust_chiro_ps_Bow<-subset_samples(picrust_ps, Family=="Chironomidae" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_chiro_Bow <- phyloseq_to_deseq2(picrust_chiro_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_chiro_Bow$Exposure <-relevel(picrust_deseq_exposed_chiro_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_chiro_Bow <- DESeq(picrust_deseq_exposed_chiro_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_chiro_Bow <- results(picrust_deseq_exposed_chiro_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_chiro_Bow = picrust_res_deseq_exposed_chiro_Bow[which(picrust_res_deseq_exposed_chiro_Bow$padj < alpha), ]
+picrust_sigtab_exposed_chiro_Bow = cbind(as(picrust_sigtab_exposed_chiro_Bow, "data.frame"), as(tax_table(picrust_chiro_ps_Bow)[rownames(picrust_sigtab_exposed_chiro_Bow), ], "matrix"))
+#8 diff abun path
+
+picrust_diff_abund_chiro_Bow_plot<-ggplot(picrust_sigtab_exposed_chiro_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_chiro_Bow_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed chiro diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - COCH
+
+picrust_chiro_cush_coch<-subset_samples(picrust_chiro_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_chiro <- phyloseq_to_deseq2(picrust_chiro_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_chiro <- DESeq(picrust_deseq_cush_coch_chiro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_chiro <- results(picrust_deseq_cush_coch_chiro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_chiro = picrust_res_deseq_cush_coch_chiro[which(picrust_res_deseq_cush_coch_chiro$padj < alpha), ]
+picrust_sigtab_cush_coch_chiro = cbind(as(picrust_sigtab_cush_coch_chiro, "data.frame"), as(tax_table(picrust_chiro_cush_coch)[rownames(picrust_sigtab_cush_coch_chiro), ], "matrix"))
+#3 diff abun pathways
+
+picrust_diff_abund_chiro_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_chiro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_chiro_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch chiro diff abun pathways.png", height=24, width=22)
+
+
+#PMF - COCH
+
+picrust_chiro_pmf_coch<-subset_samples(picrust_chiro_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
+
+picrust_deseq_pmf_coch_chiro <- phyloseq_to_deseq2(picrust_chiro_pmf_coch, ~ Site)
+
+picrust_deseq_pmf_coch_chiro <- DESeq(picrust_deseq_pmf_coch_chiro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_pmf_coch_chiro <- results(picrust_deseq_pmf_coch_chiro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_pmf_coch_chiro = picrust_res_deseq_pmf_coch_chiro[which(picrust_res_deseq_pmf_coch_chiro$padj < alpha), ]
+picrust_sigtab_pmf_coch_chiro = cbind(as(picrust_sigtab_pmf_coch_chiro, "data.frame"), as(tax_table(picrust_chiro_pmf_coch)[rownames(picrust_sigtab_pmf_coch_chiro), ], "matrix"))
+#10 observations
+
+picrust_diff_abund_chiro_pmf_coch_plot<-ggplot(picrust_sigtab_pmf_coch_chiro, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_chiro_pmf_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch chiro diff abun pathways.png", height=24, width=22)
+
+#### Perlidae ####
+
+#Exposed vs non wastewater exposed sites
+
+picrust_perl_ps_Bow<-subset_samples(picrust_ps, Family=="Perlidae" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_perl_Bow <- phyloseq_to_deseq2(picrust_perl_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_perl_Bow$Exposure <-relevel(picrust_deseq_exposed_perl_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_perl_Bow <- DESeq(picrust_deseq_exposed_perl_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_perl_Bow <- results(picrust_deseq_exposed_perl_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_perl_Bow = picrust_res_deseq_exposed_perl_Bow[which(picrust_res_deseq_exposed_perl_Bow$padj < alpha), ]
+picrust_sigtab_exposed_perl_Bow = cbind(as(picrust_sigtab_exposed_perl_Bow, "data.frame"), as(tax_table(picrust_perl_ps_Bow)[rownames(picrust_sigtab_exposed_perl_Bow), ], "matrix"))
+#0 diff abun path
+
+
+#CUSHBR - COCH
+
+picrust_perl_cush_coch<-subset_samples(picrust_perl_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_perl <- phyloseq_to_deseq2(picrust_perl_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_perl <- DESeq(picrust_deseq_cush_coch_perl, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_perl <- results(picrust_deseq_cush_coch_perl, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_perl = picrust_res_deseq_cush_coch_perl[which(picrust_res_deseq_cush_coch_perl$padj < alpha), ]
+picrust_sigtab_cush_coch_perl = cbind(as(picrust_sigtab_cush_coch_perl, "data.frame"), as(tax_table(picrust_perl_cush_coch)[rownames(picrust_sigtab_cush_coch_perl), ], "matrix"))
+#4 diff abun pathways
+
+picrust_diff_abund_perl_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_perl, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_perl_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch perl diff abun pathways.png", height=24, width=22)
+
+
+#PMF - COCH
+
+picrust_perl_pmf_coch<-subset_samples(picrust_perl_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
+
+picrust_deseq_pmf_coch_perl <- phyloseq_to_deseq2(picrust_perl_pmf_coch, ~ Site)
+
+picrust_deseq_pmf_coch_perl <- DESeq(picrust_deseq_pmf_coch_perl, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_pmf_coch_perl <- results(picrust_deseq_pmf_coch_perl, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_pmf_coch_perl = picrust_res_deseq_pmf_coch_perl[which(picrust_res_deseq_pmf_coch_perl$padj < alpha), ]
+picrust_sigtab_pmf_coch_perl = cbind(as(picrust_sigtab_pmf_coch_perl, "data.frame"), as(tax_table(picrust_perl_pmf_coch)[rownames(picrust_sigtab_pmf_coch_perl), ], "matrix"))
+#5 observations
+
+picrust_diff_abund_perl_pmf_coch_plot<-ggplot(picrust_sigtab_pmf_coch_perl, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_perl_pmf_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch perl diff abun pathways.png", height=24, width=22)
+
+#### Trichoptera ####
+#### Ephemeroptera Bow ####
+#### Diptera ####
+#### Araneidae ####
+#### Tetragnathidae ####
+#### Hydropsychidae ACWA ####
+#### Baetidae ACWA ####
+#### Ephemeroptera ACWA ####
 ```
 
 We are getting different results when using ALDEx2 and DESeq2. It's hard to tell which one is better because DESeq2 is prone to false positives but ALDEx2 doesn't have strong statistical power (Nearing et al., 2022; Yang & Chen, 2022). Because we are using a low alpha threshold for DESeq2, I think we can be confident that these are true results and continue to use this method. 
