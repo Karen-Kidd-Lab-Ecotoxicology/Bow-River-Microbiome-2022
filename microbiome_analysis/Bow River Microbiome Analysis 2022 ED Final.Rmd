@@ -11447,17 +11447,58 @@ View(sort_genus_all)
 
               # Researched all genera on Google Scholar to see if they were wastewater associated #
 
+# Percent of total reads (Bow River and ACWA)
+
 effluent_bac<-subset_taxa(sample_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
 effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
 effluent_bac #1327 taxa 316 samples
 
 ((sum(sample_sums(effluent_bac)))/(sum(sample_sums(sample_ps)))*100) #9.31%
 
+# Percent of total Bow River reads #
+
 effluent_Bow<-subset_taxa(Bow_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
 effluent_Bow<-prune_samples(sample_sums(effluent_Bow) > 0, effluent_Bow) 
 effluent_Bow
 
 ((sum(sample_sums(effluent_Bow)))/(sum(sample_sums(Bow_ps)))*100) #9.06%
+
+
+# Percent of total Bow larvae reads #
+
+Bow_lar<-subset_samples(Bow_ps, Stage=="Larvae")
+
+effluent_Bow_lar<-subset_taxa(Bow_lar, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_Bow_lar<-prune_samples(sample_sums(effluent_Bow_lar) > 0, effluent_Bow_lar) 
+effluent_Bow_lar
+
+((sum(sample_sums(effluent_Bow_lar)))/(sum(sample_sums(Bow_lar)))*100) #13.1%%
+
+
+# Percent of total Bow adults reads #
+
+Bow_ad<-subset_samples(Bow_ps, Stage=="Adults")
+
+effluent_Bow_ad<-subset_taxa(Bow_ad, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_Bow_ad<-prune_samples(sample_sums(effluent_Bow_ad) > 0, effluent_Bow_ad) 
+effluent_Bow_ad
+
+((sum(sample_sums(effluent_Bow_ad)))/(sum(sample_sums(Bow_ad)))*100) #16.7%%
+
+
+
+# Percent of total Bow spiders reads #
+
+Bow_spi<-subset_samples(Bow_ps, Stage=="Spiders")
+
+effluent_Bow_spi<-subset_taxa(Bow_spi, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_Bow_spi<-prune_samples(sample_sums(effluent_Bow_spi) > 0, effluent_Bow_spi) 
+effluent_Bow_spi
+
+((sum(sample_sums(effluent_Bow_spi)))/(sum(sample_sums(Bow_spi)))*100) #2.17%%
+
+
+# Percent of total ACWA reads #
 
 effluent_ACWA<-subset_taxa(ACWA_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
 effluent_ACWA<-prune_samples(sample_sums(effluent_ACWA) > 0, effluent_ACWA) 
@@ -11553,6 +11594,49 @@ coch_genus_df_ad <- psmelt(coch_genus_ad) %>%
 View(coch_eff_ad)
 
 
+# Spiders #
+
+nsamples(cochrane_spi<-subset_samples(sample_ps, Site=="Cochrane" & Stage=="Spiders")) #16
+
+coch_genus_spi = tax_glom(cochrane_spi, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+coch_genus_spi<-prune_taxa(taxa_sums(coch_genus_spi) > 0, coch_genus_spi)
+
+coch_genus_df_spi <- psmelt(coch_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+coch_eff_spi<- coch_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(coch_eff_spi)
+
+coch_eff_spi$SD_squared ='^'(coch_eff_spi$SD,2)
+coch_eff_spi$SD_squared_divided =(coch_eff_spi$SD_squared/16) 
+  
+top_means_eff_coch_spi<-aggregate(Mean ~ Genus, data = coch_eff_spi, FUN = sum)
+top_SD_eff_coch_spi<-aggregate(SD_squared_divided ~ Genus, data = coch_eff_spi, FUN = sum)
+
+top_eff_coch_spi<-merge(top_means_eff_coch_spi, top_SD_eff_coch_spi, by=c("Genus"))
+top_eff_coch_spi$SD_Final<-sqrt(top_eff_coch_spi$SD_squared_divided)
+View(top_eff_coch_spi)
+
+# Finding prevalence of effluent bacteria #
+
+coch_genus_df_spi <- psmelt(coch_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  coch_eff_spi<- coch_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(coch_eff_spi)
+
+
 #### Sunalta ####
 
 # Larvae #
@@ -11598,6 +11682,7 @@ View(sun_eff_lar)
 
 
 # Adults #
+
 nsamples(sunalta_ad<-subset_samples(sample_ps, Site=="Sunalta" & Stage=="Adults")) #16
 
 sun_genus_ad = tax_glom(sunalta_ad, "Genus") %>% 
@@ -11637,6 +11722,48 @@ sun_genus_df_ad <- psmelt(sun_genus_ad) %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
 View(sun_eff_ad)
+
+# Spiders #
+
+nsamples(sunalta_spi<-subset_samples(sample_ps, Site=="Sunalta" & Stage=="Spiders")) #15
+
+sun_genus_spi = tax_glom(sunalta_spi, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+sun_genus_spi<-prune_taxa(taxa_sums(sun_genus_spi) > 0, sun_genus_spi)
+
+sun_genus_df_spi <- psmelt(sun_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+sun_eff_spi<- sun_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(sun_eff_spi)
+
+sun_eff_spi$SD_squared ='^'(sun_eff_spi$SD,2)
+sun_eff_spi$SD_squared_divided =(sun_eff_spi$SD_squared/15) 
+  
+top_means_eff_sun_spi<-aggregate(Mean ~ Genus, data = sun_eff_spi, FUN = sum)
+top_SD_eff_sun_spi<-aggregate(SD_squared_divided ~ Genus, data = sun_eff_spi, FUN = sum)
+
+top_eff_sun_spi<-merge(top_means_eff_sun_spi, top_SD_eff_sun_spi, by=c("Genus"))
+top_eff_sun_spi$SD_Final<-sqrt(top_eff_sun_spi$SD_squared_divided)
+View(top_eff_sun_spi)
+
+# Finding prevalence of effluent bacteria #
+
+sun_genus_df_spi <- psmelt(sun_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  sun_eff_spi<- sun_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(sun_eff_spi)
 
 #### Cushing Bridge ####
 
@@ -11724,6 +11851,48 @@ cushbr_genus_df_ad <- psmelt(cushbr_genus_ad) %>%
   ungroup()
 View(cushbr_eff_ad)
 
+# Spiders #
+
+nsamples(cush_spi<-subset_samples(sample_ps, Site=="Cushing Bridge" & Stage=="Spiders")) #15
+
+cush_genus_spi = tax_glom(cush_spi, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+cush_genus_spi<-prune_taxa(taxa_sums(cush_genus_spi) > 0, cush_genus_spi)
+
+cush_genus_df_spi <- psmelt(cush_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+cush_eff_spi<- cush_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(cush_eff_spi)
+
+cush_eff_spi$SD_squared ='^'(cush_eff_spi$SD,2)
+cush_eff_spi$SD_squared_divided =(cush_eff_spi$SD_squared/15) 
+  
+top_means_eff_cush_spi<-aggregate(Mean ~ Genus, data = cush_eff_spi, FUN = sum)
+top_SD_eff_cush_spi<-aggregate(SD_squared_divided ~ Genus, data = cush_eff_spi, FUN = sum)
+
+top_eff_cush_spi<-merge(top_means_eff_cush_spi, top_SD_eff_cush_spi, by=c("Genus"))
+top_eff_cush_spi$SD_Final<-sqrt(top_eff_cush_spi$SD_squared_divided)
+View(top_eff_cush_spi)
+
+# Finding prevalence of effluent bacteria #
+
+cush_genus_df_spi <- psmelt(cush_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  cush_eff_spi<- cush_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(cush_eff_spi)
+
 #### Graves Bridge ####
 
 # Larvae #
@@ -11809,6 +11978,48 @@ grvbr_eff_ad<- grvbr_genus_df_ad %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
 View(grvbr_eff_ad)
+
+# Spiders #
+
+nsamples(grvbr_spi<-subset_samples(sample_ps, Site=="Graves Bridge" & Stage=="Spiders")) #16
+
+grv_genus_spi = tax_glom(grvbr_spi, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+grv_genus_spi<-prune_taxa(taxa_sums(grv_genus_spi) > 0, grv_genus_spi)
+
+grv_genus_df_spi <- psmelt(grv_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+grv_eff_spi<- grv_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(grv_eff_spi)
+
+grv_eff_spi$SD_squared ='^'(grv_eff_spi$SD,2)
+grv_eff_spi$SD_squared_divided =(grv_eff_spi$SD_squared/16) 
+  
+top_means_eff_grv_spi<-aggregate(Mean ~ Genus, data = grv_eff_spi, FUN = sum)
+top_SD_eff_grv_spi<-aggregate(SD_squared_divided ~ Genus, data = grv_eff_spi, FUN = sum)
+
+top_eff_grv_spi<-merge(top_means_eff_grv_spi, top_SD_eff_grv_spi, by=c("Genus"))
+top_eff_grv_spi$SD_Final<-sqrt(top_eff_grv_spi$SD_squared_divided)
+View(top_eff_grv_spi)
+
+# Finding prevalence of effluent bacteria #
+
+grv_genus_df_spi <- psmelt(grv_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  grv_eff_spi<- grv_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(grv_eff_spi)
 
 
 #### Policeman Flats ####
@@ -11897,7 +12108,53 @@ pmf_eff_ad<- pmf_genus_df_ad %>%
   ungroup()
 View(pmf_eff_ad)
 
+
+# Spiders #
+
+nsamples(pmf_spi<-subset_samples(sample_ps, Site=="Policeman Flats" & Stage=="Spiders")) #14
+
+pmf_genus_spi = tax_glom(pmf_spi, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+pmf_genus_spi<-prune_taxa(taxa_sums(pmf_genus_spi) > 0, pmf_genus_spi)
+
+pmf_genus_df_spi <- psmelt(pmf_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+pmf_eff_spi<- pmf_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(pmf_eff_spi)
+
+pmf_eff_spi$SD_squared ='^'(pmf_eff_spi$SD,2)
+pmf_eff_spi$SD_squared_divided =(pmf_eff_spi$SD_squared/14) 
+  
+top_means_eff_pmf_spi<-aggregate(Mean ~ Genus, data = pmf_eff_spi, FUN = sum)
+top_SD_eff_pmf_spi<-aggregate(SD_squared_divided ~ Genus, data = pmf_eff_spi, FUN = sum)
+
+top_eff_pmf_spi<-merge(top_means_eff_pmf_spi, top_SD_eff_pmf_spi, by=c("Genus"))
+top_eff_pmf_spi$SD_Final<-sqrt(top_eff_pmf_spi$SD_squared_divided)
+View(top_eff_pmf_spi)
+
+# Finding prevalence of effluent bacteria #
+
+pmf_genus_df_spi <- psmelt(pmf_genus_spi) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+  pmf_eff_spi<- pmf_genus_df_spi %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(pmf_eff_spi)
+
+
 #### REF ACWA Stream ####
+
+# Larval Hydropsychidae #
 
 nsamples(REF<-subset_samples(sample_ps, Site=="BRR2")) #8
 
@@ -11943,85 +12200,263 @@ View(REF_eff)
 
 nsamples(EFF5<-subset_samples(sample_ps, Site=="PCR1")) #24
 
-EFF5_genus = tax_glom(EFF5, "Genus") %>% 
-  transform_sample_counts(function(x) {x * 100/sum(x)}) 
-EFF5_genus<-prune_taxa(taxa_sums(EFF5_genus) > 0, EFF5_genus)
+# Larval Hydropsychidae #
 
-EFF5_genus_df <- psmelt(EFF5_genus) %>%  
+nsamples(EFF5_hydro<-subset_samples(EFF5, Family=="Hydropsychidae")) #8
+
+EFF5_hydro_genus = tax_glom(EFF5_hydro, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+EFF5_hydro_genus<-prune_taxa(taxa_sums(EFF5_hydro_genus) > 0, EFF5_hydro_genus)
+
+EFF5_hydro_genus_df <- psmelt(EFF5_hydro_genus) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-EFF5_eff<- EFF5_genus_df %>%
+EFF5_hydro_eff<- EFF5_hydro_genus_df %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(EFF5_eff)
+View(EFF5_hydro_eff)
 
-EFF5_eff$SD_squared ='^'(EFF5_eff$SD,2)
-EFF5_eff$SD_squared_divided =(EFF5_eff$SD_squared/24) 
+EFF5_hydro_eff$SD_squared ='^'(EFF5_hydro_eff$SD,2)
+EFF5_hydro_eff$SD_squared_divided =(EFF5_hydro_eff$SD_squared/8) 
   
-top_means_eff_EFF5<-aggregate(Mean ~ Genus, data = EFF5_eff, FUN = sum)
-top_SD_eff_EFF5<-aggregate(SD_squared_divided ~ Genus, data = EFF5_eff, FUN = sum)
+top_means_eff_EFF5_hydro<-aggregate(Mean ~ Genus, data = EFF5_hydro_eff, FUN = sum)
+top_SD_eff_EFF5_hydro<-aggregate(SD_squared_divided ~ Genus, data = EFF5_hydro_eff, FUN = sum)
 
-top_eff_EFF5<-merge(top_means_eff_EFF5, top_SD_eff_EFF5, by=c("Genus"))
-top_eff_EFF5$SD_Final<-sqrt(top_eff_EFF5$SD_squared_divided)
-View(top_eff_EFF5)
+top_eff_EFF5_hydro<-merge(top_means_eff_EFF5_hydro, top_SD_eff_EFF5_hydro, by=c("Genus"))
+top_eff_EFF5_hydro$SD_Final<-sqrt(top_eff_EFF5_hydro$SD_squared_divided)
+View(top_eff_EFF5_hydro)
 
 # Finding prevalence of effluent bacteria #
 
-EFF5_genus_df <- psmelt(EFF5_genus) %>%  
+EFF5_hydro_genus_df <- psmelt(EFF5_hydro_genus) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
-EFF5_eff<- EFF5_genus_df %>%
+EFF5_hydro_eff<- EFF5_hydro_genus_df %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(EFF5_eff)
+View(EFF5_hydro_eff)
+
+# Larval Baetidae #
+
+nsamples(EFF5_baetid<-subset_samples(EFF5, Family=="Baetidae")) #8
+
+EFF5_baetid_genus = tax_glom(EFF5_baetid, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+EFF5_baetid_genus<-prune_taxa(taxa_sums(EFF5_baetid_genus) > 0, EFF5_baetid_genus)
+
+EFF5_baetid_genus_df <- psmelt(EFF5_baetid_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+EFF5_baetid_eff<- EFF5_baetid_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF5_baetid_eff)
+
+EFF5_baetid_eff$SD_squared ='^'(EFF5_baetid_eff$SD,2)
+EFF5_baetid_eff$SD_squared_divided =(EFF5_baetid_eff$SD_squared/8) 
+  
+top_means_eff_EFF5_baetid<-aggregate(Mean ~ Genus, data = EFF5_baetid_eff, FUN = sum)
+top_SD_eff_EFF5_baetid<-aggregate(SD_squared_divided ~ Genus, data = EFF5_baetid_eff, FUN = sum)
+
+top_eff_EFF5_baetid<-merge(top_means_eff_EFF5_baetid, top_SD_eff_EFF5_baetid, by=c("Genus"))
+top_eff_EFF5_baetid$SD_Final<-sqrt(top_eff_EFF5_baetid$SD_squared_divided)
+View(top_eff_EFF5_baetid)
+
+# Finding prevalence of effluent bacteria #
+
+EFF5_baetid_genus_df <- psmelt(EFF5_baetid_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+EFF5_baetid_eff<- EFF5_baetid_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF5_baetid_eff)
+
+
+# Adult Ephemeroptera #
+
+nsamples(EFF5_ephem<-subset_samples(EFF5, Family=="Ephemeroptera")) #8
+
+EFF5_ephem_genus = tax_glom(EFF5_ephem, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+EFF5_ephem_genus<-prune_taxa(taxa_sums(EFF5_ephem_genus) > 0, EFF5_ephem_genus)
+
+EFF5_ephem_genus_df <- psmelt(EFF5_ephem_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+EFF5_ephem_eff<- EFF5_ephem_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF5_ephem_eff)
+
+EFF5_ephem_eff$SD_squared ='^'(EFF5_ephem_eff$SD,2)
+EFF5_ephem_eff$SD_squared_divided =(EFF5_ephem_eff$SD_squared/8) 
+  
+top_means_eff_EFF5_ephem<-aggregate(Mean ~ Genus, data = EFF5_ephem_eff, FUN = sum)
+top_SD_eff_EFF5_ephem<-aggregate(SD_squared_divided ~ Genus, data = EFF5_ephem_eff, FUN = sum)
+
+top_eff_EFF5_ephem<-merge(top_means_eff_EFF5_ephem, top_SD_eff_EFF5_ephem, by=c("Genus"))
+top_eff_EFF5_ephem$SD_Final<-sqrt(top_eff_EFF5_ephem$SD_squared_divided)
+View(top_eff_EFF5_ephem)
+
+# Finding prevalence of effluent bacteria #
+
+EFF5_ephem_genus_df <- psmelt(EFF5_ephem_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+EFF5_ephem_eff<- EFF5_ephem_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF5_ephem_eff)
 
 #### EFF15 ACWA Stream ####
 
 nsamples(EFF15<-subset_samples(sample_ps, Site=="PCR3")) #23
 
-EFF15_genus = tax_glom(EFF15, "Genus") %>% 
-  transform_sample_counts(function(x) {x * 100/sum(x)}) 
-EFF15_genus<-prune_taxa(taxa_sums(EFF15_genus) > 0, EFF15_genus)
+# Larval Hydropsychidae #
 
-EFF15_genus_df <- psmelt(EFF15_genus) %>%  
+nsamples(EFF15_hydro<-subset_samples(EFF15, Family=="Hydropsychidae")) #8
+
+EFF15_hydro_genus = tax_glom(EFF15_hydro, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+EFF15_hydro_genus<-prune_taxa(taxa_sums(EFF15_hydro_genus) > 0, EFF15_hydro_genus)
+
+EFF15_hydro_genus_df <- psmelt(EFF15_hydro_genus) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
 
-EFF15_eff<- EFF15_genus_df %>%
+EFF15_hydro_eff<- EFF15_hydro_genus_df %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(EFF15_eff)
+View(EFF15_hydro_eff)
 
-EFF15_eff$SD_squared ='^'(EFF15_eff$SD,2)
-EFF15_eff$SD_squared_divided =(EFF15_eff$SD_squared/23) 
+EFF15_hydro_eff$SD_squared ='^'(EFF15_hydro_eff$SD,2)
+EFF15_hydro_eff$SD_squared_divided =(EFF15_hydro_eff$SD_squared/8) 
   
-top_means_eff_EFF15<-aggregate(Mean ~ Genus, data = EFF15_eff, FUN = sum)
-top_SD_eff_EFF15<-aggregate(SD_squared_divided ~ Genus, data = EFF15_eff, FUN = sum)
+top_means_eff_EFF15_hydro<-aggregate(Mean ~ Genus, data = EFF15_hydro_eff, FUN = sum)
+top_SD_eff_EFF15_hydro<-aggregate(SD_squared_divided ~ Genus, data = EFF15_hydro_eff, FUN = sum)
 
-top_eff_EFF15<-merge(top_means_eff_EFF15, top_SD_eff_EFF15, by=c("Genus"))
-top_eff_EFF15$SD_Final<-sqrt(top_eff_EFF15$SD_squared_divided)
-View(top_eff_EFF15)
+top_eff_EFF15_hydro<-merge(top_means_eff_EFF15_hydro, top_SD_eff_EFF15_hydro, by=c("Genus"))
+top_eff_EFF15_hydro$SD_Final<-sqrt(top_eff_EFF15_hydro$SD_squared_divided)
+View(top_eff_EFF15_hydro)
 
 # Finding prevalence of effluent bacteria #
 
-EFF15_genus_df <- psmelt(EFF15_genus) %>%  
+EFF15_hydro_genus_df <- psmelt(EFF15_hydro_genus) %>%  
   as_tibble %>%
     group_by(Genus) %>%
   dplyr::select(c("Abundance", "Genus")) %>%
   dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
   
-EFF15_eff<- EFF15_genus_df %>%
+EFF15_hydro_eff<- EFF15_hydro_genus_df %>%
   mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
   ungroup()
-View(EFF15_eff)
+View(EFF15_hydro_eff)
+
+# Larval Baetidae #
+
+nsamples(EFF15_baetid<-subset_samples(EFF15, Family=="Baetidae")) #7
+
+EFF15_baetid_genus = tax_glom(EFF15_baetid, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+EFF15_baetid_genus<-prune_taxa(taxa_sums(EFF15_baetid_genus) > 0, EFF15_baetid_genus)
+
+EFF15_baetid_genus_df <- psmelt(EFF15_baetid_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+EFF15_baetid_eff<- EFF15_baetid_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF15_baetid_eff)
+
+EFF15_baetid_eff$SD_squared ='^'(EFF15_baetid_eff$SD,2)
+EFF15_baetid_eff$SD_squared_divided =(EFF15_baetid_eff$SD_squared/7) 
+  
+top_means_eff_EFF15_baetid<-aggregate(Mean ~ Genus, data = EFF15_baetid_eff, FUN = sum)
+top_SD_eff_EFF15_baetid<-aggregate(SD_squared_divided ~ Genus, data = EFF15_baetid_eff, FUN = sum)
+
+top_eff_EFF15_baetid<-merge(top_means_eff_EFF15_baetid, top_SD_eff_EFF15_baetid, by=c("Genus"))
+top_eff_EFF15_baetid$SD_Final<-sqrt(top_eff_EFF15_baetid$SD_squared_divided)
+View(top_eff_EFF15_baetid)
+
+# Finding prevalence of effluent bacteria #
+
+EFF15_baetid_genus_df <- psmelt(EFF15_baetid_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+EFF15_baetid_eff<- EFF15_baetid_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF15_baetid_eff)
+
+
+# Adult Ephemeroptera #
+
+nsamples(EFF15_ephem<-subset_samples(EFF15, Family=="Ephemeroptera")) #8
+
+EFF15_ephem_genus = tax_glom(EFF15_ephem, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+EFF15_ephem_genus<-prune_taxa(taxa_sums(EFF15_ephem_genus) > 0, EFF15_ephem_genus)
+
+EFF15_ephem_genus_df <- psmelt(EFF15_ephem_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+
+EFF15_ephem_eff<- EFF15_ephem_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF15_ephem_eff)
+
+EFF15_ephem_eff$SD_squared ='^'(EFF15_ephem_eff$SD,2)
+EFF15_ephem_eff$SD_squared_divided =(EFF15_ephem_eff$SD_squared/8) 
+  
+top_means_eff_EFF15_ephem<-aggregate(Mean ~ Genus, data = EFF15_ephem_eff, FUN = sum)
+top_SD_eff_EFF15_ephem<-aggregate(SD_squared_divided ~ Genus, data = EFF15_ephem_eff, FUN = sum)
+
+top_eff_EFF15_ephem<-merge(top_means_eff_EFF15_ephem, top_SD_eff_EFF15_ephem, by=c("Genus"))
+top_eff_EFF15_ephem$SD_Final<-sqrt(top_eff_EFF15_ephem$SD_squared_divided)
+View(top_eff_EFF15_ephem)
+
+# Finding prevalence of effluent bacteria #
+
+EFF15_ephem_genus_df <- psmelt(EFF15_ephem_genus) %>%  
+  as_tibble %>%
+    group_by(Genus) %>%
+  dplyr::select(c("Abundance", "Genus")) %>%
+  dplyr::summarise((Prevalence = count(Abundance > 0)/n())*100)
+  
+EFF15_ephem_eff<- EFF15_ephem_genus_df %>%
+  mutate(Genus = fct_other(Genus, keep=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Pseudorhodobacter" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(EFF15_ephem_eff)
 
 
 #### Bow River relative abundance graph of effluent bacteria ####
@@ -12248,7 +12683,7 @@ eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)
   rremove("grid")
 eff_plot_Bow
 
-ggsave(eff_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria combined Bow river.png", height=14, width=22)
+#ggsave(eff_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria combined Bow river.png", height=14, width=22)
 
 
 #### ACWA Streams ####
@@ -12573,137 +13008,6 @@ toppathwaysplot_ACWA
 ## Differential Abundance of individual MetaCyc pathways across sites 
 
 ```{r}
-#### ACWA comparisons ####
-### REF vs EXP5 ###
-
-## Hydropyschidae ##
-
-hydro_BRR2_PCR1<-subset_samples(picrust_ps, Site %in% c("BRR2", "PCR1"))
-hydro_BRR2_PCR1<-subset_samples(hydro_BRR2_PCR1, Family=="Hydropsychidae")
-nsamples(hydro_BRR2_PCR1) #16
-
-dds_hydro_BRR2_PCR1 <- phyloseq_to_deseq2(hydro_BRR2_PCR1, ~ Site)
-
-deseq_hydro_BRR2_PCR1 <- DESeq(dds_hydro_BRR2_PCR1, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_hydro_BRR2_PCR1 <- results(deseq_hydro_BRR2_PCR1, cooksCutoff = FALSE)
-res_deseq_hydro_BRR2_PCR1
-alpha = 0.001
-sigtab_hydro_BRR2_PCR1 = res_deseq_hydro_BRR2_PCR1[which(res_deseq_hydro_BRR2_PCR1$padj < alpha), ]
-sigtab_hydro_BRR2_PCR1 = cbind(as(sigtab_hydro_BRR2_PCR1, "data.frame"), as(tax_table(hydro_BRR2_PCR1)[rownames(sigtab_hydro_BRR2_PCR1), ], "matrix"))
-
-# Adding colours as classes
-x_hydro_BRR2_PCR1 = tapply(sigtab_hydro_BRR2_PCR1$log2FoldChange, sigtab_hydro_BRR2_PCR1$Pathway_type, function(x) max(x))
-x_hydro_BRR2_PCR1 = sort(x_hydro_BRR2_PCR1, TRUE)
-sigtab_hydro_BRR2_PCR1$Pathway_type = factor(as.character(sigtab_hydro_BRR2_PCR1$Pathway_type), levels=sort(names(x_hydro_BRR2_PCR1)))
-#Points as descriptions
-x_hydro_BRR2_PCR1 = tapply(sigtab_hydro_BRR2_PCR1$log2FoldChange, sigtab_hydro_BRR2_PCR1$description, function(x) max(x))
-x_hydro_BRR2_PCR1 = sort(x_hydro_BRR2_PCR1, TRUE)
-sigtab_hydro_BRR2_PCR1$description = factor(as.character(sigtab_hydro_BRR2_PCR1$description), levels=names(x_hydro_BRR2_PCR1))
-
-
-diff_abun_hydro_EXP5_REF<-ggplot(sigtab_hydro_BRR2_PCR1, aes(x=description, y=log2FoldChange, color=Pathway_type))+
-  geom_point(size=6) + 
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
-  rremove("grid")+
-  ylab("Log2 Fold Change")+
-  xlab("Metabolic Pathways")+
-  scale_color_brewer(name = "Pathway Class", palette = "Pastel1")+
-   labs(y = expression(Log[2]~ "Ratio of Differential Expression"))
-diff_abun_hydro_EXP5_REF
-
-#ggsave(filename="microbiome_analysis/Final analysis/PICRUSt2 Data/Figures/diff abun pathways hydro PCR1-BRR2.png", height=10, width=12)
-
-
-#BRR2 vs PCR3
-
-hydro_BRR2_PCR3<-subset_samples(picrust_ps, Site %in% c("BRR2", "PCR3"))
-hydro_BRR2_PCR3<-subset_samples(hydro_BRR2_PCR3, Family=="Hydropsychidae")
-nsamples(hydro_BRR2_PCR3) #16
-
-dds_hydro_BRR2_PCR3 <- phyloseq_to_deseq2(hydro_BRR2_PCR3, ~ Site)
-
-deseq_hydro_BRR2_PCR3 <- DESeq(dds_hydro_BRR2_PCR3, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_hydro_BRR2_PCR3 <- results(deseq_hydro_BRR2_PCR3, cooksCutoff = FALSE)
-res_deseq_hydro_BRR2_PCR3
-alpha = 0.001
-sigtab_hydro_BRR2_PCR3 = res_deseq_hydro_BRR2_PCR3[which(res_deseq_hydro_BRR2_PCR3$padj < alpha), ]
-sigtab_hydro_BRR2_PCR3 = cbind(as(sigtab_hydro_BRR2_PCR3, "data.frame"), as(tax_table(hydro_BRR2_PCR3)[rownames(sigtab_hydro_BRR2_PCR3), ], "matrix"))
-
-# Adding colours as classes
-x_hydro_BRR2_PCR3 = tapply(sigtab_hydro_BRR2_PCR3$log2FoldChange, sigtab_hydro_BRR2_PCR3$Pathway_type, function(x) max(x))
-x_hydro_BRR2_PCR3 = sort(x_hydro_BRR2_PCR3, TRUE)
-sigtab_hydro_BRR2_PCR3$Pathway_type = factor(as.character(sigtab_hydro_BRR2_PCR3$Pathway_type), levels=sort(names(x_hydro_BRR2_PCR3)))
-#Points as descriptions
-x_hydro_BRR2_PCR3 = tapply(sigtab_hydro_BRR2_PCR3$log2FoldChange, sigtab_hydro_BRR2_PCR3$description, function(x) max(x))
-x_hydro_BRR2_PCR3 = sort(x_hydro_BRR2_PCR3, TRUE)
-sigtab_hydro_BRR2_PCR3$description = factor(as.character(sigtab_hydro_BRR2_PCR3$description), levels=names(x_hydro_BRR2_PCR3))
-
-diff_abun_hydro_EXP15_REF<-ggplot(sigtab_hydro_BRR2_PCR3, aes(x=description, y=log2FoldChange, color=Pathway_type))+
-  geom_point(size=6) + 
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
-  rremove("grid")+
-  ylab("Log2 Fold Change")+
-  xlab("Metabolic Pathways")+
-  scale_color_brewer(name = "Pathway Class", palette = "Pastel1")+
-   labs(y = expression(Log[2]~ "Ratio of Differential Expression"))
-diff_abun_hydro_EXP15_REF
-
-#ggsave(filename="microbiome_analysis/Final analysis/PICRUSt2 Data/Figures/diff abun pathways hydro PCR3-BRR2.png", height=10, width=12)
-
-#PCR1 vs PCR3
-
-hydro_PCR1_PCR3<-subset_samples(picrust_ps, Site %in% c("PCR1", "PCR3"))
-hydro_PCR1_PCR3<-subset_samples(hydro_PCR1_PCR3, Family=="Hydropsychidae")
-nsamples(hydro_PCR1_PCR3) #16
-
-dds_hydro_PCR1_PCR3 <- phyloseq_to_deseq2(hydro_PCR1_PCR3, ~ Site)
-
-deseq_hydro_PCR1_PCR3 <- DESeq(dds_hydro_PCR1_PCR3, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_hydro_PCR1_PCR3 <- results(deseq_hydro_PCR1_PCR3, cooksCutoff = FALSE)
-res_deseq_hydro_PCR1_PCR3
-alpha = 0.001
-sigtab_hydro_PCR1_PCR3 = res_deseq_hydro_PCR1_PCR3[which(res_deseq_hydro_PCR1_PCR3$padj < alpha), ]
-sigtab_hydro_PCR1_PCR3 = cbind(as(sigtab_hydro_PCR1_PCR3, "data.frame"), as(tax_table(hydro_PCR1_PCR3)[rownames(sigtab_hydro_PCR1_PCR3), ], "matrix"))
-
-# Adding colours as classes
-x_hydro_PCR1_PCR3 = tapply(sigtab_hydro_PCR1_PCR3$log2FoldChange, sigtab_hydro_PCR1_PCR3$Pathway_type, function(x) max(x))
-x_hydro_PCR1_PCR3 = sort(x_hydro_PCR1_PCR3, TRUE)
-sigtab_hydro_PCR1_PCR3$Pathway_type = factor(as.character(sigtab_hydro_PCR1_PCR3$Pathway_type), levels=sort(names(x_hydro_PCR1_PCR3)))
-#Points as descriptions
-x_hydro_PCR1_PCR3 = tapply(sigtab_hydro_PCR1_PCR3$log2FoldChange, sigtab_hydro_PCR1_PCR3$description, function(x) max(x))
-x_hydro_PCR1_PCR3 = sort(x_hydro_PCR1_PCR3, TRUE)
-sigtab_hydro_PCR1_PCR3$description = factor(as.character(sigtab_hydro_PCR1_PCR3$description), levels=names(x_hydro_PCR1_PCR3))
-
-diff_abun_hydro_EXP15_EXP5<-ggplot(sigtab_hydro_PCR1_PCR3, aes(x=description, y=log2FoldChange, color=Pathway_type))+
-  geom_point(size=6) + 
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1, size=12, face="italic")) + theme(axis.text=element_text(size=12, color="black"), axis.title=element_text(size=16)) +
-  rremove("grid")+
-  ylab("Log2 Fold Change")+
-  xlab("Metabolic Pathways")+
-  scale_color_brewer(name = "Pathway Class", palette = "Pastel1")+
-   labs(y = expression(Log[2]~ "Ratio of Differential Expression"))
-diff_abun_hydro_EXP15_EXP5
-
-#ggsave(filename="microbiome_analysis/Final analysis/PICRUSt2 Data/Figures/diff abun pathways hydro PCR3-PCR1.png", height=10, width=12)
-
-
-# Combining hydro graphs #
-
-a<-diff_abun_hydro_EXP5_REF + rremove("axis.title")
-b<-diff_abun_hydro_EXP15_REF + rremove("axis.title")
-c<-diff_abun_hydro_EXP15_EXP5 + rremove("axis.title")
-
-ggarrange(a, b, c, nrow=1)
-
-#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/ACWA diff abun pathways taxa facets.png", height=10, width=18)
-
-
 #### Hydropsychidae Bow ####
 
 #Exposed vs non wastewater exposed sites
@@ -12795,10 +13099,6 @@ picrust_res_deseq_grvbr_coch_hydro <- results(picrust_deseq_grvbr_coch_hydro, co
 alpha = 0.001
 picrust_sigtab_grvbr_coch_hydro = picrust_res_deseq_grvbr_coch_hydro[which(picrust_res_deseq_grvbr_coch_hydro$padj < alpha), ]
 picrust_sigtab_grvbr_coch_hydro = cbind(as(picrust_sigtab_grvbr_coch_hydro, "data.frame"), as(tax_table(picrust_hydro_grvbr_coch)[rownames(picrust_sigtab_grvbr_coch_hydro), ], "matrix"))
-
-picrust_grvbr_coch_hydro = tapply(picrust_sigtab_grvbr_coch_hydro$log2FoldChange, picrust_sigtab_grvbr_coch_hydro$Phylum, function(x) max(x))
-picrust_grvbr_coch_hydro = sort(picrust_grvbr_coch_hydro, TRUE)
-picrust_sigtab_grvbr_coch_hydro$Phylum = factor(as.character(picrust_sigtab_grvbr_coch_hydro$Phylum), levels=names(picrust_grvbr_coch_hydro))
 #79 diff abun pathways
 
 picrust_diff_abund_hydro_grvbr_coch_plot<-ggplot(picrust_sigtab_grvbr_coch_hydro, aes(y=description, x=log2FoldChange))+
@@ -12823,6 +13123,7 @@ picrust_diff_abund_hydro_grvbr_coch_plot
 picrust_hydro_pmf_coch<-subset_samples(picrust_hydro_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
 
 picrust_deseq_pmf_coch_hydro <- phyloseq_to_deseq2(picrust_hydro_pmf_coch, ~ Site)
+
 
 picrust_deseq_pmf_coch_hydro <- DESeq(picrust_deseq_pmf_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
@@ -13158,13 +13459,725 @@ picrust_diff_abund_perl_pmf_coch_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch perl diff abun pathways.png", height=24, width=22)
 
 #### Trichoptera ####
+
+#Exposed vs non wastewater exposed sites
+
+picrust_trichop_ps_Bow<-subset_samples(picrust_ps, Family=="Trichoptera" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_trichop_Bow <- phyloseq_to_deseq2(picrust_trichop_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_trichop_Bow$Exposure <-relevel(picrust_deseq_exposed_trichop_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_trichop_Bow <- DESeq(picrust_deseq_exposed_trichop_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_trichop_Bow <- results(picrust_deseq_exposed_trichop_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_trichop_Bow = picrust_res_deseq_exposed_trichop_Bow[which(picrust_res_deseq_exposed_trichop_Bow$padj < alpha), ]
+picrust_sigtab_exposed_trichop_Bow = cbind(as(picrust_sigtab_exposed_trichop_Bow, "data.frame"), as(tax_table(picrust_trichop_ps_Bow)[rownames(picrust_sigtab_exposed_trichop_Bow), ], "matrix"))
+#28 diff abun path
+
+picrust_diff_abund_trichop_Bow_plot<-ggplot(picrust_sigtab_exposed_trichop_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_Bow_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed trichop diff abun pathways.png", height=24, width=22)
+
+
+#COCH - SUN
+
+picrust_trichop_sun_coch<-subset_samples(picrust_trichop_ps_Bow, Site=="Cochrane" | Site=="Sunalta")
+
+picrust_deseq_sun_coch_trichop <- phyloseq_to_deseq2(picrust_trichop_sun_coch, ~ Site)
+
+picrust_deseq_sun_coch_trichop <- DESeq(picrust_deseq_sun_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_sun_coch_trichop <- results(picrust_deseq_sun_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_sun_coch_trichop = picrust_res_deseq_sun_coch_trichop[which(picrust_res_deseq_sun_coch_trichop$padj < alpha), ]
+picrust_sigtab_sun_coch_trichop = cbind(as(picrust_sigtab_sun_coch_trichop, "data.frame"), as(tax_table(picrust_trichop_sun_coch)[rownames(picrust_sigtab_sun_coch_trichop), ], "matrix"))
+#1
+
+picrust_diff_abund_trichop_sun_coch_plot<-ggplot(picrust_sigtab_sun_coch_trichop, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_sun_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/sun-coch trichop diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - COCH
+
+picrust_trichop_cush_coch<-subset_samples(picrust_trichop_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_trichop <- phyloseq_to_deseq2(picrust_trichop_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_trichop <- DESeq(picrust_deseq_cush_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_trichop <- results(picrust_deseq_cush_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_trichop = picrust_res_deseq_cush_coch_trichop[which(picrust_res_deseq_cush_coch_trichop$padj < alpha), ]
+picrust_sigtab_cush_coch_trichop = cbind(as(picrust_sigtab_cush_coch_trichop, "data.frame"), as(tax_table(picrust_trichop_cush_coch)[rownames(picrust_sigtab_cush_coch_trichop), ], "matrix"))
+#2 diff abun pathways
+
+picrust_diff_abund_trichop_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_trichop, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch trichop diff abun pathways.png", height=24, width=22)
+
+
+#GRVBR - COCH
+
+picrust_trichop_grvbr_coch<-subset_samples(picrust_trichop_ps_Bow, Site=="Graves Bridge" | Site=="Cochrane")
+
+picrust_deseq_grvbr_coch_trichop <- phyloseq_to_deseq2(picrust_trichop_grvbr_coch, ~ Site)
+
+picrust_deseq_grvbr_coch_trichop <- DESeq(picrust_deseq_grvbr_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_grvbr_coch_trichop <- results(picrust_deseq_grvbr_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_grvbr_coch_trichop = picrust_res_deseq_grvbr_coch_trichop[which(picrust_res_deseq_grvbr_coch_trichop$padj < alpha), ]
+picrust_sigtab_grvbr_coch_trichop = cbind(as(picrust_sigtab_grvbr_coch_trichop, "data.frame"), as(tax_table(picrust_trichop_grvbr_coch)[rownames(picrust_sigtab_grvbr_coch_trichop), ], "matrix"))
+#1 diff abun pathways
+
+picrust_diff_abund_trichop_grvbr_coch_plot<-ggplot(picrust_sigtab_grvbr_coch_trichop, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y  = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_grvbr_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/grvbr-coch trichop diff abun pathways.png", height=24, width=22)
+
+
 #### Ephemeroptera Bow ####
+
+#Exposed vs non wastewater exposed sites
+
+picrust_ephem_ps_Bow<-subset_samples(picrust_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_ephem_Bow <- phyloseq_to_deseq2(picrust_ephem_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_ephem_Bow$Exposure <-relevel(picrust_deseq_exposed_ephem_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_ephem_Bow <- DESeq(picrust_deseq_exposed_ephem_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_ephem_Bow <- results(picrust_deseq_exposed_ephem_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_ephem_Bow = picrust_res_deseq_exposed_ephem_Bow[which(picrust_res_deseq_exposed_ephem_Bow$padj < alpha), ]
+picrust_sigtab_exposed_ephem_Bow = cbind(as(picrust_sigtab_exposed_ephem_Bow, "data.frame"), as(tax_table(picrust_ephem_ps_Bow)[rownames(picrust_sigtab_exposed_ephem_Bow), ], "matrix"))
+#34 diff abun path
+
+picrust_diff_abund_ephem_Bow_plot<-ggplot(picrust_sigtab_exposed_ephem_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_Bow_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed ephem diff abun pathways.png", height=24, width=22)
+
+
+#COCH - SUN
+
+picrust_ephem_sun_coch<-subset_samples(picrust_ephem_ps_Bow, Site=="Cochrane" | Site=="Sunalta")
+
+picrust_deseq_sun_coch_ephem <- phyloseq_to_deseq2(picrust_ephem_sun_coch, ~ Site)
+
+picrust_deseq_sun_coch_ephem <- DESeq(picrust_deseq_sun_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_sun_coch_ephem <- results(picrust_deseq_sun_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_sun_coch_ephem = picrust_res_deseq_sun_coch_ephem[which(picrust_res_deseq_sun_coch_ephem$padj < alpha), ]
+picrust_sigtab_sun_coch_ephem = cbind(as(picrust_sigtab_sun_coch_ephem, "data.frame"), as(tax_table(picrust_ephem_sun_coch)[rownames(picrust_sigtab_sun_coch_ephem), ], "matrix"))
+#0
+
+
+#CUSHBR - COCH
+
+picrust_ephem_cush_coch<-subset_samples(picrust_ephem_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_ephem <- phyloseq_to_deseq2(picrust_ephem_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_ephem <- DESeq(picrust_deseq_cush_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_ephem <- results(picrust_deseq_cush_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_ephem = picrust_res_deseq_cush_coch_ephem[which(picrust_res_deseq_cush_coch_ephem$padj < alpha), ]
+picrust_sigtab_cush_coch_ephem = cbind(as(picrust_sigtab_cush_coch_ephem, "data.frame"), as(tax_table(picrust_ephem_cush_coch)[rownames(picrust_sigtab_cush_coch_ephem), ], "matrix"))
+#34 diff abun pathways
+
+picrust_diff_abund_ephem_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_ephem, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch ephem diff abun pathways.png", height=24, width=22)
+
+
+#GRVBR - COCH
+
+picrust_ephem_grvbr_coch<-subset_samples(picrust_ephem_ps_Bow, Site=="Graves Bridge" | Site=="Cochrane")
+
+picrust_deseq_grvbr_coch_ephem <- phyloseq_to_deseq2(picrust_ephem_grvbr_coch, ~ Site)
+
+picrust_deseq_grvbr_coch_ephem <- DESeq(picrust_deseq_grvbr_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_grvbr_coch_ephem <- results(picrust_deseq_grvbr_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_grvbr_coch_ephem = picrust_res_deseq_grvbr_coch_ephem[which(picrust_res_deseq_grvbr_coch_ephem$padj < alpha), ]
+picrust_sigtab_grvbr_coch_ephem = cbind(as(picrust_sigtab_grvbr_coch_ephem, "data.frame"), as(tax_table(picrust_ephem_grvbr_coch)[rownames(picrust_sigtab_grvbr_coch_ephem), ], "matrix"))
+#4 diff abun pathways
+
+picrust_diff_abund_ephem_grvbr_coch_plot<-ggplot(picrust_sigtab_grvbr_coch_ephem, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y  = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_grvbr_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/grvbr-coch ephem diff abun pathways.png", height=24, width=22)
+
+
+
+#PMF - COCH
+
+picrust_ephem_pmf_coch<-subset_samples(picrust_ephem_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
+
+picrust_deseq_pmf_coch_ephem <- phyloseq_to_deseq2(picrust_ephem_pmf_coch, ~ Site)
+
+picrust_deseq_pmf_coch_ephem <- DESeq(picrust_deseq_pmf_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_pmf_coch_ephem <- results(picrust_deseq_pmf_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_pmf_coch_ephem = picrust_res_deseq_pmf_coch_ephem[which(picrust_res_deseq_pmf_coch_ephem$padj < alpha), ]
+picrust_sigtab_pmf_coch_ephem = cbind(as(picrust_sigtab_pmf_coch_ephem, "data.frame"), as(tax_table(picrust_ephem_pmf_coch)[rownames(picrust_sigtab_pmf_coch_ephem), ], "matrix"))
+#3 observations
+
+picrust_diff_abund_ephem_pmf_coch_plot<-ggplot(picrust_sigtab_pmf_coch_ephem, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_pmf_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch ephem diff abun pathways.png", height=24, width=22)
+
+
 #### Diptera ####
+
+#Exposed vs non wastewater exposed sites
+
+picrust_dip_ps_Bow<-subset_samples(picrust_ps, Family=="Diptera" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_dip_Bow <- phyloseq_to_deseq2(picrust_dip_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_dip_Bow$Exposure <-relevel(picrust_deseq_exposed_dip_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_dip_Bow <- DESeq(picrust_deseq_exposed_dip_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_dip_Bow <- results(picrust_deseq_exposed_dip_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_dip_Bow = picrust_res_deseq_exposed_dip_Bow[which(picrust_res_deseq_exposed_dip_Bow$padj < alpha), ]
+picrust_sigtab_exposed_dip_Bow = cbind(as(picrust_sigtab_exposed_dip_Bow, "data.frame"), as(tax_table(picrust_dip_ps_Bow)[rownames(picrust_sigtab_exposed_dip_Bow), ], "matrix"))
+#8 diff abun path
+
+picrust_diff_abund_dip_Bow_plot<-ggplot(picrust_sigtab_exposed_dip_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_dip_Bow_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed dip diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - COCH
+
+picrust_dip_cush_coch<-subset_samples(picrust_dip_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_dip <- phyloseq_to_deseq2(picrust_dip_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_dip <- DESeq(picrust_deseq_cush_coch_dip, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_dip <- results(picrust_deseq_cush_coch_dip, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_dip = picrust_res_deseq_cush_coch_dip[which(picrust_res_deseq_cush_coch_dip$padj < alpha), ]
+picrust_sigtab_cush_coch_dip = cbind(as(picrust_sigtab_cush_coch_dip, "data.frame"), as(tax_table(picrust_dip_cush_coch)[rownames(picrust_sigtab_cush_coch_dip), ], "matrix"))
+#50 diff abun pathways
+
+picrust_diff_abund_dip_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_dip, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_dip_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch dip diff abun pathways.png", height=24, width=22)
+
+
+#PMF - COCH
+
+picrust_dip_pmf_coch<-subset_samples(picrust_dip_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
+
+picrust_deseq_pmf_coch_dip <- phyloseq_to_deseq2(picrust_dip_pmf_coch, ~ Site)
+
+picrust_deseq_pmf_coch_dip <- DESeq(picrust_deseq_pmf_coch_dip, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_pmf_coch_dip <- results(picrust_deseq_pmf_coch_dip, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_pmf_coch_dip = picrust_res_deseq_pmf_coch_dip[which(picrust_res_deseq_pmf_coch_dip$padj < alpha), ]
+picrust_sigtab_pmf_coch_dip = cbind(as(picrust_sigtab_pmf_coch_dip, "data.frame"), as(tax_table(picrust_dip_pmf_coch)[rownames(picrust_sigtab_pmf_coch_dip), ], "matrix"))
+#32 observations
+
+picrust_diff_abund_dip_pmf_coch_plot<-ggplot(picrust_sigtab_pmf_coch_dip, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_dip_pmf_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch dip diff abun pathways.png", height=24, width=22)
+
+
 #### Araneidae ####
+
+#Exposed vs non wastewater exposed sites
+
+picrust_aran_ps_Bow<-subset_samples(picrust_ps, Family=="Araneidae" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_aran_Bow <- phyloseq_to_deseq2(picrust_aran_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_aran_Bow$Exposure <-relevel(picrust_deseq_exposed_aran_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_aran_Bow <- DESeq(picrust_deseq_exposed_aran_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_aran_Bow <- results(picrust_deseq_exposed_aran_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_aran_Bow = picrust_res_deseq_exposed_aran_Bow[which(picrust_res_deseq_exposed_aran_Bow$padj < alpha), ]
+picrust_sigtab_exposed_aran_Bow = cbind(as(picrust_sigtab_exposed_aran_Bow, "data.frame"), as(tax_table(picrust_aran_ps_Bow)[rownames(picrust_sigtab_exposed_aran_Bow), ], "matrix"))
+#0 diff abun path
+
+#COCH - SUN
+
+picrust_aran_sun_coch<-subset_samples(picrust_aran_ps_Bow, Site=="Cochrane" | Site=="Sunalta")
+
+picrust_deseq_sun_coch_aran <- phyloseq_to_deseq2(picrust_aran_sun_coch, ~ Site)
+
+picrust_deseq_sun_coch_aran <- DESeq(picrust_deseq_sun_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_sun_coch_aran <- results(picrust_deseq_sun_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_sun_coch_aran = picrust_res_deseq_sun_coch_aran[which(picrust_res_deseq_sun_coch_aran$padj < alpha), ]
+picrust_sigtab_sun_coch_aran = cbind(as(picrust_sigtab_sun_coch_aran, "data.frame"), as(tax_table(picrust_aran_sun_coch)[rownames(picrust_sigtab_sun_coch_aran), ], "matrix"))
+#27
+
+picrust_diff_abund_aran_sun_coch_plot<-ggplot(picrust_sigtab_sun_coch_aran, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_aran_sun_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/sun-coch aran diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - COCH
+
+picrust_aran_cush_coch<-subset_samples(picrust_aran_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_aran <- phyloseq_to_deseq2(picrust_aran_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_aran <- DESeq(picrust_deseq_cush_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_aran <- results(picrust_deseq_cush_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_aran = picrust_res_deseq_cush_coch_aran[which(picrust_res_deseq_cush_coch_aran$padj < alpha), ]
+picrust_sigtab_cush_coch_aran = cbind(as(picrust_sigtab_cush_coch_aran, "data.frame"), as(tax_table(picrust_aran_cush_coch)[rownames(picrust_sigtab_cush_coch_aran), ], "matrix"))
+#0 diff abun pathways
+
+
+#GRVBR - COCH
+
+picrust_aran_grvbr_coch<-subset_samples(picrust_aran_ps_Bow, Site=="Graves Bridge" | Site=="Cochrane")
+
+picrust_deseq_grvbr_coch_aran <- phyloseq_to_deseq2(picrust_aran_grvbr_coch, ~ Site)
+
+picrust_deseq_grvbr_coch_aran <- DESeq(picrust_deseq_grvbr_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_grvbr_coch_aran <- results(picrust_deseq_grvbr_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_grvbr_coch_aran = picrust_res_deseq_grvbr_coch_aran[which(picrust_res_deseq_grvbr_coch_aran$padj < alpha), ]
+picrust_sigtab_grvbr_coch_aran = cbind(as(picrust_sigtab_grvbr_coch_aran, "data.frame"), as(tax_table(picrust_aran_grvbr_coch)[rownames(picrust_sigtab_grvbr_coch_aran), ], "matrix"))
+#0 diff abun pathways
+
+
+#PMF - COCH
+
+picrust_aran_pmf_coch<-subset_samples(picrust_aran_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
+
+picrust_deseq_pmf_coch_aran <- phyloseq_to_deseq2(picrust_aran_pmf_coch, ~ Site)
+
+picrust_deseq_pmf_coch_aran <- DESeq(picrust_deseq_pmf_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_pmf_coch_aran <- results(picrust_deseq_pmf_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_pmf_coch_aran = picrust_res_deseq_pmf_coch_aran[which(picrust_res_deseq_pmf_coch_aran$padj < alpha), ]
+picrust_sigtab_pmf_coch_aran = cbind(as(picrust_sigtab_pmf_coch_aran, "data.frame"), as(tax_table(picrust_aran_pmf_coch)[rownames(picrust_sigtab_pmf_coch_aran), ], "matrix"))
+#176 observations
+
+picrust_diff_abund_aran_pmf_coch_plot<-ggplot(picrust_sigtab_pmf_coch_aran, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_aran_pmf_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch aran diff abun pathways.png", height=24, width=22)
+
+
 #### Tetragnathidae ####
+
+#Exposed vs non wastewater exposed sites
+
+picrust_tetra_ps_Bow<-subset_samples(picrust_ps, Family=="Tetragnathidae" & Stream_Type=="Bow River")
+
+picrust_deseq_exposed_tetra_Bow <- phyloseq_to_deseq2(picrust_tetra_ps_Bow, ~ Exposure)
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_tetra_Bow$Exposure <-relevel(picrust_deseq_exposed_tetra_Bow$Exposure, "Unexposed")
+
+picrust_deseq_exposed_tetra_Bow <- DESeq(picrust_deseq_exposed_tetra_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_tetra_Bow <- results(picrust_deseq_exposed_tetra_Bow, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_tetra_Bow = picrust_res_deseq_exposed_tetra_Bow[which(picrust_res_deseq_exposed_tetra_Bow$padj < alpha), ]
+picrust_sigtab_exposed_tetra_Bow = cbind(as(picrust_sigtab_exposed_tetra_Bow, "data.frame"), as(tax_table(picrust_tetra_ps_Bow)[rownames(picrust_sigtab_exposed_tetra_Bow), ], "matrix"))
+#0 diff abun path
+
+
+#COCH - SUN
+
+picrust_tetra_sun_coch<-subset_samples(picrust_tetra_ps_Bow, Site=="Cochrane" | Site=="Sunalta")
+
+picrust_deseq_sun_coch_tetra <- phyloseq_to_deseq2(picrust_tetra_sun_coch, ~ Site)
+
+picrust_deseq_sun_coch_tetra <- DESeq(picrust_deseq_sun_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_sun_coch_tetra <- results(picrust_deseq_sun_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_sun_coch_tetra = picrust_res_deseq_sun_coch_tetra[which(picrust_res_deseq_sun_coch_tetra$padj < alpha), ]
+picrust_sigtab_sun_coch_tetra = cbind(as(picrust_sigtab_sun_coch_tetra, "data.frame"), as(tax_table(picrust_tetra_sun_coch)[rownames(picrust_sigtab_sun_coch_tetra), ], "matrix"))
+#2
+
+picrust_diff_abund_tetra_sun_coch_plot<-ggplot(picrust_sigtab_sun_coch_tetra, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_tetra_sun_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/sun-coch tetra diff abun pathways.png", height=24, width=22)
+
+
+
+#CUSHBR - COCH
+
+picrust_tetra_cush_coch<-subset_samples(picrust_tetra_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_tetra <- phyloseq_to_deseq2(picrust_tetra_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_tetra <- DESeq(picrust_deseq_cush_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_tetra <- results(picrust_deseq_cush_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_tetra = picrust_res_deseq_cush_coch_tetra[which(picrust_res_deseq_cush_coch_tetra$padj < alpha), ]
+picrust_sigtab_cush_coch_tetra = cbind(as(picrust_sigtab_cush_coch_tetra, "data.frame"), as(tax_table(picrust_tetra_cush_coch)[rownames(picrust_sigtab_cush_coch_tetra), ], "matrix"))
+#19 diff abun pathways
+
+picrust_diff_abund_tetra_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_tetra, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_tetra_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch tetra diff abun pathways.png", height=24, width=22)
+
+
+#GRVBR - COCH
+
+picrust_tetra_grvbr_coch<-subset_samples(picrust_tetra_ps_Bow, Site=="Graves Bridge" | Site=="Cochrane")
+
+picrust_deseq_grvbr_coch_tetra <- phyloseq_to_deseq2(picrust_tetra_grvbr_coch, ~ Site)
+
+picrust_deseq_grvbr_coch_tetra <- DESeq(picrust_deseq_grvbr_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_grvbr_coch_tetra <- results(picrust_deseq_grvbr_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_grvbr_coch_tetra = picrust_res_deseq_grvbr_coch_tetra[which(picrust_res_deseq_grvbr_coch_tetra$padj < alpha), ]
+picrust_sigtab_grvbr_coch_tetra = cbind(as(picrust_sigtab_grvbr_coch_tetra, "data.frame"), as(tax_table(picrust_tetra_grvbr_coch)[rownames(picrust_sigtab_grvbr_coch_tetra), ], "matrix"))
+#2 diff abun pathways
+
+picrust_diff_abund_tetra_grvbr_coch_plot<-ggplot(picrust_sigtab_grvbr_coch_tetra, aes(y=description, x=log2FoldChange))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y  = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_tetra_grvbr_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/grvbr-coch tetra diff abun pathways.png", height=24, width=22)
+
+
+#PMF - COCH
+
+picrust_tetra_pmf_coch<-subset_samples(picrust_tetra_ps_Bow, Site=="Policeman Flats" | Site=="Cochrane")
+
+picrust_deseq_pmf_coch_tetra <- phyloseq_to_deseq2(picrust_tetra_pmf_coch, ~ Site)
+
+picrust_deseq_pmf_coch_tetra <- DESeq(picrust_deseq_pmf_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_pmf_coch_tetra <- results(picrust_deseq_pmf_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_pmf_coch_tetra = picrust_res_deseq_pmf_coch_tetra[which(picrust_res_deseq_pmf_coch_tetra$padj < alpha), ]
+picrust_sigtab_pmf_coch_tetra = cbind(as(picrust_sigtab_pmf_coch_tetra, "data.frame"), as(tax_table(picrust_tetra_pmf_coch)[rownames(picrust_sigtab_pmf_coch_tetra), ], "matrix"))
+#0 observations
+
 #### Hydropsychidae ACWA ####
+
+#REF vs EFF5
+
+picrust_hydro_ps_ACWA<-subset_samples(picrust_ps, Family=="Hydropsychidae" & Stream_Type=="ACWA Streams")
+
+picrust_hydro_REF_EFF5<-subset_samples(picrust_hydro_ps_ACWA, Site=="BRR2" | Site=="PCR1")
+
+picrust_deseq_REF_EFF5_hydro_ACWA <- phyloseq_to_deseq2(picrust_hydro_REF_EFF5, ~ Site)
+
+picrust_deseq_REF_EFF5_hydro_ACWA <- DESeq(picrust_deseq_REF_EFF5_hydro_ACWA, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_REF_EFF5_hydro_ACWA <- results(picrust_deseq_REF_EFF5_hydro_ACWA, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_REF_EFF5_hydro_ACWA = picrust_res_deseq_REF_EFF5_hydro_ACWA[which(picrust_res_deseq_REF_EFF5_hydro_ACWA$padj < alpha), ]
+picrust_sigtab_REF_EFF5_hydro_ACWA = cbind(as(picrust_sigtab_REF_EFF5_hydro_ACWA, "data.frame"), as(tax_table(picrust_hydro_ps_ACWA)[rownames(picrust_sigtab_REF_EFF5_hydro_ACWA), ], "matrix"))
+#4 diff abun pathways
+
+picrust_diff_abund_hydro_ACWA_plot<-ggplot(picrust_sigtab_REF_EFF5_hydro_ACWA, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_ACWA_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/REF-EFF5 hydro diff abun pathways ACWA.png", height=24, width=22)
+
+
+#REF - EFF15
+
+picrust_hydro_REF_EFF15<-subset_samples(picrust_hydro_ps_ACWA, Site=="BRR2" | Site=="PCR3")
+
+picrust_deseq_REF_EFF15_hydro_ACWA <- phyloseq_to_deseq2(picrust_hydro_REF_EFF15, ~ Site)
+
+picrust_deseq_REF_EFF15_hydro_ACWA <- DESeq(picrust_deseq_REF_EFF15_hydro_ACWA, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_REF_EFF15_hydro_ACWA <- results(picrust_deseq_REF_EFF15_hydro_ACWA, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_REF_EFF15_hydro_ACWA = picrust_res_deseq_REF_EFF15_hydro_ACWA[which(picrust_res_deseq_REF_EFF15_hydro_ACWA$padj < alpha), ]
+picrust_sigtab_REF_EFF15_hydro_ACWA = cbind(as(picrust_sigtab_REF_EFF15_hydro_ACWA, "data.frame"), as(tax_table(picrust_hydro_ps_ACWA)[rownames(picrust_sigtab_REF_EFF15_hydro_ACWA), ], "matrix"))
+#4 diff abun pathways
+
+picrust_diff_abund_hydro_ACWA_plot<-ggplot(picrust_sigtab_REF_EFF15_hydro_ACWA, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_ACWA_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/REF-EFF15 hydro diff abun pathways ACWA.png", height=24, width=22)
+
+
+#EFF5 - EFF15
+
+picrust_hydro_EFF5_EFF15<-subset_samples(picrust_hydro_ps_ACWA, Site=="PCR1" | Site=="PCR3")
+
+picrust_deseq_EFF5_EFF15_hydro_ACWA <- phyloseq_to_deseq2(picrust_hydro_EFF5_EFF15, ~ Site)
+
+picrust_deseq_EFF5_EFF15_hydro_ACWA <- DESeq(picrust_deseq_EFF5_EFF15_hydro_ACWA, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_EFF5_EFF15_hydro_ACWA <- results(picrust_deseq_EFF5_EFF15_hydro_ACWA, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_EFF5_EFF15_hydro_ACWA = picrust_res_deseq_EFF5_EFF15_hydro_ACWA[which(picrust_res_deseq_EFF5_EFF15_hydro_ACWA$padj < alpha), ]
+picrust_sigtab_EFF5_EFF15_hydro_ACWA = cbind(as(picrust_sigtab_EFF5_EFF15_hydro_ACWA, "data.frame"), as(tax_table(picrust_hydro_ps_ACWA)[rownames(picrust_sigtab_EFF5_EFF15_hydro_ACWA), ], "matrix"))
+#0 diff abun pathways
+
 #### Baetidae ACWA ####
+
+#EFF5 - EFF15
+
+picrust_baetid_ps_ACWA<-subset_samples(picrust_ps, Family=="Baetidae" & Stream_Type=="ACWA Streams")
+
+picrust_baetid_EFF5_EFF15<-subset_samples(picrust_baetid_ps_ACWA, Site=="PCR1" | Site=="PCR3")
+
+picrust_deseq_EFF5_EFF15_baetid_ACWA <- phyloseq_to_deseq2(picrust_baetid_EFF5_EFF15, ~ Site)
+
+picrust_deseq_EFF5_EFF15_baetid_ACWA <- DESeq(picrust_deseq_EFF5_EFF15_baetid_ACWA, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_EFF5_EFF15_baetid_ACWA <- results(picrust_deseq_EFF5_EFF15_baetid_ACWA, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_EFF5_EFF15_baetid_ACWA = picrust_res_deseq_EFF5_EFF15_baetid_ACWA[which(picrust_res_deseq_EFF5_EFF15_baetid_ACWA$padj < alpha), ]
+picrust_sigtab_EFF5_EFF15_baetid_ACWA = cbind(as(picrust_sigtab_EFF5_EFF15_baetid_ACWA, "data.frame"), as(tax_table(picrust_baetid_ps_ACWA)[rownames(picrust_sigtab_EFF5_EFF15_baetid_ACWA), ], "matrix"))
+#0 diff abun pathways
+
+
 #### Ephemeroptera ACWA ####
+
+#EFF5 - EFF15
+
+picrust_ephem_ps_ACWA<-subset_samples(picrust_ps, Family=="Ephemeroptera" & Stream_Type=="ACWA Streams")
+
+picrust_ephem_EFF5_EFF15<-subset_samples(picrust_ephem_ps_ACWA, Site=="PCR1" | Site=="PCR3")
+
+picrust_deseq_EFF5_EFF15_ephem_ACWA <- phyloseq_to_deseq2(picrust_ephem_EFF5_EFF15, ~ Site)
+
+picrust_deseq_EFF5_EFF15_ephem_ACWA <- DESeq(picrust_deseq_EFF5_EFF15_ephem_ACWA, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_EFF5_EFF15_ephem_ACWA <- results(picrust_deseq_EFF5_EFF15_ephem_ACWA, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_EFF5_EFF15_ephem_ACWA = picrust_res_deseq_EFF5_EFF15_ephem_ACWA[which(picrust_res_deseq_EFF5_EFF15_ephem_ACWA$padj < alpha), ]
+picrust_sigtab_EFF5_EFF15_ephem_ACWA = cbind(as(picrust_sigtab_EFF5_EFF15_ephem_ACWA, "data.frame"), as(tax_table(picrust_ephem_ps_ACWA)[rownames(picrust_sigtab_EFF5_EFF15_ephem_ACWA), ], "matrix"))
+#2 diff abun pathways
+
+picrust_diff_abund_ephem_ACWA_plot<-ggplot(picrust_sigtab_EFF5_EFF15_ephem_ACWA, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_ACWA_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/EFF5-EFF15 ephem diff abun pathways ACWA.png", height=24, width=22)
+
 ```
 
 We are getting different results when using ALDEx2 and DESeq2. It's hard to tell which one is better because DESeq2 is prone to false positives but ALDEx2 doesn't have strong statistical power (Nearing et al., 2022; Yang & Chen, 2022). Because we are using a low alpha threshold for DESeq2, I think we can be confident that these are true results and continue to use this method. 
