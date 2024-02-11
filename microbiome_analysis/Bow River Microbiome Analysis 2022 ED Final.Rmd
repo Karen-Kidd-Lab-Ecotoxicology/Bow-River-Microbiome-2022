@@ -11506,6 +11506,38 @@ effluent_ACWA
 
 ((sum(sample_sums(effluent_ACWA)))/(sum(sample_sums(ACWA_ps)))*100) #10.4%
 
+# Percent of total ACWA larvae reads #
+
+ACWA_lar<-subset_samples(ACWA_ps, Stage=="Larvae")
+
+effluent_ACWA_lar<-subset_taxa(ACWA_lar, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_ACWA_lar<-prune_samples(sample_sums(effluent_ACWA_lar) > 0, effluent_ACWA_lar) 
+effluent_ACWA_lar
+
+((sum(sample_sums(effluent_ACWA_lar)))/(sum(sample_sums(ACWA_lar)))*100) #12.7%%
+
+# Percent of total ACWA Hydropsychidae reads #
+
+ACWA_hydro<-subset_samples(ACWA_ps, Family=="Hydropsychidae")
+
+effluent_ACWA_hydro<-subset_taxa(ACWA_hydro, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_ACWA_hydro<-prune_samples(sample_sums(effluent_ACWA_hydro) > 0, effluent_ACWA_hydro) 
+effluent_ACWA_hydro
+
+((sum(sample_sums(effluent_ACWA_lar)))/(sum(sample_sums(ACWA_lar)))*100) #12.7%%
+
+
+# Percent of total ACWA adult reads #
+
+nsamples(ACWA_ad<-subset_samples(ACWA_ps, Stage=="Adults"))
+
+effluent_ACWA_ad<-subset_taxa(ACWA_ad, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
+effluent_ACWA_ad<-prune_samples(sample_sums(effluent_ACWA_ad) > 0, effluent_ACWA_ad) 
+effluent_ACWA_ad
+
+((sum(sample_sums(effluent_ACWA_ad)))/(sum(sample_sums(ACWA_ad)))*100) #1.92%%
+
+
 #### Cochrane ####
 
 # Larvae #
@@ -12877,6 +12909,30 @@ picrust_ps<-phyloseq(metacyc_rounded_mat_1, sample_data(metadata_picrust), descr
 ## Relative abundance of top MetaCyc pathway classes across sites
 
 ```{r}
+#### Hydropsychidae ####
+
+#How to find the top three phyla across all sites
+hydro_Bow_picrust<-subset_samples(picrust_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River") #Subset hydropsychidae
+hydro_Bow_picrust_df<-psmelt(hydro_Bow_picrust)
+
+hydro_Bow_glom_picrust = tax_glom(hydro_Bow_picrust, "description") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
+
+hydro_Bow_descrip_picrust <- psmelt(hydro_Bow_glom_picrust) %>%
+  as_tibble %>%
+  dplyr::group_by(description, Site)%>%
+  dplyr::select(c("Abundance", "description", "Site")) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean))
+  
+View(hydro_Bow_descrip_picrust)
+
+# Cochrane #
+hydro_coch_picrust<-subset(hydro_Bow_descrip_picrust, Site=="Cochrane") 
+hydro_coch_picrust_top<-subset(hydro_coch_picrust, Mean > 0)
+View(hydro_coch_picrust_top<-hydro_coch_picrust[order(hydro_coch_picrust$Mean, decreasing = TRUE),])  
+
+#Amino acid biosynthesis, energy metabolism, super-pathways//nucleotide biosynthesis
+
 #### Bow River ####
 
 # Bolding individual axes labels #
@@ -12926,6 +12982,7 @@ df0_bow$Site_code<-factor(df0_bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "
 df0_bow$Stage<-factor(df0_bow$Stage, levels=c("Larvae", "Adults", "Spiders"))
 
 df0_bow$Family<-factor(df0_bow$Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+View(df0_bow)
 
 toppathwaysplot_bow <- ggplot(df0_bow, aes(x=Site_code, y=Abundance, fill=description)) + 
   geom_bar(stat="identity", color="black") + 
@@ -13738,7 +13795,7 @@ picrust_res_deseq_exposed_dip_Bow <- results(picrust_deseq_exposed_dip_Bow, cook
 alpha = 0.001
 picrust_sigtab_exposed_dip_Bow = picrust_res_deseq_exposed_dip_Bow[which(picrust_res_deseq_exposed_dip_Bow$padj < alpha), ]
 picrust_sigtab_exposed_dip_Bow = cbind(as(picrust_sigtab_exposed_dip_Bow, "data.frame"), as(tax_table(picrust_dip_ps_Bow)[rownames(picrust_sigtab_exposed_dip_Bow), ], "matrix"))
-#8 diff abun path
+#0 diff abun path
 
 picrust_diff_abund_dip_Bow_plot<-ggplot(picrust_sigtab_exposed_dip_Bow, aes(x=log2FoldChange, y=description))+
   geom_point(size=8) + 
@@ -14156,6 +14213,7 @@ picrust_ephem_EFF5_EFF15<-subset_samples(picrust_ephem_ps_ACWA, Site=="PCR1" | S
 picrust_deseq_EFF5_EFF15_ephem_ACWA <- phyloseq_to_deseq2(picrust_ephem_EFF5_EFF15, ~ Site)
 
 picrust_deseq_EFF5_EFF15_ephem_ACWA <- DESeq(picrust_deseq_EFF5_EFF15_ephem_ACWA, test = "Wald", fitType = "parametric", sfType = "poscounts")
+picrust_deseq_EFF5_EFF15_ephem_ACWA
 
 picrust_res_deseq_EFF5_EFF15_ephem_ACWA <- results(picrust_deseq_EFF5_EFF15_ephem_ACWA, cooksCutoff = FALSE)
 alpha = 0.001
@@ -14178,6 +14236,172 @@ picrust_diff_abund_ephem_ACWA_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/EFF5-EFF15 ephem diff abun pathways ACWA.png", height=24, width=22)
 
+
+#### All taxa plotted together Bow River ####
+
+#Hydropsychidae Bow
+
+picrust_diff_abund_hydro_Bow_plot<-ggplot(picrust_sigtab_exposed_hydro_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_Bow_plot
+
+
+#Heptageniidae
+
+picrust_diff_abund_hep_Bow_plot<-ggplot(picrust_sigtab_exposed_hep_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hep_Bow_plot
+
+
+#Chironomidae
+
+picrust_diff_abund_chiro_Bow_plot<-ggplot(picrust_sigtab_exposed_chiro_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_chiro_Bow_plot
+
+
+#Trichoptera
+
+picrust_diff_abund_trichop_Bow_plot<-ggplot(picrust_sigtab_exposed_trichop_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_Bow_plot
+
+#Ephemeroptera Bow
+picrust_diff_abund_ephem_Bow_plot<-ggplot(picrust_sigtab_exposed_ephem_Bow, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_Bow_plot
+
+
+# Hydropsychidae #
+picrust_diff_abund_hydro_Bow_plot_1<- picrust_diff_abund_hydro_Bow_plot + rremove("axis.title") + rremove("legend")
+picrust_diff_abund_hydro_Bow_plot_1
+
+# Heptageniidae #
+picrust_diff_abund_hep_plot_1<- picrust_diff_abund_hep_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_hep_plot_1
+
+# Chironomidae #
+picrust_diff_abund_chiro_plot_1<- picrust_diff_abund_chiro_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_chiro_plot_1
+
+# Trichoptera #
+picrust_diff_abund_trichop_plot_1<- picrust_diff_abund_trichop_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_trichop_plot_1
+
+# Ephemeroptera #
+picrust_diff_abund_ephem_plot_1<- picrust_diff_abund_ephem_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_ephem_plot_1
+
+ggarrange(picrust_diff_abund_hydro_Bow_plot_1,  picrust_diff_abund_hep_plot_1, picrust_diff_abund_chiro_plot_1, picrust_diff_abund_trichop_plot_1, picrust_diff_abund_ephem_plot_1, nrow=2, ncol=3, common.legend = T, legend="bottom")
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA across taxa Bow River faceted.png", height=28, width=30, bg="white")
+
+
+#### Taxa plotted all together ACWA ####
+
+# Hydropsychidae ACWA #
+
+picrust_diff_abund_hydro_ACWA_plot_REF_EFF5<-ggplot(picrust_sigtab_REF_EFF5_hydro_ACWA, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=18, face="italic", color="black")) + theme(axis.text.x=element_text(size=18, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_ACWA_plot_REF_EFF5
+
+
+picrust_diff_abund_hydro_ACWA_plot_REF_EFF15<-ggplot(picrust_sigtab_REF_EFF15_hydro_ACWA, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=18, face="italic", color="black")) + theme(axis.text.x=element_text(size=18, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_ACWA_plot_REF_EFF15
+
+# Ephemeroptera ACWA #
+
+picrust_diff_abund_ephem_ACWA_plot<-ggplot(picrust_sigtab_EFF5_EFF15_ephem_ACWA, aes(x=log2FoldChange, y=description))+
+  geom_point(size=8) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=28, face="italic", color="black")) + theme(axis.text.x=element_text(size=28, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_ACWA_plot
+
+# Hydropsychidae #
+picrust_diff_abund_hydro_ACWA_REF_EFF5_1<- picrust_diff_abund_hydro_ACWA_plot_REF_EFF5 + rremove("axis.title") + rremove("legend")
+picrust_diff_abund_hydro_ACWA_REF_EFF5_1
+
+picrust_diff_abund_hydro_ACWA_REF_EFF15_2<- picrust_diff_abund_hydro_ACWA_plot_REF_EFF15 + rremove("axis.title") + rremove("legend")
+picrust_diff_abund_hydro_ACWA_REF_EFF15_2
+
+# Ephemeroptera #
+picrust_diff_abund_ephem_plot_1<- picrust_diff_abund_ephem_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_ephem_plot_1
+
+ggarrange(picrust_diff_abund_ephem_plot_1, picrust_diff_abund_hydro_ACWA_REF_EFF5_1, picrust_diff_abund_hydro_ACWA_REF_EFF15_2, nrow=2, ncol=2)
+
+#ggsave(file="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA across taxa ACWA faceted.png", height=22, width=40)
 ```
 
 We are getting different results when using ALDEx2 and DESeq2. It's hard to tell which one is better because DESeq2 is prone to false positives but ALDEx2 doesn't have strong statistical power (Nearing et al., 2022; Yang & Chen, 2022). Because we are using a low alpha threshold for DESeq2, I think we can be confident that these are true results and continue to use this method. 
