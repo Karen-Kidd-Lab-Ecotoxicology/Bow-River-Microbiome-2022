@@ -12638,16 +12638,6 @@ colorado <- function(src, boulder) {
 #### Bow River ####
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-
-effluent_Bow<-subset_samples(effluent_bac, Stream_Type=="Bow River")
-effluent_Bow<-prune_taxa(taxa_sums(effluent_Bow) > 0, effluent_Bow) 
-sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #107 genera
-#Hyphomicrobium (5.39%), Pseudorhodobacter (5.31%), Ferruginibacter (5.23%)
-sum(sample_sums(effluent_Bow))/sum(sample_sums(Bow_ps))*100
-#Effluent bacteria comprises 9.06% of the total microbiome in the Bow River inverts (across all invertebrate types). 
-
-
-Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps) 
 Bow_ps #7527 taxa, 276 samples
 
