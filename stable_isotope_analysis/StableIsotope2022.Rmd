@@ -293,6 +293,45 @@ kruskal.test(d15N~Site, data=spiders) #p=0.0054
 dunnTest(d15N~Site, data=spiders)
 #GRVBR different from all other sites
 
+
+#### Plotting basal food sources, Hydropsychidae, and spiders across sites ####
+
+
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+
+hydro_subset<-subset(isotope, Taxa == "Tetragnathidae" | Taxa== "Araneidae" | Taxa=="Terrestrial Leaves" | Taxa=="Hydropsychidae" | Taxa=="Biofilm")
+
+hydro_subset$Taxa <- factor(hydro_subset$Taxa, levels=c("Terrestrial Leaves", "Biofilm", "Hydropsychidae", "Araneidae", "Tetragnathidae"))
+
+hydro_subset$Site_Code <- factor(hydro_subset$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+N_plot_hydro<-ggplot(hydro_subset, aes(x=Site_Code, y=d15N))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.title.y.left = element_text(size=18), axis.title.x = element_text(size=18), axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(hydro_subset$Site_Code, c("GRVBR", "PMF"))))+
+  ylim(-1, 17)+
+  rremove("grid")+
+  xlab("Site")+
+  facet_wrap(~Aqu_Terr+Taxa, scales="free_x", nrow=1)
+N_plot_hydro
+
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Conferences and Presentations\\Graduate Research Day 2024\\nitrogen_across_taxa.png", height=7, width=12)
 ```
 
 ## ANOVA/Kruskal tests across individual invertebrate families

@@ -3409,7 +3409,113 @@ annotate_figure(rel_abun_fig_ACWA, left = textGrob("Phylum", rot = 90, vjust = 1
 
 #ggsave(filename="microbiome_analysis/Final analysis/Relative abundance/All samples/point range rel abund graph ACWA across taxa.png", height=6, width=12, bg="white")
 ```
+### Comparing Relative Abundance Ratios - Phyla ###
+```{r}
+#### Bacteroidota to Proteobacteria ####
 
+# Bolding individual axes labels #
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+rel_abun_phylum_bow <- speedyseq::tax_glom(Bow_ps, taxrank = "Phylum")
+comp_rel_abun_phylum_bow <- transform_sample_counts(rel_abun_phylum_bow, function(x) x/sum(x))
+
+rel_abun_prune_sample_bow <- psmelt(comp_rel_abun_phylum_bow)
+
+rel_abun_prune_sample_bow$Site_code <- factor(rel_abun_prune_sample_bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+rel_abun_prune_sample_bow$sample_Family<-factor(rel_abun_prune_sample_bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+rel_abun_bow_subset<-subset(rel_abun_prune_sample_bow, Phylum=="Bacteroidota" | Phylum=="Proteobacteria")
+
+ggplot(rel_abun_bow_subset, aes(x=Site_code, y=Abundance, fill=Phylum)) + 
+  geom_boxplot() + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(1, "cm"),
+        legend.text=element_text(size=14), legend.title=element_text(size=14), legend.position = "bottom") +
+  guides (fill=guide_legend(nrow=1)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(rel_abun_bow_subset$Site_code, c("GRVBR", "PMF"))),
+                        axis.title.x=element_text(size=22))+
+  scale_fill_manual(name="Phylum", values = c("#1F78B4", "#B2DF8A"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("Site")+
+  facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)
+ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/ratio Bact-Prot.png", height=10, width=22)
+
+
+#### Firmicutes to Bacteroidota ####
+
+# Bolding individual axes labels #
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+rel_abun_phylum_bow <- speedyseq::tax_glom(Bow_ps, taxrank = "Phylum")
+comp_rel_abun_phylum_bow <- transform_sample_counts(rel_abun_phylum_bow, function(x) x/sum(x))
+
+rel_abun_prune_sample_bow <- psmelt(comp_rel_abun_phylum_bow)
+
+rel_abun_prune_sample_bow$Site_code <- factor(rel_abun_prune_sample_bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+rel_abun_prune_sample_bow$sample_Family<-factor(rel_abun_prune_sample_bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+rel_abun_bow_subset<-subset(rel_abun_prune_sample_bow, Phylum=="Bacteroidota" | Phylum=="Firmicutes")
+
+ggplot(rel_abun_bow_subset, aes(x=Site_code, y=Abundance, fill=Phylum)) + 
+  geom_boxplot() + 
+  ylab("Mean Relative Abundance") +
+  theme_bw()+
+  rremove("grid")+
+  theme(strip.text = element_text(size = 16, color="black")) + 
+  theme(legend.key.size = unit(1, "cm"),
+        legend.text=element_text(size=14), legend.title=element_text(size=14), legend.position = "bottom") +
+  guides (fill=guide_legend(nrow=1)) +
+  theme(axis.title.y=element_text(size=22),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(rel_abun_bow_subset$Site_code, c("GRVBR", "PMF"))),
+                        axis.title.x=element_text(size=22))+
+  scale_fill_manual(name="Phylum", values = c("#1F78B4", "#CC9966"))+
+  scale_y_continuous(label = scales::percent)+
+  rremove("grid")+
+  xlab("Site")+
+  facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)
+
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/ratio Firm-Bact.png", height=10, width=22)
+
+```
 
 ### Plotting relative abundance {.tabset}
 #### Bow River - faceted across taxa and sites
@@ -12556,6 +12662,68 @@ ggplot(sample.df.agg.effluent.fam.Bow.invert, aes(x=Site, y=Abundance, fill=Fami
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)
 
+#### Plotting total effluent bacteria abundance across sites and taxa Bow River ####
+
+genus_Bow = tax_glom(Bow_ps, "Genus") %>% 
+  transform_sample_counts(function(x) {x * 100/sum(x)}) 
+genus_Bow<-prune_taxa(taxa_sums(genus_Bow) > 0, genus_Bow)
+
+genus_df_Bow <- psmelt(genus_Bow) %>%  
+  as_tibble %>%
+    group_by(Genus, Site_code, sample_Family, Stage) %>%
+  dplyr::select(c("Abundance", "Genus")) 
+
+eff_Bow<- genus_df_Bow %>%
+  mutate(Genus = fct_other(Genus, drop=c("AAP99","Achromobacter", "Acidovorax" ,"Acinetobacter","Aeromonas" ,"Alcaligenes" ,"Amaricoccus" ,"Anaerovorax","Arcticibacter","Aridibacter","Arthrobacter" ,"Asticcacaulis","Azoarcus" ,"Azospira","Bacillus" ,"Bacteroides","Bauldia" ,"Bdellovibrio","Blastocatella" ,"Blastomonas","Blautia" ,"Blvii28 wastewater-sludge group","Bordetella","Brachybacterium","Bryobacter","Candidatus Accumulibacter" , "Candidatus Amoebophilus" ,"Candidatus Anammoximicrobium","Candidatus Competibacter" ,"Candidatus Microthrix" ,"Candidatus Nitrotoga" ,"Cetobacterium" ,"Chryseobacterium" ,"Citrobacter" ,"Cloacibacterium" ,"Clostridium sensu stricto 1" ,"Clostridium sensu stricto 2" ,"Clostridium sensu stricto 3","Clostridium sensu stricto 5" ,"Clostridium sensu stricto 8","Clostridium sensu stricto 9","Clostridium sensu stricto 10","Clostridium sensu stricto 13","Clostridium sensu stricto 14" ,"Comamonas" ,"Corynebacterium" ,"Cytophaga" ,"Dechloromonas" ,"Defluviicoccus" ,"Desulfatiglans" ,"Desulfovibrio" ,"Devosia","Ensifer","Enterococcus" ,"Escherichia-Shigella" ,"Faecalibacterium" ,"Faecalitalea" ,"Ferruginibacter" ,"Flexibacter","Fluviicola","Gemmata","Gordonia","Haliscomenobacter" ,"Helicobacter" ,"Hydrogenophaga" ,"Hyphomicrobium" ,"Hyphomonas","Ignavibacterium","Isosphaera" ,"Klebsiella","Lachnospira" ,"Lachnobacillus" ,"Legionella" ,"Methylocystis" ,"Methylotenera","Micrococcus" ,"Moraxella" ,"Mycobacterium" ,"Neisseria" ,"Nitrobacter","Nitrosomonas" ,"Nitrospira" ,"Nocardioides" ,"Novosphingobium" ,"Ottawia" ,"Paludibacter" ,"Pantoea","Parabacteroides","Paracoccus" ,"Pseudomonas" ,"Ralstonia" ,"Rhodobacter" ,"Rhodococcus","Romboutsia" ,"Roseburia","Ruminococcus" ,"Runella" ,"Serratia" ,"Shinella" ,"Smithella","Staphylococcus" ,"Stenotrophobacter" ,"Stenotrophomonas","Streptococcus","Sulfuritalea" ,"Syntrophobacter" ,"Syntrophomonas","Syntrophus","Terrimonas" ,"Thermomonas" ,"Trichococcus" ,"Xanthomonas","Zoogloea")))%>%
+  ungroup()
+View(eff_Bow)
+
+eff_Bow_sum<-eff_Bow %>%
+   group_by(Genus, Site_code, sample_Family, Stage) %>%
+  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance))
+View(eff_Bow_sum)
+
+eff_only<-subset(eff_Bow_sum, Genus=="Other")
+
+eff_only$sample_Family<-factor(eff_only$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+ 
+
+#Effluent associated bacteria combined as red versus all other bacteria as grey
+
+ggplot(eff_only, aes(x=Site_code, y=Abundance, fill=Genus))+
+  geom_bar(stat = "identity", color="black")+
+  geom_errorbar( aes(x=Site_code, ymin=((Mean-SD)/sqrt(length(Genus))), ymax=((Mean+SD)/sqrt(length(Genus)))))+ #adding standard error bars
+  facet_nested_wrap(~Stage + sample_Family, scale="free_x", nrow=1)+
+  ylab("Mean Relative Abundance (%)") +
+  theme_bw()+
+  theme(strip.text = element_text(size = 22, color="black"), 
+        legend.position="none",
+        axis.title.y=element_text(size=30),
+        axis.text.y=element_text(size=24, color="black"),
+        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black", face=colorado(eff_Bow_sum$Site_code, c("GRVBR", "PMF"))),
+        axis.title.x=element_text(size=30))+
+  scale_y_continuous(label = scales::percent, limits = c(NA, 1), 
+                     breaks=c(-0.75, -0.50, -0.25, 0, 0.25, 0.50, 0.75, 1))+
+  xlab("Site")+
+  rremove("grid")
+#Extremely variable
 #### ACWA relative abundance graph of effluent bacteria ####
 
 # Colored by Genus #
@@ -12610,174 +12778,6 @@ ggplot(sample.df.agg.effluent.fam.ACWA, aes(x=Site, y=Abundance, fill=Family)) +
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black"),
                         axis.title=element_text(size=18))+
   scale_y_continuous(label = scales::percent)
-```
-
-## Plotting eff-assoc. bac. relative to non eff-assoc. bac. across sites + taxa
-```{r}
-effluent_bac<-subset_taxa(sample_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
-effluent_bac<-prune_samples(sample_sums(effluent_bac) > 0, effluent_bac) 
-effluent_bac #1327 taxa 316 samples
-
-colorado <- function(src, boulder) {
-  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
-  src_levels <- levels(src)                                 # retrieve the levels in their order
-  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
-   if (any(brave)){
-      b_pos <- which(src_levels == boulder[1])
-    for(i in 2:length(boulder)){# if so
-       # then find out where they are
-      b_pos <- append(b_pos, which(src_levels == boulder[i]))
-    }
-      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
-      b_vec[b_pos] <- "bold"# make our targets bold
-      b_vec
-    # return the new vector
-  }
-}
-
-#### Bow River ####
-
-Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-Bow_ps<-prune_taxa(taxa_sums(Bow_ps) > 0, Bow_ps) 
-Bow_ps #7527 taxa, 276 samples
-
-effluent_Bow<-subset_samples(effluent_bac, Stream_Type=="Bow River")
-effluent_Bow<-prune_taxa(taxa_sums(effluent_Bow) > 0, effluent_Bow) 
-sort((table(tax_table(effluent_Bow)[,6]))/sum(ntaxa(effluent_Bow))*100) #117 genera
-#Hyphomicrobium (5.39%), Pseudorhodobacter (5.31%), Ferruginibacter (5.23%)
-sum(sample_sums(effluent_Bow))/sum(sample_sums(Bow_ps))*100
-#Effluent bacteria comprises 9.06% of the total microbiome in the Bow River (across all invertebrate types). Decently small amount.
-
-## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
-
-#Color code by Family level since there are too many genera to distinguish them on the graph
-
-Bow_genus <- tax_glom(Bow_ps, taxrank = "Genus")
-Bow_genus<-prune_taxa(taxa_sums(Bow_genus) > 0, Bow_genus) 
-Bow_genus #715 genera, 276 samples
-comp_Bow_genus <- transform_sample_counts(Bow_genus, function(x) x/sum(x))
-
-Bow_genus_df <- psmelt(comp_Bow_genus)
-
-Bow_agg_genus <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = Bow_genus_df, FUN = mean) #aggregate to Genus level, take the mean
-
-#Sort abundance of each genus by mean at each site
-sort_genus_Bow <- Bow_agg_genus %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
-View(sort_genus_Bow)
-
-effluents_Bow <- sort_genus_Bow$Genus[c(11:15, 41:45, 61:70, 101:105, 131:135, 176:180, 226:230, 281:285, 291:305, 331:340, 356:360, 366:370, 376:385, 396:400, 406:410, 416:430, 436:440, 471:475, 541:545, 551:560, 591:595, 636:640, 646:650, 746:750, 781:785, 811:815, 821:865, 891:895, 911:915, 956:960, 976:980, 986:990, 1051:1055, 1061:1065, 1161:1170, 1191:1195, 1211:1215, 1221:1225, 1246:1250, 1296:1300, 1301:1305, 1381:1385, 1446:1450, 1466:1470, 1481:1485, 1521:1525, 1531:1540, 1571:1575, 1646:1650, 1671:1675, 1756:1760, 1976:1985, 2016:2020, 2036:2040, 2071:2075, 2106:2125, 2146:2150, 2216:2220, 2266:2270, 2276:2280, 2286:2290, 2301:2305, 2601:2605, 2611:2615, 2656:2660, 2701:2710, 2761:2770, 2851:2855, 2861:2865, 2956:2965, 3081:3085, 3091:3100, 3106:3110, 3141:3145, 3171:3180, 3186:3190, 3226:3230, 3251:3255, 3276:3280, 3436:3440, 3476:3480)] 
-  
-eff_df_Bow_genus <- Bow_agg_genus %>%
-    mutate(Genus = fct_other(Genus, effluents_Bow))
-
-eff_agg_df_Bow<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_Bow_genus, FUN = sum)
-
-eff_agg_df_Bow$Site_code <- factor(eff_agg_df_Bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
-
-eff_agg_df_Bow$sample_Family<-factor(eff_agg_df_Bow$sample_Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
-
-library(metafolio)
-pal <- gg_color_hue(109)
-pal[1:108] <-"red3"
-pal[109] <- "#43464B"
-
-#Effluent associated bacteria combined as red versus all other bacteria as grey
-
-eff_plot_Bow <- ggplot(eff_agg_df_Bow, aes(x=Site_code, y=Abundance, fill=Genus)) +
-  geom_bar(stat="identity") + 
-  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
-  ylab("Mean Relative Abundance") +
-  theme_bw()+
-  rremove("grid")+
-  guides(fill=guide_legend(nrow=39, ncol=3)) +
-  theme(strip.text = element_text(size = 22, color="black"), 
-        legend.position="none",
-        axis.title.y=element_text(size=30),
-        axis.text.y=element_text(size=24, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black", face=colorado(eff_agg_df_Bow$Site_code, c("GRVBR", "PMF"))),
-        axis.title.x=element_text(size=30))+
-  scale_fill_manual(name="Genus", values=pal)+
-  scale_y_continuous(label = scales::percent)+
-  xlab("Site")+
-  rremove("grid")
-eff_plot_Bow
-
-#ggsave(eff_plot_Bow, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria combined Bow river.png", height=14, width=22)
-
-
-#### ACWA Streams ####
-
-ACWA_ps<-subset_samples(sample_ps, Stream_Type!="Bow River")
-
-effluent_ACWA<-subset_samples(effluent_bac, Stream_Type!="Bow River")
-effluent_ACWA<-prune_taxa(taxa_sums(effluent_ACWA) > 0, effluent_ACWA) 
-sort((table(tax_table(effluent_ACWA)[,6]))/sum(ntaxa(effluent_ACWA))*100) 
-#Pseudorhodobacter (8.76%), Rhodobacter (6.37%), Hyphomicrobium (5.98%)
-sum(sample_sums(effluent_ACWA))/sum(sample_sums(ACWA_ps))*100
-#Effluent bacteria comprises 10.4% of the total microbiome in the ACWA streams (across all invertebrate types). 
-
-## Plotting relative abundance of effluent bacteria versus non eff-assoc. bacteria ##
-
-ACWA_genus <- tax_glom(ACWA_ps, taxrank = "Genus")
-ACWA_genus<-prune_taxa(taxa_sums(ACWA_genus) > 0, ACWA_genus) 
-ACWA_genus #441 genera, 55 samples
-
-comp_ACWA_genus <- transform_sample_counts(ACWA_genus, function(x) x/sum(x))
-
-ACWA_genus_df <- psmelt(comp_ACWA_genus)
-
-ACWA_agg <- aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = ACWA_genus_df, FUN = mean) 
-
-#Sort abundance of each genus by mean at each site
-sort_genus_ACWA <- ACWA_agg %>%
-    group_by(Genus, Site_code) %>%
-    summarize(Mean = mean(Abundance)) %>%
-    arrange()
-View(sort_genus_ACWA)
-
-#effluent_bac<-subset_taxa(sample_ps, Genus == "AAP99" | Genus=="Achromobacter" | Genus=="Acidovorax" | Genus=="Acinetobacter"| Genus=="Aeromonas" | Genus=="Alcaligenes" | Genus=="Amaricoccus" | Genus=="Anaerovorax" |Genus=="Arcticibacter"|Genus=="Aridibacter"| Genus=="Arthrobacter" | Genus=="Asticcacaulis"| Genus=="Azoarcus" | Genus=="Azospira"| Genus=="Bacillus" |Genus=="Bacteroides"| Genus=="Bauldia" | Genus=="Bdellovibrio"| Genus=="Blastocatella" | Genus=="Blastomonas"| Genus=="Blautia" | Genus=="Blvii28 wastewater-sludge group"| Genus=="Bordetella" |Genus== "Brachybacterium"| Genus=="Bryobacter"| Genus=="Candidatus Accumulibacter" | Genus== "Candidatus Amoebophilus" | Genus=="Candidatus Anammoximicrobium"| Genus=="Candidatus Competibacter" | Genus=="Candidatus Microthrix" | Genus=="Candidatus Nitrotoga" | Genus=="Cetobacterium" | Genus=="Chryseobacterium" | Genus=="Citrobacter" | Genus=="Cloacibacterium" | Genus=="Clostridium sensu stricto 1" | Genus=="Clostridium sensu stricto 2" | Genus=="Clostridium sensu stricto 3"| Genus=="Clostridium sensu stricto 5" | Genus=="Clostridium sensu stricto 8"| Genus=="Clostridium sensu stricto 9"| Genus=="Clostridium sensu stricto 10"| Genus=="Clostridium sensu stricto 13"| Genus=="Clostridium sensu stricto 14" | Genus=="Comamonas" | Genus=="Corynebacterium" | Genus=="Cytophaga" | Genus=="Dechloromonas" | Genus=="Defluviicoccus" | Genus=="Desulfatiglans" | Genus=="Desulfovibrio" | Genus=="Devosia"| Genus=="Ensifer"| Genus=="Enterococcus" | Genus=="Escherichia-Shigella" | Genus=="Faecalibacterium" | Genus=="Faecalitalea" | Genus=="Ferruginibacter" | Genus=="Flexibacter"| Genus=="Fluviicola"| Genus=="Gemmata" |Genus=="Gordonia"| Genus=="Haliscomenobacter" | Genus=="Helicobacter" | Genus=="Hydrogenophaga" | Genus=="Hyphomicrobium" | Genus=="Hyphomonas"| Genus=="Ignavibacterium"| Genus=="Isosphaera" | Genus=="Klebsiella"| Genus=="Lachnospira" | Genus=="Lachnobacillus" | Genus=="Legionella" | Genus=="Methylocystis" | Genus=="Methylotenera"| Genus=="Micrococcus" | Genus=="Moraxella" | Genus=="Mycobacterium" | Genus=="Neisseria" | Genus=="Nitrobacter"| Genus=="Nitrosomonas" | Genus=="Nitrospira" | Genus=="Nocardioides" | Genus=="Novosphingobium" | Genus=="Ottawia" | Genus=="Paludibacter" | Genus=="Pantoea"| Genus=="Parabacteroides"| Genus=="Paracoccus" | Genus=="Pseudomonas" | Genus=="Pseudorhodobacter" | Genus=="Ralstonia" | Genus=="Rhodobacter" | Genus=="Rhodococcus"| Genus=="Romboutsia" | Genus=="Roseburia"| Genus=="Ruminococcus" | Genus=="Runella" | Genus=="Serratia" | Genus=="Shinella" | Genus=="Smithella"| Genus=="Staphylococcus" | Genus=="Stenotrophobacter" | Genus=="Stenotrophomonas"| Genus=="Streptococcus"| Genus=="Sulfuritalea" | Genus=="Syntrophobacter" | Genus=="Syntrophomonas"| Genus=="Syntrophus"| Genus=="Terrimonas" | Genus=="Thermomonas" | Genus=="Trichococcus" | Genus=="Xanthomonas"| Genus=="Zoogloea")
-
-effluents_ACWA <- sort_genus_ACWA$Genus[c(4:6, 13:15, 22:27, 46:48, 55:57, 76:78, 88:90, 109:114, 124:126, 133:135, 139:141, 145:147, 151:153, 160:162, 175:177, 199:201, 205:210, 220:222, 232:234, 238:240, 274:276, 292:294, 307:327, 331:333, 337:339, 364:366, 373:375, 379:381, 400:402, 424:426, 430:432, 466:468, 475:480, 496:501, 538:540, 553:555, 565:567, 580:582, 586:588, 601:603, 619:621, 637:639, 670:672, 745:747, 751:756, 766:768, 775:777, 784:786, 796:804, 811:813, 853:855, 859:861, 868:870, 961:966, 985:990, 1012:1017, 1045:1050, 1087:1089, 1099:1101, 1132:1134, 1138:1143, 1153:1155, 1171:1176, 1180:1182, 1201:1203, 1207:1209, 1213:1215)]
-
-  
-eff_df_ACWA <- ACWA_agg %>%
-    mutate(Genus = fct_other(Genus, effluents_ACWA))
-
-eff_agg_df_ACWA<-aggregate(Abundance ~ Genus + Site_code + sample_Family + Stage, data = eff_df_ACWA, FUN = sum)
-
-eff_agg_df_ACWA$Site_code <- factor(eff_agg_df_ACWA$Site_code, levels=c("BRR2", "PCR1", "PCR3"), labels=c("REF", "EFF5", "EFF15"))
-
-eff_agg_df_ACWA$sample_Family<-factor(eff_agg_df_ACWA$sample_Family, levels=c("Hydropsychidae", "Baetidae", "Ephemeroptera"))
-
-pal_ACWA <- gg_color_hue(88)
-pal_ACWA[1:87]<-"red3"
-pal_ACWA[88] <- "#43464B"
-
-eff_plot_ACWA <- ggplot(eff_agg_df_ACWA, aes(x=Site_code, y=Abundance, fill=Genus)) +
-  geom_bar(stat="identity") + 
-  facet_nested_wrap(~Stage+sample_Family, scale="free_x", nrow=1)+
-  ylab("Mean Relative Abundance") +
-  theme_bw()+
-  rremove("grid")+
-  theme(strip.text = element_text(size = 22, color="black")) + 
-  theme(legend.key.size = unit(0.8, "cm"),
-        legend.text=element_text(size=12, face="italic"), legend.title=element_text(size=16), legend.position = "none") +
-  guides(fill=guide_legend(nrow=33, ncol=3)) +
-  theme(axis.title.y=element_text(size=30),
-        axis.text.y=element_text(size=24, color="black"),
-        axis.text.x=element_text(angle=45, hjust=1, size=24, color="black"),
-                        axis.title.x=element_text(size=30))+
-  scale_fill_manual(name="Genus", values=pal_ACWA)+
-  scale_y_continuous(label = scales::percent)+
-  xlab("Site")+
-  rremove("grid")
-eff_plot_ACWA
-
-
-#ggsave(eff_plot_ACWA, filename="microbiome_analysis/Final analysis/Relative abundance/Effluent bacteria/Effluent associated bacteria combined ACWA.png", height=14, width=16)
 ```
 
 # Picrust2
