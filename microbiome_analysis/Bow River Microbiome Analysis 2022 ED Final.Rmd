@@ -198,6 +198,13 @@ psbl2 #1736 taxa, 23 samples
 #table(tax_table(psbl2)[,"Species"], exclude=NULL)
 
 blank_ps<-psbl2
+blank_df<-psmelt(blank_ps)
+nsamples(blank_ps) #23 blanks total (Water September:3, emergence trap:3, Water July:3, Sheet:4, buffer:2, extraction_neg:6, extraction_neg_4:2)
+
+blank_Bow<-subset_samples(blank_ps, Stream_Type!="ACWA Streams")
+nsamples(blank_Bow) #17
+blank_ACWA<-subset_samples(blank_ps, Stream_Type!="Bow River")
+nsamples(blank_ACWA) #16
 ```
 
 ## Experimental samples {.tabset}
@@ -586,6 +593,8 @@ get_taxa_unique(buffer, "Genus") #113 genera total
 
 ### Relative abundance at different taxonomic levels (all samples combined)
 ```{r}
+nsamples(sample_ps) #331
+
 #### Bow River ####
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
@@ -5850,30 +5859,33 @@ Transforming the data to proportions (relative abundance) is the best method of 
 
 ## Blanks and experimental samples 
 ```{r}
+#### Bow River ####
 #Combine filtered experimental samples with blanks
-exp_bl_ps<-merge_phyloseq(blank_ps, sample_ps)
-nsamples(exp_bl_ps) #354 (331 samples, 23 blanks)
+nsamples(Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")) #276 samples
+nsamples(blank_Bow) #17
+exp_bl_ps_Bow<-merge_phyloseq(blank_Bow, Bow_ps)
+nsamples(exp_bl_ps_Bow) #293 (276 samples, 17 blanks)
 
 #Ordinating blanks with experimental samples to see how closely related they are
 
 #PCoA with Bray Curtis distance matrix
-ps_rel_abun = transform_sample_counts(exp_bl_ps, function(x) x/sum(x))
+ps_rel_abun_Bow = transform_sample_counts(exp_bl_ps_Bow, function(x) x/sum(x))
 
-dist_all = phyloseq::distance(ps_rel_abun, method="bray") #Bray Curtis distance matrix
-ordination_all = ordinate(ps_rel_abun, method="PCoA", distance=dist_all) #Ordinate using PCoA
+dist_all_Bow = phyloseq::distance(ps_rel_abun_Bow, method="bray") #Bray Curtis distance matrix
+ordination_all_Bow = ordinate(ps_rel_abun_Bow, method="PCoA", distance=dist_all_Bow) #Ordinate using PCoA
 
-plot_ordination(ps_rel_abun, ordination_all, shape="Blank_collection_method", color="Sample_Type") +
+plot_ordination(ps_rel_abun_Bow, ordination_all_Bow, shape="Blank_collection_method", color="Sample_Type") +
   theme_classic() +
   theme(strip.background = element_blank())
   
 #Doesn't explain much of the data, need to do an NMDS
  
 set.seed(1)
-ord_NMDS_blanks = ordinate(ps_rel_abun, method="NMDS", distance=dist_all)
-ord_NMDS_blanks #stress=0.194
+ord_NMDS_blanks_Bow = ordinate(ps_rel_abun_Bow, method="NMDS", distance=dist_all_Bow)
+ord_NMDS_blanks_Bow #stress=0.196
 
 
-blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks, color="Sample_Type", shape="Blank_Type") + 
+blank_nmds_Bow<-plot_ordination(ps_rel_abun_Bow, ord_NMDS_blanks_Bow, color="Sample_Type", shape="Blank_Type") + 
   geom_point()+
   theme_classic() +
   theme(strip.background = element_blank())+
@@ -5888,20 +5900,20 @@ blank_nmds<-plot_ordination(ps_rel_abun, ord_NMDS_blanks, color="Sample_Type", s
   scale_shape_manual(name="Blank type", values=c(1:7))+
   scale_color_manual(name="Sample type", values=c("red", "darkblue"))
 
-blank_nmds$Blank_Type <- factor(blank_nmds$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Floating emergence trap","Buffer tube","DNA extraction reagent","Nested PCR negative"))
-print(blank_nmds)
+blank_nmds_Bow$Blank_Type <- factor(blank_nmds_Bow$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Buffer tube","DNA extraction reagent","Nested PCR negative"))
+print(blank_nmds_Bow)
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples.png", height=10, width=12)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples Bow River.png", height=10, width=12)
 
-metadata_blanks <- data.frame(sample_data(ps_rel_abun))
+metadata_blanks_Bow <- data.frame(sample_data(ps_rel_abun_Bow))
 
-adonis.blanks <- adonis2(dist_all ~ Sample_Type, data = metadata_blanks)
-adonis.blanks #p<0.001. Significant dissimilarity between blank samples and invertebrate samples
-#F(1, 352) = 4.55, P < 0.001
+adonis.blanks.Bow <- adonis2(dist_all_Bow ~ Sample_Type, data = metadata_blanks_Bow)
+adonis.blanks.Bow #p<0.001. Significant dissimilarity between blank samples and invertebrate samples
+#F(1, 291) = 3.48, P < 0.001
 
 #Testing variance (beta dispersion) differences between samples and blanks:
-bd_blanks<-betadisper(dist_all, metadata_blanks$Sample_Type)
-anova(bd_blanks) #Sig. dispersion F(1,352) = 53.8, p<0.001
+bd_blanks_Bow<-betadisper(dist_all_Bow, metadata_blanks_Bow$Sample_Type)
+anova(bd_blanks_Bow) #Sig. dispersion F(1,291) = 54.5, p<0.001
 
 
 ## Separating out respective blanks for each sample type ##
@@ -5956,6 +5968,63 @@ bd_blanks_type<-betadisper(dist_all, metadata_blanks$Blank_collection_method)
 anova(bd_blanks_type) #Sig. dispersion
 
 #Seems like the blank community composition differs from that of the invertebrate samples however, there is significant beta dispersion so we can't be entirely sure. We can compare the results with and without prior decontamination steps to be cautious. 
+
+
+#### ACWA Streams ####
+#Combine filtered experimental samples with blanks
+nsamples(ACWA_ps<-subset_samples(sample_ps, Stream_Type=="ACWA Streams")) #55 samples
+nsamples(blank_ACWA) #16
+exp_bl_ps_ACWA<-merge_phyloseq(blank_ACWA, ACWA_ps)
+nsamples(exp_bl_ps_ACWA) #71 (55 samples, 16 blanks)
+
+#Ordinating blanks with experimental samples to see how closely related they are
+
+#PCoA with Bray Curtis distance matrix
+ps_rel_abun_ACWA = transform_sample_counts(exp_bl_ps_ACWA, function(x) x/sum(x))
+
+dist_all_ACWA = phyloseq::distance(ps_rel_abun_ACWA, method="bray") #Bray Curtis distance matrix
+ordination_all_ACWA = ordinate(ps_rel_abun_ACWA, method="PCoA", distance=dist_all_ACWA) #Ordinate using PCoA
+
+plot_ordination(ps_rel_abun_ACWA, ordination_all_ACWA, shape="Blank_collection_method", color="Sample_Type") +
+  theme_classic() +
+  theme(strip.background = element_blank())
+  
+#Doesn't explain much of the data, need to do an NMDS
+ 
+set.seed(1)
+ord_NMDS_blanks_ACWA = ordinate(ps_rel_abun_ACWA, method="NMDS", distance=dist_all_ACWA)
+ord_NMDS_blanks_ACWA #stress=0.11
+
+
+blank_nmds_ACWA<-plot_ordination(ps_rel_abun_ACWA, ord_NMDS_blanks_ACWA, color="Sample_Type", shape="Blank_Type") + 
+  geom_point()+
+  theme_classic() +
+  theme(strip.background = element_blank())+
+  theme(legend.key.size = unit(1, 'cm'), 
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=16),
+        axis.text.x = element_text(size=18, color="black"),
+        axis.text.y = element_text(size=18, color="black"),
+        axis.title = element_text(size=20, color="black"),
+        legend.position = "right")+
+  guides(nrow=10)+
+  scale_shape_manual(name="Blank type", values=c(1:7))+
+  scale_color_manual(name="Sample type", values=c("red", "darkblue"))
+
+blank_nmds_ACWA$Blank_Type <- factor(blank_nmds_ACWA$Blank_Type, levels = c("Tweezer water rinse","Floating emergence trap","Buffer tube","DNA extraction reagent","Nested PCR negative"))
+print(blank_nmds_ACWA)
+
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples ACWA.png", height=10, width=12)
+
+metadata_blanks_ACWA <- data.frame(sample_data(ps_rel_abun_ACWA))
+
+adonis.blanks.ACWA <- adonis2(dist_all_ACWA ~ Sample_Type, data = metadata_blanks_ACWA)
+adonis.blanks.ACWA #p<0.001. Significant dissimilarity between blank samples and invertebrate samples
+#F(1, 69) = 4.92, P < 0.001
+
+#Testing variance (beta dispersion) differences between samples and blanks:
+bd_blanks_ACWA<-betadisper(dist_all_ACWA, metadata_blanks_ACWA$Sample_Type)
+anova(bd_blanks_ACWA) #Sig. dispersion F(1,69) = 0.699, p=0.406
 ```
 
 ## Experimental samples {.tabset}
