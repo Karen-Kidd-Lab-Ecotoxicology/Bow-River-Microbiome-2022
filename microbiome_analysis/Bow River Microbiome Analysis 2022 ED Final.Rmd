@@ -3432,6 +3432,8 @@ annotate_figure(rel_abun_fig_ACWA, left = textGrob("Phylum", rot = 90, vjust = 1
 ```{r}
 #### Bacteroidota to Proteobacteria ####
 
+#Higher ratio of Bacteroidota to Proteobacteria can signify dysbiosis (more B, less P)
+
 # Bolding individual axes labels #
 colorado <- function(src, boulder) {
   if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
@@ -3474,15 +3476,18 @@ ggplot(rel_abun_bow_subset, aes(x=Site_code, y=Abundance, fill=Phylum)) +
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(rel_abun_bow_subset$Site_code, c("GRVBR", "PMF"))),
                         axis.title.x=element_text(size=22))+
-  scale_fill_manual(name="Phylum", values = c("#1F78B4", "#B2DF8A"))+
+  scale_fill_manual(name="Phylum", values = c("#1F78B4", "#CC9966"))+
   scale_y_continuous(label = scales::percent)+
   rremove("grid")+
   xlab("Site")+
   facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)
-ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/ratio Bact-Prot.png", height=10, width=22)
+
+#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/ratio Bact-Prot.png", height=10, width=22)
 
 
 #### Firmicutes to Bacteroidota ####
+
+#Higher ratio of Firmicutes to Bacteroidota can signify dysbiosis (more F, less B)
 
 # Bolding individual axes labels #
 colorado <- function(src, boulder) {
@@ -3526,14 +3531,13 @@ ggplot(rel_abun_bow_subset, aes(x=Site_code, y=Abundance, fill=Phylum)) +
         axis.text.y=element_text(size=16, color="black"),
         axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(rel_abun_bow_subset$Site_code, c("GRVBR", "PMF"))),
                         axis.title.x=element_text(size=22))+
-  scale_fill_manual(name="Phylum", values = c("#1F78B4", "#CC9966"))+
+  scale_fill_manual(name="Phylum", values = c("#1F78B4", "#B2DF8A"))+
   scale_y_continuous(label = scales::percent)+
   rremove("grid")+
   xlab("Site")+
   facet_nested_wrap(~Stage+sample_Family, scales="free_x", nrow=1)
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/ratio Firm-Bact.png", height=10, width=22)
-
+ggsave(filename="microbiome_analysis/Final Analysis/Relative abundance/All samples/ratio Firm-Bact.png", height=10, width=22)
 ```
 
 ### Plotting relative abundance {.tabset}
