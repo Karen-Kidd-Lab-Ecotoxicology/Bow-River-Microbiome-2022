@@ -144,7 +144,7 @@ ggplot(Polflt, aes(x=d13C, y=d15N, color=Taxa))+
 
 #Summarizing a dataframe with mean and sd C and N values
 
-data.sum<-ddply(isotope, c("Site", "Taxa", "FFG"), summarise,
+data.sum<-ddply(isotope, c("Site_Code", "Taxa", "FFG"), summarise,
                 d13Cmn=mean(d13C), #mean
                 d13Csd=sd(d13C), #standard deviation
                 d15Nmn=mean(d15N), #mean
@@ -168,20 +168,50 @@ ggplot(data.sum, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
 
 data.sum$Taxa<-factor(data.sum$Taxa, levels= c("Terrestrial Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"), labels=c("Riparian Leaves", "Biofilm", "Hydropsychidae", "Leptoceridae", "Ephemerellidae", "Chironomidae", "Heptageniidae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Coleoptera", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
 
+data.sum$Site_Code<-factor(data.sum$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
 ggplot(data.sum, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
   geom_point(size=3)+
   geom_errorbar(Ylims, width=0.2)+
   geom_errorbarh(Xlims, height=0.2)+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
   xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  facet_grid(.~Site)+
+  facet_grid(.~Site_Code)+
   theme_bw()+
   theme(axis.text = element_text(size=12, color="black"), axis.title = element_text(size=16), strip.text = element_text(size=16, color="black"), legend.title = element_text(size=14), legend.text = element_text(size=12))+
-  labs(color="Taxa", shape="Sample Type")+
+  labs(color="Sample Type", shape="Functional Feeding Group")+
   rremove("grid")
 
 
 #ggsave(filename="stable_isotope_analysis/Figures/Mean SD biplot d13C d15N faceted by site.png", height=7, width=12)
+
+
+
+data.sum.1<-ddply(isotope, c("Site_Code", "Aqu_Terr"), summarise,
+                d13Cmn=mean(d13C), #mean
+                d13Csd=sd(d13C), #standard deviation
+                d15Nmn=mean(d15N), #mean
+                d15Nsd=sd(d15N)) #standard deviation
+
+#Making errorbars
+Ylims.1<-aes(ymax=d15Nmn +d15Nsd, ymin=d15Nmn-d15Nsd)
+Xlims.1<-aes(xmax=d13Cmn+d13Csd, xmin=d13Cmn-d13Csd)
+
+data.sum.1$Aqu_Terr<-factor(data.sum.1$Aqu_Terr, )
+
+
+ggplot(data.sum.1, aes(x=d13Cmn, y=d15Nmn, colour=Aqu_Terr))+
+  geom_point(size=3)+
+  geom_errorbar(Ylims, width=0.2)+
+  geom_errorbarh(Xlims, height=0.2)+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  facet_grid(.~Site_Code)+
+  theme_bw()+
+  theme(axis.text = element_text(size=12, color="black"), axis.title = element_text(size=16), strip.text = element_text(size=16, color="black"), legend.title = element_text(size=14), legend.text = element_text(size=12))+
+  labs(color="Sample Type", shape="Functional Feeding Group")+
+  rremove("grid")
+
 ```
 
 # N across sites {.tabset}
@@ -517,7 +547,90 @@ C_plot<-ggplot(isotope, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GR
   facet_grid(~Aqu_Terr, scales="free_x")
 C_plot
 
-# Riparian Leaves #
+#### Comparing carbon values of sample groups (all sites combined) ####
+
+shapiro.test(isotope$d13C) #not normal
+
+kruskal.test(data=biofilm, d13C ~ Site) #p=0.033
+dunnTest(data=biofilm, d13C ~ Site)
+#CUSHBR - PMF
+
+summary(C_taxa<-aov(d13C~Taxa_Specific*Site, data=isotope)) #F(50,112) =4.83, P < 0.001
+taxa_res<-data.frame(pairs(emmeans(C_taxa, ~ Taxa_Specific*Site), combine = TRUE, adjust = "bonferroni"))
+taxa_res<-na.omit(taxa_res)
+
+#### Cochrane ####
+
+coch<-subset(isotope, Site=="Cochrane")
+shapiro.test(coch$d13C) #Not normal
+#library(car)
+leveneTest(d13C~Taxa_Specific, data=coch) #homogeneity p=0.336
+
+summary(coch_taxa<-aov(d13C~Taxa_Specific, data=coch))
+coch_res<-data.frame(pairs(emmeans(coch_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
+coch_res<-na.omit(coch_res)
+
+kruskal.test(d13C~Taxa_Specific, data=coch)
+dunnTest(d13C~Taxa_Specific, data=coch)
+
+#### Sunalta ####
+
+sun<-subset(isotope, Site=="Sunalta")
+shapiro.test(sun$d13C) #Not normal
+#library(car)
+leveneTest(d13C~Taxa_Specific, data=sun) #homogeneity p=0.555
+
+summary(sun_taxa<-aov(d13C~Taxa_Specific, data=sun))
+sun_res<-data.frame(pairs(emmeans(sun_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
+sun_res<-na.omit(sun_res)
+
+kruskal.test(d13C~Taxa_Specific, data=sun)
+dunnTest(d13C~Taxa_Specific, data=sun)
+
+#### Cushing Bridge ####
+
+cush<-subset(isotope, Site=="Cushing Bridge")
+shapiro.test(cush$d13C) #Not normal
+#library(car)
+leveneTest(d13C~Taxa_Specific, data=cush) #homogeneity p=0.497
+
+summary(cush_taxa<-aov(d13C~Taxa_Specific, data=cush))
+cush_res<-data.frame(pairs(emmeans(cush_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
+cush_res<-na.omit(cush_res)
+
+kruskal.test(d13C~Taxa_Specific, data=cush)
+dunnTest(d13C~Taxa_Specific, data=cush)
+
+#### Graves Bridge ####
+
+grvbr<-subset(isotope, Site=="Graves Bridge")
+shapiro.test(grvbr$d13C) #Not normal
+#library(car)
+leveneTest(d13C~Taxa_Specific, data=grvbr) #homogeneity p=0.343
+
+summary(grvbr_taxa<-aov(d13C~Taxa_Specific, data=grvbr))
+grvbr_res<-data.frame(pairs(emmeans(grvbr_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
+grvbr_res<-na.omit(grvbr_res)
+
+kruskal.test(d13C~Taxa_Specific, data=grvbr)
+dunnTest(d13C~Taxa_Specific, data=grvbr)
+
+#### Policeman Flats ####
+
+pmf<-subset(isotope, Site=="Policeman Flats")
+shapiro.test(pmf$d13C) #Not normal
+#library(car)
+leveneTest(d13C~Taxa_Specific, data=pmf) #homogeneity p=0.322
+
+summary(pmf_taxa<-aov(d13C~Taxa_Specific, data=pmf))
+pmf_res<-data.frame(pairs(emmeans(pmf_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
+pmf_res<-na.omit(pmf_res)
+
+kruskal.test(d13C~Taxa_Specific, data=pmf)
+dunnTest(d13C~Taxa_Specific, data=pmf)
+
+
+#### Riparian Leaves ####
 shrub<-subset(isotope, Stage=="Shrub")
 shapiro.test(shrub$d13C) #normal
 hist(shrub$d13C) #Normal dist.
@@ -525,13 +638,13 @@ hist(shrub$d13C) #Normal dist.
 summary(shrublm1<-aov(d13C~Site, data=shrub)) #p =0.323 no diff.
 emmeans(shrublm1, specs = pairwise~Site) # no differences across sites
 
-# Biofilm #
+#### Biofilm ####
 biofilm<-subset(isotope, Taxa=="Biofilm")
 hist(biofilm$d13C) #Normal -ish distribution
 shapiro.test(biofilm$d13C) #Normal dist. p =0.06
 
 summary(biofilm1<-aov(d13C~Site, data=biofilm)) #p=0.00445
-plot(biofilm1) #Doesn't fit linear assumptions very well. Should probably use Kruskal tests
+plot(biofilm1) #Doesn't fit linear assumptions very well. But the results match the data more closely using ANOVA...
 emmeans(biofilm1, specs = pairwise~Site)
 #COCH - PMF
 #SUN - PMF
@@ -542,7 +655,7 @@ dunnTest(data=biofilm, d13C ~ Site)
 #CUSHBR - PMF
 
 
-# Aquatic larvae #
+#### Aquatic larvae ####
 
 aq_lar<-subset(isotope, Aqu_Terr=="Aquatic Larvae")
 shapiro.test(aq_lar$d13C) #normal dist. 
@@ -558,7 +671,7 @@ emmeans(aq_lar_lm, specs = pairwise ~ Site)
 #CUSHBR - PMF
 #GRVBR - PMF
 
-# Aquatic Adults #
+#### Aquatic Adults ####
 
 aq_ad<-subset(isotope, Aqu_Terr=="Aquatic Adults")
 shapiro.test(aq_ad$d13C) #normal dist. 
@@ -573,18 +686,18 @@ emmeans(aq_ad_aov, specs = pairwise ~ Site)
 #SUN - PMF
 #CUSH - PMF
 
-# Terrestrial Prey #
+#### Terrestrial Insects ####
 
 terr_ad<-subset(isotope, Aqu_Terr=="Terrestrial Prey")
-shapiro.test(terr_ad$d13C) #normal dist. 
+shapiro.test(terr_ad$d13C) #normal dist. p=0.419
 hist(terr_ad$d13C) 
 
-summary(terr_ad_aov<-aov(d13C~Site, data=terr_ad)) #p=0.0247
+summary(terr_ad_aov<-aov(d13C~Site, data=terr_ad)) #F(3,12)=4.50, p=0.0247
 emmeans(terr_ad_aov, specs = pairwise ~ Site)
 #SUN - GRVBR
 #SUN - PMF
 
-# Spiders #
+#### Spiders ####
 
 spiders<-subset(isotope, Aqu_Terr=="Spiders")
 shapiro.test(spiders$d13C) #Normal 
@@ -606,20 +719,21 @@ emmeans(spiders_lm, specs = pairwise ~ Site)
 ```{r}
 
 isotope_subset<-subset(isotope, FFG!="Basal food source")%>%
-  dplyr::select("Site", "Taxa","d13C", "FFG")%>%
-  group_by(Site, Taxa, FFG)%>%
+  dplyr::select("Site_Code", "Taxa","d13C", "FFG")%>%
+  group_by(Site_Code, Taxa, FFG)%>%
   summarise(MeanC = mean(d13C), sdC = sd(d13C))
 
 Ylims<-aes(ymax=MeanC +sdC, ymin=MeanC-sdC)
 
+isotope_subset$Site_Code<-factor(isotope_subset$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
 ggplot(isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
   geom_point(size=4)+
-  facet_grid(~Site)+
+  facet_grid(~Site_Code)+
   theme_bw() +
   rremove("grid")+
   geom_errorbar(Ylims)+
   ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  xlab("Invertebrate Taxa")+
   theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=18, color="black"))+
   ylim(-33, -6)
 
