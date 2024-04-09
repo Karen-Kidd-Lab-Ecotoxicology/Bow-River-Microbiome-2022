@@ -187,7 +187,7 @@ ggplot(data.sum, aes(x=d13Cmn, y=d15Nmn, colour=Taxa, shape=FFG))+
 
 
 
-data.sum.1<-ddply(isotope, c("Site_Code", "Aqu_Terr"), summarise,
+data.sum.1<-ddply(isotope, c("Site_Code", "Taxa"), summarise,
                 d13Cmn=mean(d13C), #mean
                 d13Csd=sd(d13C), #standard deviation
                 d15Nmn=mean(d15N), #mean
@@ -197,19 +197,21 @@ data.sum.1<-ddply(isotope, c("Site_Code", "Aqu_Terr"), summarise,
 Ylims.1<-aes(ymax=d15Nmn +d15Nsd, ymin=d15Nmn-d15Nsd)
 Xlims.1<-aes(xmax=d13Cmn+d13Csd, xmin=d13Cmn-d13Csd)
 
-data.sum.1$Aqu_Terr<-factor(data.sum.1$Aqu_Terr, )
+data.sum.1$Aqu_Terr<-factor(data.sum.1$Aqu_Terr, levels=c("Biofilm", "Riparian Leaves", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"), labels=c("Biofilm", "Riparian leaves", "Aquatic larval insects", "Aquatic adult insects", "Terrestrial adult insects", "Spiders"))
+
+data.sum.1$Site_Code<-factor(data.sum.1$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 
-ggplot(data.sum.1, aes(x=d13Cmn, y=d15Nmn, colour=Aqu_Terr))+
+ggplot(data.sum.1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa))+
   geom_point(size=3)+
-  geom_errorbar(Ylims, width=0.2)+
-  geom_errorbarh(Xlims, height=0.2)+
+  geom_errorbar(Ylims.1, width=0.2)+
+  geom_errorbarh(Xlims.1, height=0.2)+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
   xlab(expression(paste(delta^13, "C (\u2030)", sep="")))+
   facet_grid(.~Site_Code)+
   theme_bw()+
   theme(axis.text = element_text(size=12, color="black"), axis.title = element_text(size=16), strip.text = element_text(size=16, color="black"), legend.title = element_text(size=14), legend.text = element_text(size=12))+
-  labs(color="Sample Type", shape="Functional Feeding Group")+
+  labs(color="Sample Type")+
   rremove("grid")
 
 ```
@@ -537,7 +539,30 @@ ggplot(adephem, aes(x=Site, y=d15N))+
 # C across sites
 
 ```{r}
-C_plot<-ggplot(isotope, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d13C))+
+
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+   if (any(brave)){
+      b_pos <- which(src_levels == boulder[1])
+    for(i in 2:length(boulder)){# if so
+       # then find out where they are
+      b_pos <- append(b_pos, which(src_levels == boulder[i]))
+    }
+      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+      b_vec[b_pos] <- "bold"# make our targets bold
+      b_vec
+    # return the new vector
+  }
+}
+
+isotope$Aqu_Terr<-factor(isotope$Aqu_Terr, levels=c("Biofilm", "Riparian Leaves", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"), labels=c("Biofilm", "Riparian leaves", "Aquatic larval insects", "Aquatic adult insects", "Terrestrial adult insects", "Spiders"))
+
+isotope$Site_Code<-factor(isotope$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+
+C_plot<-ggplot(isotope, aes(x=Site_Code, y=d13C))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
@@ -898,7 +923,9 @@ colorado <- function(src, boulder) {
 
 isotope$Site<-factor(isotope$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"), labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
-C_plot<-ggplot(isotope, aes(x=Site, y=d13C))+
+isotope$Site_Code<-factor(isotope$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+C_plot<-ggplot(isotope, aes(x=Site_Code, y=d13C))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
@@ -908,8 +935,10 @@ C_plot<-ggplot(isotope, aes(x=Site, y=d13C))+
   facet_grid(~ Aqu_Terr, scales="free_x")
 C_plot
 
+#ggsave(filename="stable_isotope_analysis/Figures/C across taxa groups and sites.png", height=10, width=18, bg="white")
 
-N_plot<-ggplot(isotope, aes(x=Site, y=d15N))+
+
+N_plot<-ggplot(isotope, aes(x=Site_Code, y=d15N))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
@@ -920,16 +949,17 @@ N_plot<-ggplot(isotope, aes(x=Site, y=d15N))+
   facet_grid(~Aqu_Terr, scales="free_x")
 N_plot
 
+#ggsave(filename="stable_isotope_analysis/Figures/N across taxa groups and sites.png", height=10, width=18, bg="white")
 
 
 C_plot_1<-C_plot + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 N_plot_1<-N_plot + theme(axis.title.x = element_blank())
 
-C_N_combined<-ggarrange(C_plot_1, N_plot_1, nrow=2, ncol=1)
+C_N_combined<-ggarrange(C_plot_1, N_plot_1, nrow=2, ncol=1, align="v")
 
 annotate_figure(C_N_combined, bottom = textGrob("Site", gp = gpar(cex = 1.6)))
 
-ggsave(filename="stable_isotope_analysis/Figures/C and N across taxa groups and sites.png", height=10, width=14, bg="white")
+#ggsave(filename="stable_isotope_analysis/Figures/C and N across taxa groups and sites.png", height=10, width=18, bg="white")
 ```
 
 # Table of mean d13C and d15N values (+/- SD) across sites and sample type 
