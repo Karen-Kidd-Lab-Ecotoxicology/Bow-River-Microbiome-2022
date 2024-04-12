@@ -659,21 +659,44 @@ dunnTest(d13C~Taxa_Specific, data=pmf)
 shrub<-subset(isotope, Stage=="Shrub")
 shapiro.test(shrub$d13C) #normal
 hist(shrub$d13C) #Normal dist.
+leveneTest(d13C~Site, data=shrub) #homogeneity
 
-summary(shrublm1<-aov(d13C~Site, data=shrub)) #p =0.323 no diff.
+summary(shrublm1<-aov(d13C~Site, data=shrub)) #F(4,10) = 1.34, p = 0.323 no diff.
 emmeans(shrublm1, specs = pairwise~Site) # no differences across sites
 
 #### Biofilm ####
 biofilm<-subset(isotope, Taxa=="Biofilm")
 hist(biofilm$d13C) #Normal -ish distribution
 shapiro.test(biofilm$d13C) #Normal dist. p =0.06
+#library(car)
+leveneTest(d13C~Site, data=biofilm) #homogeneity
 
-summary(biofilm1<-aov(d13C~Site, data=biofilm)) #p=0.00445
+summary(biofilm1<-aov(d13C~Site, data=biofilm)) #F(4,10) = 7.59, p=0.00445
 plot(biofilm1) #Doesn't fit linear assumptions very well. But the results match the data more closely using ANOVA...
 emmeans(biofilm1, specs = pairwise~Site)
 #COCH - PMF
 #SUN - PMF
 #CUSH - PMF
+
+
+logC<- log1p(biofilm$d13C - min(biofilm$d13C))
+biofilm<-cbind(logC, biofilm)
+summary(biofilm2<-aov(logC~Site, data=biofilm)) #p=0.000202
+plot(biofilm1)
+emmeans(biofilm2, specs = pairwise~Site)
+#COCH - PMF
+#SUN - PMF
+#PMF - CUSHBR
+#PMF - GRVBR
+
+sqrtC <- sqrt(abs(biofilm$d13C))
+biofilm<-cbind(sqrtC, biofilm)
+summary(biofilm3<-aov(sqrtC~Site, data=biofilm)) #p=0.0066
+plot(biofilm3)
+emmeans(biofilm3, specs = pairwise~Site)
+#SUN - PMF
+#CUSHBR - PMF
+
 
 kruskal.test(data=biofilm, d13C ~ Site) #p=0.033
 dunnTest(data=biofilm, d13C ~ Site)
@@ -682,11 +705,12 @@ dunnTest(data=biofilm, d13C ~ Site)
 
 #### Aquatic larvae ####
 
-aq_lar<-subset(isotope, Aqu_Terr=="Aquatic Larvae")
+aq_lar<-subset(isotope, Aqu_Terr=="Aquatic larval insects")
 shapiro.test(aq_lar$d13C) #normal dist. 
 hist(aq_lar$d13C) 
+leveneTest(d13C~Site, data=aq_lar) #homogeneity
 
-summary(aq_lar_lm<-aov(d13C~Site, data=aq_lar)) #p < 0.001
+summary(aq_lar_lm<-aov(d13C~Site, data=aq_lar)) #F(4,49) = 11.8, p < 0.001
 plot(aq_lar_lm)
 emmeans(aq_lar_lm, specs = pairwise ~ Site)
 #COCH - SUN
@@ -698,11 +722,12 @@ emmeans(aq_lar_lm, specs = pairwise ~ Site)
 
 #### Aquatic Adults ####
 
-aq_ad<-subset(isotope, Aqu_Terr=="Aquatic Adults")
+aq_ad<-subset(isotope, Aqu_Terr=="Aquatic adult insects")
 shapiro.test(aq_ad$d13C) #normal dist. 
 hist(aq_ad$d13C) 
+leveneTest(d13C~Site, data=aq_ad) #homogeneity
 
-summary(aq_ad_aov<-aov(d13C~Site, data=aq_ad)) #p<0.001
+summary(aq_ad_aov<-aov(d13C~Site, data=aq_ad)) #F(4,50) = 10.6, p<0.001
 plot(aq_ad_aov)
 emmeans(aq_ad_aov, specs = pairwise ~ Site)
 #COCH - GRVBR
@@ -713,9 +738,10 @@ emmeans(aq_ad_aov, specs = pairwise ~ Site)
 
 #### Terrestrial Insects ####
 
-terr_ad<-subset(isotope, Aqu_Terr=="Terrestrial Prey")
+terr_ad<-subset(isotope, Aqu_Terr=="Terrestrial adult insects")
 shapiro.test(terr_ad$d13C) #normal dist. p=0.419
 hist(terr_ad$d13C) 
+leveneTest(d13C~Site, data=terr_ad) #homogeneity
 
 summary(terr_ad_aov<-aov(d13C~Site, data=terr_ad)) #F(3,12)=4.50, p=0.0247
 emmeans(terr_ad_aov, specs = pairwise ~ Site)
@@ -727,8 +753,9 @@ emmeans(terr_ad_aov, specs = pairwise ~ Site)
 spiders<-subset(isotope, Aqu_Terr=="Spiders")
 shapiro.test(spiders$d13C) #Normal 
 hist(spiders$d13C) 
+leveneTest(d13C~Site, data=spiders) #homogeneity
 
-summary(spiders_lm<-aov(d13C~Site, data=spiders)) #p<0.001
+summary(spiders_lm<-aov(d13C~Site, data=spiders)) #F(4,25) = 43.3, p<0.001
 emmeans(spiders_lm, specs = pairwise ~ Site)
 #COCH diff from all other sites
 #SUN - GRVBR
