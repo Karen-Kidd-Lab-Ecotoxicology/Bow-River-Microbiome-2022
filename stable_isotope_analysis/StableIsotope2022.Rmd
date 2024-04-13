@@ -252,7 +252,7 @@ shrub_d15N_plot
 shapiro.test(shrub$d15N) #normal
 hist(shrub$d15N) #Normal dist.
 
-summary(shrublm1<-aov(d15N~Site, data=shrub))
+summary(shrublm1<-aov(d15N~Site, data=shrub)) #F(4,10) = 9.23, p = 0.0022
 emmeans(shrublm1, specs = pairwise~Site)
 #GRVBR diff from COCH
 #PMF diff from COCH
@@ -272,8 +272,10 @@ biofilm_d15N_plot
 
 hist(biofilm$d15N) #Normal -ish distribution
 shapiro.test(biofilm$d15N) #Normal dist. 
+library(car)
+leveneTest(d15N~Site, data=biofilm) #homogeneity
 
-summary(biofilm1<-aov(d15N~Site, data=biofilm)) #p=0.379
+summary(biofilm1<-aov(d15N~Site, data=biofilm)) #F(4,10) = 1.17, p=0.379
 emmeans(biofilm1, specs = pairwise~Site)
 #No diff. 
 
@@ -288,7 +290,7 @@ aq_lar<-subset(isotope, Aqu_Terr=="Aquatic Larvae")
 shapiro.test(aq_lar$d15N) #normal dist. 
 hist(aq_lar$d15N) 
 
-summary(aq_lar_lm<-aov(d15N~Site, data=aq_lar))
+summary(aq_lar_lm<-aov(d15N~Site, data=aq_lar)) #F(4,49) = 18.5, p < 0.001
 emmeans(aq_lar_lm, specs = pairwise ~ Site)
 #GRVBR different from all other sites
 
@@ -297,7 +299,7 @@ aq_ad<-subset(isotope, Aqu_Terr=="Aquatic Adults")
 shapiro.test(aq_ad$d15N) #normal dist. 
 hist(aq_ad$d15N) 
 
-summary(aq_ad_lm<-aov(d15N~Site, data=aq_ad))
+summary(aq_ad_lm<-aov(d15N~Site, data=aq_ad)) #F(4,50) = 7.9, p < 0.001
 emmeans(aq_ad_lm, specs = pairwise ~ Site)
 #GRVBR different from all other sites
 
@@ -306,7 +308,7 @@ terr_ad<-subset(isotope, Aqu_Terr=="Terrestrial Prey")
 shapiro.test(terr_ad$d15N) #normal dist. 
 hist(terr_ad$d15N) 
 
-summary(terr_ad_lm<-aov(d15N~Site, data=terr_ad)) #p=0.099
+summary(terr_ad_lm<-aov(d15N~Site, data=terr_ad)) #F(3,12) = 2.62, p=0.099
 emmeans(terr_ad_lm, specs = pairwise ~ Site) 
 #No differences across sites
 
@@ -320,6 +322,11 @@ dunnTest(data=terr_ad, d15N ~ Site)
 spiders<-subset(isotope, Aqu_Terr=="Spiders")
 shapiro.test(spiders$d15N) #not normal dist. 
 hist(spiders$d15N) 
+leveneTest(d15N~Site, data=spiders) #homogeneity
+
+summary(spi_lm<-aov(d15N~Site, data=spiders)) #F(4,25) = 48.1, p<0.001
+emmeans(spi_lm, specs = pairwise ~ Site) 
+#GRVBR different from all other sites
 
 kruskal.test(d15N~Site, data=spiders) #p=0.0054
 dunnTest(d15N~Site, data=spiders)
