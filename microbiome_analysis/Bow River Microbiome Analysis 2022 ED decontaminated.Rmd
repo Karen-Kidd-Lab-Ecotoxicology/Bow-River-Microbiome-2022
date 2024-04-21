@@ -120,7 +120,7 @@ The phyloseq object will merge all this data together in one object that can be 
 
 ```{r Load data and phyloseq object}
 #Importing ASV table
-ASVseq<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Raw data\\ASV_data_2022_ED_fulldataset_samplesordered.csv")
+ASVseq<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Raw data\\ASV_data_2022_ED_fulldataset_samplesordered.csv")
 
 #The row names have to be the ASV identifier (genetic barcode) in order for it to be read. The following lines of code are to re-organize the row names
 n1 <- ASVseq$X #Currently the ASVs are being called "X" in the first column. We want them to be unnamed in the row names column
@@ -131,7 +131,7 @@ ASVtable <- as.matrix(ASVseq) #must be a matrix so we convert to a matrix
 #View(ASVtable) #The ASVs are now the row names
 
 #Importing taxa table
-taxonomy <-read.csv ("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Raw data\\Taxonomy_ED_2022_fulldataset.csv")
+taxonomy <-read.csv ("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Raw data\\Taxonomy_ED_2022_fulldataset.csv")
 
 #Using the same steps as above with the ASV table to make the genetic barcode the rowname
 n2 <- taxonomy$X
@@ -142,7 +142,7 @@ taxa_table<-as.matrix(taxonomy) #Turn into a matrix
 #View(taxa_table) #ASVs are now the row names
 
 #Importing metadata file
-metadata<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\BowRiverRProject\\Microbiome_ED\\Raw data\\metadata_ED_withblanks_noKK2078.csv")
+metadata<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Raw data\\metadata_ED_withblanks_noKK2078.csv")
 
 metadata$Site<-factor(metadata$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats", "BRR2", "PCR1", "PCR3")) #Order sites
 metadata$Stage<-factor(metadata$Stage, levels=c("Larvae", "Adults", "Spiders"))

@@ -38,7 +38,7 @@ library(ggpubr)
 isotope<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022.csv")
 isotope$Site<-factor(isotope$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
-isotope$Aqu_Terr<-factor(isotope$Aqu_Terr, levels=c("Leaves", "biofilm", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Riparian Leaves", "Biofilm", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"))
+#isotope$Aqu_Terr<-factor(isotope$Aqu_Terr, levels=c("Leaves", "biofilm", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Riparian Leaves", "Biofilm", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"))
 
 inverts<-subset(isotope, Tissue.Type=="Whole Invertebrate")
 ```
@@ -547,6 +547,87 @@ ggplot(adephem, aes(x=Site, y=d15N))+
 
 ```{r}
 
+#### Testing for differences in invertebrate groups ####
+
+# Aquatic Larvae
+larvae<-subset(isotope, Aqu_Terr=="Aquatic Larvae")
+
+ggplot(larvae, aes(x=Taxa, y=d13C))+
+  geom_boxplot()+
+  facet_grid(~Site)
+
+shapiro.test(larvae$d13C) #Normal dist. p =0.098
+leveneTest(d13C~Taxa, data=larvae) #p=0.10
+
+with(larvae,
+     table(Taxa, Site)) #Unbalanced, need to use Type 2 or 3 ANOVA from car package
+
+library(car)
+
+larvae_C<-aov(d13C~Taxa*Site, data=larvae) 
+Anova(larvae_C, type=2) #p<0.001 for Taxa and for Site but not their interaction
+emmeans(larvae_C, pairwise ~ Taxa | Site) #Some differences between larvae at Policeman Flats
+
+emmeans(larvae_C, pairwise ~ Site | Taxa) #most larvae have similar trends between sites (Policeman Flats and Graves Bridge have higher carbon isotope values) but not all taxa are the same
+
+
+# Aquatic Adults
+aqu_adults<-subset(isotope, Aqu_Terr=="Aquatic Adults")
+
+ggplot(aqu_adults, aes(x=Taxa, y=d13C))+
+  geom_boxplot()+
+  facet_grid(~Site)
+
+shapiro.test(aqu_adults$d13C) #Normal dist. p =0.372
+leveneTest(d13C~Taxa, data=aqu_adults) #p=0.209
+
+with(aqu_adults, table(Taxa, Site)) #Unbalanced, need to use Type 2 or 3 ANOVA from car package
+
+aqu_adults_C<-aov(d13C~Taxa*Site, data=aqu_adults) 
+Anova(aqu_adults_C, type=2) #p<0.001 for Site but not Taxa or their interaction
+emmeans(aqu_adults_C, pairwise ~ Taxa | Site) #No differences between taxa at any site. Can combine them.
+
+emmeans(aqu_adults_C, pairwise ~ Site | Taxa) #Seems like only Hydropsychidae has changes in carbon across sites...maybe shouldn't combine them
+
+
+# Terrestrial Adults
+terr_adults<-subset(isotope, Aqu_Terr=="Terrestrial Prey")
+
+ggplot(terr_adults, aes(x=Taxa, y=d13C))+
+  geom_boxplot()+
+  facet_grid(~Site)
+
+shapiro.test(terr_adults$d13C) #Normal dist. p =0.419
+leveneTest(d13C~Taxa, data=terr_adults) #p=0.33
+
+with(terr_adults, table(Taxa, Site)) #Unbalanced, need to use Type 2 or 3 ANOVA from car package
+
+terr_adults_C<-aov(d13C~Taxa*Site, data=terr_adults) 
+Anova(terr_adults_C, type=2) #No differences
+emmeans(terr_adults_C, pairwise ~ Taxa | Site) #No differences between taxa at any site. Can combine them.
+
+emmeans(terr_adults_C, pairwise ~ Site | Taxa) #No differences between sites
+
+
+# Spiders
+spiders<-subset(isotope, Aqu_Terr=="Spiders")
+
+ggplot(spiders, aes(x=Taxa, y=d13C))+
+  geom_boxplot()+
+  facet_grid(~Site)
+
+shapiro.test(spiders$d13C) #Normal dist. p =0.27
+leveneTest(d13C~Taxa, data=spiders) #p=0.43
+
+with(spiders, table(Taxa, Site)) #Balanced, can use type 1 anova
+
+spiders_C<-aov(d13C~Taxa*Site, data=spiders) 
+emmeans(spiders_C, pairwise ~ Taxa | Site) #No differences between spiders at any site. Can combine them.
+
+emmeans(spiders_C, pairwise ~ Site | Taxa) #Both spiders show the same trend across sites
+
+# Plotting all samples grouped by sample type #
+
 colorado <- function(src, boulder) {
   if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
   src_levels <- levels(src)                                 # retrieve the levels in their order
@@ -579,87 +660,19 @@ C_plot<-ggplot(isotope, aes(x=Site_Code, y=d13C))+
   facet_grid(~Aqu_Terr, scales="free_x")
 C_plot
 
-#### Comparing carbon values of sample groups (all sites combined) ####
 
-shapiro.test(isotope$d13C) #not normal
+isotope$Aqu_Terr<-factor(isotope$Aqu_Terr, levels=c("biofilm", "Leaves", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels = c("Biofilm", "Riparian Leaves", "Aquatic Larval Insects", "Aquatic Adult Insects", "Terrestrial Adult Insects", "Spiders"))
+isotope$Site_Code<-factor(isotope$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+isotope$Taxa<-factor(isotope$Taxa, levels=c("Biofilm", "Terrestrial Leaves", "Chironomidae", "Chloroperlidae", "Coleoptera", "Ephemerellidae", "Heptageniidae", "Hydropsychidae", "Lepidoptera", "Leptoceridae", "Perlidae", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
 
-kruskal.test(data=biofilm, d13C ~ Site) #p=0.033
-dunnTest(data=biofilm, d13C ~ Site)
-#CUSHBR - PMF
-
-summary(C_taxa<-aov(d13C~Taxa_Specific*Site, data=isotope)) #F(50,112) =4.83, P < 0.001
-taxa_res<-data.frame(pairs(emmeans(C_taxa, ~ Taxa_Specific*Site), combine = TRUE, adjust = "bonferroni"))
-taxa_res<-na.omit(taxa_res)
-
-#### Cochrane ####
-
-coch<-subset(isotope, Site=="Cochrane")
-shapiro.test(coch$d13C) #Not normal
-#library(car)
-leveneTest(d13C~Taxa_Specific, data=coch) #homogeneity p=0.336
-
-summary(coch_taxa<-aov(d13C~Taxa_Specific, data=coch))
-coch_res<-data.frame(pairs(emmeans(coch_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
-coch_res<-na.omit(coch_res)
-
-kruskal.test(d13C~Taxa_Specific, data=coch)
-dunnTest(d13C~Taxa_Specific, data=coch)
-
-#### Sunalta ####
-
-sun<-subset(isotope, Site=="Sunalta")
-shapiro.test(sun$d13C) #Not normal
-#library(car)
-leveneTest(d13C~Taxa_Specific, data=sun) #homogeneity p=0.555
-
-summary(sun_taxa<-aov(d13C~Taxa_Specific, data=sun))
-sun_res<-data.frame(pairs(emmeans(sun_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
-sun_res<-na.omit(sun_res)
-
-kruskal.test(d13C~Taxa_Specific, data=sun)
-dunnTest(d13C~Taxa_Specific, data=sun)
-
-#### Cushing Bridge ####
-
-cush<-subset(isotope, Site=="Cushing Bridge")
-shapiro.test(cush$d13C) #Not normal
-#library(car)
-leveneTest(d13C~Taxa_Specific, data=cush) #homogeneity p=0.497
-
-summary(cush_taxa<-aov(d13C~Taxa_Specific, data=cush))
-cush_res<-data.frame(pairs(emmeans(cush_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
-cush_res<-na.omit(cush_res)
-
-kruskal.test(d13C~Taxa_Specific, data=cush)
-dunnTest(d13C~Taxa_Specific, data=cush)
-
-#### Graves Bridge ####
-
-grvbr<-subset(isotope, Site=="Graves Bridge")
-shapiro.test(grvbr$d13C) #Not normal
-#library(car)
-leveneTest(d13C~Taxa_Specific, data=grvbr) #homogeneity p=0.343
-
-summary(grvbr_taxa<-aov(d13C~Taxa_Specific, data=grvbr))
-grvbr_res<-data.frame(pairs(emmeans(grvbr_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
-grvbr_res<-na.omit(grvbr_res)
-
-kruskal.test(d13C~Taxa_Specific, data=grvbr)
-dunnTest(d13C~Taxa_Specific, data=grvbr)
-
-#### Policeman Flats ####
-
-pmf<-subset(isotope, Site=="Policeman Flats")
-shapiro.test(pmf$d13C) #Not normal
-#library(car)
-leveneTest(d13C~Taxa_Specific, data=pmf) #homogeneity p=0.322
-
-summary(pmf_taxa<-aov(d13C~Taxa_Specific, data=pmf))
-pmf_res<-data.frame(pairs(emmeans(pmf_taxa, ~ Taxa_Specific), combine = TRUE, adjust = "bonferroni"))
-pmf_res<-na.omit(pmf_res)
-
-kruskal.test(d13C~Taxa_Specific, data=pmf)
-dunnTest(d13C~Taxa_Specific, data=pmf)
+ggplot(isotope, aes(x=Site_Code, y=d13C, fill=Taxa))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  theme(axis.title.y.left = element_text(size=18), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black"))+
+  rremove("grid")+
+  xlab("Site")+
+  facet_grid(~Aqu_Terr, scales="free_x")
 
 
 #### Riparian Leaves ####
@@ -668,6 +681,8 @@ shapiro.test(shrub$d13C) #normal
 hist(shrub$d13C) #Normal dist.
 leveneTest(d13C~Site, data=shrub) #homogeneity
 
+with(shrub, table(Site)) #Balanced
+
 summary(shrublm1<-aov(d13C~Site, data=shrub)) #F(4,10) = 1.34, p = 0.323 no diff.
 emmeans(shrublm1, specs = pairwise~Site) # no differences across sites
 
@@ -675,8 +690,9 @@ emmeans(shrublm1, specs = pairwise~Site) # no differences across sites
 biofilm<-subset(isotope, Taxa=="Biofilm")
 hist(biofilm$d13C) #Normal -ish distribution
 shapiro.test(biofilm$d13C) #Normal dist. p =0.06
-#library(car)
 leveneTest(d13C~Site, data=biofilm) #homogeneity
+
+with(biofilm, table(Site)) #Balanced
 
 summary(biofilm1<-aov(d13C~Site, data=biofilm)) #F(4,10) = 7.59, p=0.00445
 plot(biofilm1) #Doesn't fit linear assumptions very well. But the results match the data more closely using ANOVA...
@@ -712,12 +728,15 @@ dunnTest(data=biofilm, d13C ~ Site)
 
 #### Aquatic larvae ####
 
-aq_lar<-subset(isotope, Aqu_Terr=="Aquatic larval insects")
+aq_lar<-subset(isotope, Aqu_Terr=="Aquatic Larval Insects")
 shapiro.test(aq_lar$d13C) #normal dist. 
 hist(aq_lar$d13C) 
 leveneTest(d13C~Site, data=aq_lar) #homogeneity
 
-summary(aq_lar_lm<-aov(d13C~Site, data=aq_lar)) #F(4,49) = 11.8, p < 0.001
+with(aq_lar, table(Taxa, Site)) #Unbalanced, use type 2 or 3 anova
+
+aq_lar_lm<-aov(d13C~Site, data=aq_lar) 
+Anova(aq_lar_lm, type=2) #F(4,49) = 11.8, p < 0.001
 plot(aq_lar_lm)
 emmeans(aq_lar_lm, specs = pairwise ~ Site)
 #COCH - SUN
@@ -771,6 +790,7 @@ emmeans(spiders_lm, specs = pairwise ~ Site)
 #CUSHBR - PMF
 
 #PMF and GRVBR different from all sites except each other
+
 ```
 
 # Food source reliance graph
