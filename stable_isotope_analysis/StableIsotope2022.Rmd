@@ -61,6 +61,72 @@ grvbr_ad<-subset(inverts, Site=="Graves Bridge" & Stage=="Adult") #18
 pmf_ad<-subset(inverts, Site=="Policeman Flats" & Stage=="Adult")#14
 
 #Spiders n = 3/family/site
+
+## Divided by Functional Feeding Groups ##
+
+#Cochrane
+
+filt_collec_coch<-subset(inverts, Site=="Cochrane" & FFG=="Filterer-Collector") #4
+
+gath_collec_coch<-subset(inverts, Site=="Cochrane" & FFG=="Gatherer-Collector") #3
+
+piercer_coch<-subset(inverts, Site=="Cochrane" & FFG=="Piercer") #3
+
+scraper_coch<-subset(inverts, Site=="Cochrane" & FFG=="Scraper") #3
+
+pred_coch<-subset(inverts, Site=="Cochrane" & FFG=="Predator") #10
+
+
+#Sunalta
+filt_collec_sun<-subset(inverts, Site=="Sunalta" & FFG=="Filterer-Collector") #5
+
+gath_collec_sun<-subset(inverts, Site=="Sunalta" & FFG=="Gatherer-Collector") #7
+
+piercer_sun<-subset(inverts, Site=="Sunalta" & FFG=="Piercer") #3
+
+scraper_sun<-subset(inverts, Site=="Sunalta" & FFG=="Scraper") #4
+
+pred_sun<-subset(inverts, Site=="Sunalta" & FFG=="Predator") #15
+
+
+#Cushing Bridge
+filt_collec_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Filterer-Collector") #3
+
+gath_collec_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Gatherer-Collector") #7
+
+piercer_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Piercer") #0
+
+scraper_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Scraper") #3
+
+pred_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Predator") #10
+
+
+#Graves Bridge
+filt_collec_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Filterer-Collector") #6
+
+gath_collec_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Gatherer-Collector") #10
+
+piercer_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Piercer") #3
+
+scraper_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Scraper") #4
+
+pred_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Predator") #16
+
+
+
+#Policeman Flats
+filt_collec_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Filterer-Collector") #6
+
+gath_collec_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Gatherer-Collector") #11
+
+piercer_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Piercer") #3
+
+scraper_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Scraper") #4
+
+pred_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Predator") #12
+
+
+
 ```
 
 # Preliminary data checks (carbonates/lipid effect)
@@ -99,6 +165,31 @@ ggplot(inverts, aes(x=Taxa, y=C.N))+
   geom_hline(aes(yintercept=4), colour="red")
 
 #Could potentially indicate a lipid effect since C:N ratio shouldn't be above 3.5 but if we correct it, it won't make a difference since all the insects besides spiders are at approximately the same level. This is usually more of an issue in fattier animals such as fish.  
+#### Plotting biofilm duplicates with high variability ####
+
+
+rawdata<-read.csv("C:\\Users\\Emilie\\Documents\\McMaster University 2022-2024\\Bow River Thesis\\Isotopes\\SIN Lab Data\\Stable_Isotope_Raw_Data.csv")
+
+biofilm_raw<-filter(rawdata, Tissue_Type=="Biofilm") #34 obs 
+
+#Remove the HCl treated samples since those did not differ in C values from the non-treated ones
+
+biofilm_raw_no_HCl<-filter(biofilm_raw, Notes!="Acid treated") #17 obs 
+
+biofilm_raw_no_HCl$Site <-factor(biofilm_raw_no_HCl$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
+
+ggplot(biofilm_raw_no_HCl, aes(x=Site, y=d13C, label=SampleName))+ 
+  geom_point()+
+ geom_text(hjust=-0.1)+
+  theme_bw()
+getwd()
+
+  
+ggplot(biofilm_raw_no_HCl, aes(x=Site, y=d15N, label=SampleName))+ 
+  geom_point()+
+ geom_text(hjust=-0.1)+
+  theme_bw()
+
 ```
 
 # Biplots of individual data points
