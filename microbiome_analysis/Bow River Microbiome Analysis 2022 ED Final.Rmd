@@ -7523,8 +7523,12 @@ x_exposed_hydro_Bow_subset = sort(x_exposed_hydro_Bow_subset, TRUE)
 sigtab_exposed_hydro_Bow_subset$Genus = factor(as.character(sigtab_exposed_hydro_Bow_subset$Genus), levels=sort(names(x_exposed_hydro_Bow_subset)))
 #44 differentially abundant taxa
 
+sigtab_exposed_hydro_Bow_subset$Genus <- factor(sigtab_exposed_hydro_Bow_subset$Genus, levels=c("Anaerocella", "Clostridium sensu stricto 1", "Defluviimonas", "Ellin6067", "Hydrogenophaga", "Hypnocyclicus", "M2PB4-61 termite group", "Mucinivorans", "Pseudorhodobacter", "Rhizorhapis", "Rhodobacter", "Runella", "Sphingorhabdus", "Sulfurospirillum", "Tyzzerlla", "NA"), labels=c("Anaerocella", "Clostridium sensu stricto 1", "Defluviimonas", "Ellin6067", "Hydrogenophaga", "Hypnocyclicus", "M2PB4-61 termite group", "Mucinivorans", "Pseudorhodobacter", "Rhizorhapis", "Rhodobacter", "Runella", "Sphingorhabdus", "Sulfurospirillum", "Tyzzerlla", "Unidentified"))
+
+sigtab_exposed_hydro_Bow_subset$Genus[is.na(sigtab_exposed_hydro_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_hydro_Bow_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -7533,11 +7537,10 @@ diff_abund_hydro_Bow_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(x=
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_hydro_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr hydropsychidae larvae Bow.png", height=24, width=24)
 
 
 #COCH - SUN
@@ -8053,8 +8056,12 @@ x_exposed_trichop_Bow_subset = sort(x_exposed_trichop_Bow_subset, TRUE)
 sigtab_exposed_trichop_Bow_subset$Genus = factor(as.character(sigtab_exposed_trichop_Bow_subset$Genus), levels=sort(names(x_exposed_trichop_Bow_subset)))
 #44 differentially abundant taxa
 
+sigtab_exposed_trichop_Bow_subset$Genus <- factor(sigtab_exposed_trichop_Bow_subset$Genus, levels=c("Agathobacter", "Arthrobacter", "Aureimonas", "Bacillus", "Clavibacter", "Clostridium sensu stricto 1", "Devosia", "Erythrobacter", "Flavobacterium", "Hydrogenophaga", "Hymenobacter", "Ideonella", "Jannaschia", "Limnobacter", "Macrococcus", "Massilia", "Methylobacterium-Methylorubrum", "Microvirga", "Ottawia", "Pedobacter", "Phreatobacter", "Ramlibacter", "Rhodobacter", "Rhodoferax", "Rhodoplanes", "Rubellimicrobium", "Serratia", "Skermanella", "Sphaerotilus", "Sphingorhabdus", "Staphylococcus", "Tabrizicola", "Tychonema CCAP 1459-11B", "NA"), labels=c("Agathobacter", "Arthrobacter", "Aureimonas", "Bacillus", "Clavibacter", "Clostridium sensu stricto 1", "Devosia", "Erythrobacter", "Flavobacterium", "Hydrogenophaga", "Hymenobacter", "Ideonella", "Jannaschia", "Limnobacter", "Macrococcus", "Massilia", "Methylobacterium-Methylorubrum", "Microvirga", "Ottawia", "Pedobacter", "Phreatobacter", "Ramlibacter", "Rhodobacter", "Rhodoferax", "Rhodoplanes", "Rubellimicrobium", "Serratia", "Skermanella", "Sphaerotilus", "Sphingorhabdus", "Staphylococcus", "Tabrizicola", "Tychonema CCAP 1459-11B","Unidentified"))
+
+sigtab_exposed_trichop_Bow_subset$Genus[is.na(sigtab_exposed_trichop_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_trichop_Bow_plot_subset<-ggplot(sigtab_exposed_trichop_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -8063,11 +8070,10 @@ diff_abund_trichop_Bow_plot_subset<-ggplot(sigtab_exposed_trichop_Bow_subset, ae
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_trichop_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr Trichoptera adult Bow.png", height=24, width=24)
 
 
 #COCH - SUN
@@ -8408,8 +8414,12 @@ x_exposed_hep_Bow_subset = sort(x_exposed_hep_Bow_subset, TRUE)
 sigtab_exposed_hep_Bow_subset$Genus = factor(as.character(sigtab_exposed_hep_Bow_subset$Genus), levels=sort(names(x_exposed_hep_Bow_subset)))
 #38 differentially abundant taxa
 
+sigtab_exposed_hep_Bow_subset$Genus <- factor(sigtab_exposed_hep_Bow_subset$Genus, levels=c("Arcicella", "Calothrix KVSF5", "Candidatus Bacilloplasma", "Candidatus Symbiobacter", "Cereibacter", "Emticicia", "Flavobacterium", "Fluviicola", "Lacihabitans", "Limnohabitans", "Porphyrobacter", "Pseudorhodobacter", "Rhizorhapis", "Sphaerotilus", "Sphingorhabdus", "NA"), labels=c("Arcicella", "Calothrix KVSF5", "Candidatus Bacilloplasma", "Candidatus Symbiobacter", "Cereibacter", "Emticicia", "Flavobacterium", "Fluviicola", "Lacihabitans", "Limnohabitans", "Porphyrobacter", "Pseudorhodobacter", "Rhizorhapis", "Sphaerotilus", "Sphingorhabdus","Unidentified"))
+
+sigtab_exposed_hep_Bow_subset$Genus[is.na(sigtab_exposed_hep_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_hep_Bow_plot_subset<-ggplot(sigtab_exposed_hep_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -8418,11 +8428,10 @@ diff_abund_hep_Bow_plot_subset<-ggplot(sigtab_exposed_hep_Bow_subset, aes(x=log2
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_hep_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr heptageniidae larvae Bow.png", height=24, width=24)
 
 
 
@@ -8848,8 +8857,12 @@ x_exposed_ephem_Bow_subset = sort(x_exposed_ephem_Bow_subset, TRUE)
 sigtab_exposed_ephem_Bow_subset$Genus = factor(as.character(sigtab_exposed_ephem_Bow_subset$Genus), levels=sort(names(x_exposed_ephem_Bow_subset)))
 #7 differentially abundant taxa
 
+sigtab_exposed_ephem_Bow_subset$Genus <- factor(sigtab_exposed_ephem_Bow_subset$Genus, levels=c("Alcaligenes", "Bacillus", "Clostridium sensu stricto 1", "Moraxella", "Staphylococcus", "NA"), labels=c("Alcaligenes", "Bacillus", "Clostridium sensu stricto 1", "Moraxella", "Staphylococcus", "Unidentified"))
+
+sigtab_exposed_ephem_Bow_subset$Genus[is.na(sigtab_exposed_ephem_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_ephem_Bow_plot_subset<-ggplot(sigtab_exposed_ephem_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -8858,12 +8871,10 @@ diff_abund_ephem_Bow_plot_subset<-ggplot(sigtab_exposed_ephem_Bow_subset, aes(x=
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_ephem_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr ephemeroptera adults Bow.png", height=24, width=24)
-
 
 
 #COCH - SUN
@@ -9302,8 +9313,12 @@ x_exposed_chiro_Bow_subset = sort(x_exposed_chiro_Bow_subset, TRUE)
 sigtab_exposed_chiro_Bow_subset$Genus = factor(as.character(sigtab_exposed_chiro_Bow_subset$Genus), levels=sort(names(x_exposed_chiro_Bow_subset)))
 #26 differentially abundant taxa
 
+sigtab_exposed_chiro_Bow_subset$Genus <- factor(sigtab_exposed_chiro_Bow_subset$Genus, levels=c("Bacteroides", "CM1G08", "Exiguobacterium", "Ferribacterium", "Ideonella", "Leptothrix", "Limnohabitans", "Paracoccus", "Pseudorhodobacter", "Rhodobacter", "Sphingorhabdus", "Streptococcus","NA"), labels=c("Bacteroides", "CM1G08", "Exiguobacterium", "Ferribacterium", "Ideonella", "Leptothrix", "Limnohabitans", "Paracoccus", "Pseudorhodobacter", "Rhodobacter", "Sphingorhabdus", "Streptococcus", "Unidentified"))
+
+sigtab_exposed_chiro_Bow_subset$Genus[is.na(sigtab_exposed_chiro_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_chiro_Bow_plot_subset<-ggplot(sigtab_exposed_chiro_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -9312,12 +9327,10 @@ diff_abund_chiro_Bow_plot_subset<-ggplot(sigtab_exposed_chiro_Bow_subset, aes(x=
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_chiro_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr chironomidae larvae Bow.png", height=24, width=24)
-
 
 
 
@@ -9561,8 +9574,12 @@ x_exposed_dip_Bow_subset = sort(x_exposed_dip_Bow_subset, TRUE)
 sigtab_exposed_dip_Bow_subset$Genus = factor(as.character(sigtab_exposed_dip_Bow_subset$Genus), levels=sort(names(x_exposed_dip_Bow_subset)))
 #88 differentially abundant taxa
 
+sigtab_exposed_dip_Bow_subset$Genus <- factor(sigtab_exposed_dip_Bow_subset$Genus, levels=c("Aeromonas", "Alcaligenes", "Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium", "Anaerostipes", "Bacillus", "Blautia", "Bradyrhizobium", "Brevibacillus", "Brevundimonas", "Caenimonas", "Cereibacter", "CL500-29 marine group", "Clavibacter", "Coprococcus", "Corynebacterium", "Cytophaga", "Faecalibacterium", "Ferruginibacter", "Flavisolibacter", "Flavobacterium", "Fluviicola", "Frigoribacterium", "Haemophilus", "Hirschia", "Hymenobacter", "Ideonella", "Klebsiella", "Lachnoclostridium", "Lachnospiraceae NK4A136 group", "Lactobacillus", "Limnohabitans", "Lysinibacillus", "Marmoricola", "Methylobacterium-Methylorubrum", "Methylophilus", "Methylotenera", "Micrococcus", "Microterricola", "Neisseria", "Nocardioides", "Paenisporosarcina", "Pedobacter", "Rathayibacter", "Rhizobacter", "Rhizorhapis", "Rhodoferax", "Rubellimicrobium", "[Ruminococcus] gauvreauii group", "Serratia", "Solitalea", "Sphaerotilus", "Sphingorhabdus", "Spiroplasma", "Staphylococcus", "Streptococcus", "Wolbachia", "NA"), labels=c("Aeromonas", "Alcaligenes", "Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium", "Anaerostipes", "Bacillus", "Blautia", "Bradyrhizobium", "Brevibacillus", "Brevundimonas", "Caenimonas", "Cereibacter", "CL500-29 marine group", "Clavibacter", "Coprococcus", "Corynebacterium", "Cytophaga", "Faecalibacterium", "Ferruginibacter", "Flavisolibacter", "Flavobacterium", "Fluviicola", "Frigoribacterium", "Haemophilus", "Hirschia", "Hymenobacter", "Ideonella", "Klebsiella", "Lachnoclostridium", "Lachnospiraceae NK4A136 group", "Lactobacillus", "Limnohabitans", "Lysinibacillus", "Marmoricola", "Methylobacterium-Methylorubrum", "Methylophilus", "Methylotenera", "Micrococcus", "Microterricola", "Neisseria", "Nocardioides", "Paenisporosarcina", "Pedobacter", "Rathayibacter", "Rhizobacter", "Rhizorhapis", "Rhodoferax", "Rubellimicrobium","[Ruminococcus] gauvreauii group","Serratia", "Solitalea", "Sphaerotilus", "Sphingorhabdus", "Spiroplasma", "Staphylococcus", "Streptococcus", "Wolbachia", "Unidentified"))
+
+sigtab_exposed_dip_Bow_subset$Genus[is.na(sigtab_exposed_dip_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_dip_Bow_plot_subset<-ggplot(sigtab_exposed_dip_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -9571,11 +9588,10 @@ diff_abund_dip_Bow_plot_subset<-ggplot(sigtab_exposed_dip_Bow_subset, aes(x=log2
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_dip_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr diptera adults Bow.png", height=24, width=24)
 
 
 #COCH - CUSHBR
@@ -9803,8 +9819,12 @@ x_exposed_perl_Bow_subset = sort(x_exposed_perl_Bow_subset, TRUE)
 sigtab_exposed_perl_Bow_subset$Genus = factor(as.character(sigtab_exposed_perl_Bow_subset$Genus), levels=sort(names(x_exposed_perl_Bow_subset)))
 #36 differentially abundant taxa
 
+sigtab_exposed_perl_Bow_subset$Genus <- factor(sigtab_exposed_perl_Bow_subset$Genus, levels=c("Aquabacterium", "Azovibrio", "Clostridium sensu stricto 1", "Emticicia", "Flavobacterium", "Hydrogenophaga", "Ideonella", "Iodobacter", "Leptothrix", "Limnohabitans", "Methylotenera", "Pseudorhodobacter", "Rhizobacter", "Rhodococcus", "Rhodoferax", "Rubrivivax", "Serratia", "Spingorhabdus", "Tabrizicola", "NA"), labels=c("Aquabacterium", "Azovibrio", "Clostridium sensu stricto 1", "Emticicia", "Flavobacterium", "Hydrogenophaga", "Ideonella", "Iodobacter", "Leptothrix", "Limnohabitans", "Methylotenera", "Pseudorhodobacter", "Rhizobacter", "Rhodococcus", "Rhodoferax", "Rubrivivax", "Serratia", "Spingorhabdus", "Tabrizicola", "Unidentified"))
+
+sigtab_exposed_perl_Bow_subset$Genus[is.na(sigtab_exposed_perl_Bow_subset$Genus)] <- "Unidentified"
+
 diff_abund_perl_Bow_plot_subset<-ggplot(sigtab_exposed_perl_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -9813,12 +9833,10 @@ diff_abund_perl_Bow_plot_subset<-ggplot(sigtab_exposed_perl_Bow_subset, aes(x=lo
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_perl_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr perlidae larvae Bow.png", height=24, width=24)
-
 
 
 
@@ -10038,8 +10056,10 @@ x_exposed_aran_Bow_subset = sort(x_exposed_aran_Bow_subset, TRUE)
 sigtab_exposed_aran_Bow_subset$Genus = factor(as.character(sigtab_exposed_aran_Bow_subset$Genus), levels=sort(names(x_exposed_aran_Bow_subset)))
 #3 differentially abundant taxa
 
+sigtab_exposed_aran_Bow_subset$Genus <- factor(sigtab_exposed_aran_Bow_subset$Genus, levels=c("Agathobacter", "Massilia"))
+
 diff_abund_aran_Bow_plot_subset<-ggplot(sigtab_exposed_aran_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -10048,13 +10068,10 @@ diff_abund_aran_Bow_plot_subset<-ggplot(sigtab_exposed_aran_Bow_subset, aes(x=lo
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_aran_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr araneidae Bow.png", height=24, width=24)
-
-
 
 
 #COCH - SUN
@@ -10376,8 +10393,10 @@ x_exposed_tetra_Bow_subset = sort(x_exposed_tetra_Bow_subset, TRUE)
 sigtab_exposed_tetra_Bow_subset$Genus = factor(as.character(sigtab_exposed_tetra_Bow_subset$Genus), levels=sort(names(x_exposed_tetra_Bow_subset)))
 #3 differentially abundant taxa
 
+sigtab_exposed_tetra_Bow_subset$Genus <- factor(sigtab_exposed_tetra_Bow_subset$Genus, levels=c("Spiroplasma", "Wolbachia"))
+
 diff_abund_tetra_Bow_plot_subset<-ggplot(sigtab_exposed_tetra_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
+  geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
           theme(legend.text=element_text(size=34, color="black")) + 
@@ -10386,12 +10405,10 @@ diff_abund_tetra_Bow_plot_subset<-ggplot(sigtab_exposed_tetra_Bow_subset, aes(x=
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
 
 diff_abund_tetra_Bow_plot_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\Exposed vs cushbr tetragnathidae Bow.png", height=24, width=24)
-
 
 
 #COCH - SUN
@@ -10693,7 +10710,8 @@ diff_abund_hydro_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(y=Genu
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#991919", "#e68f66", "#fcff5d", "#ffc413", "#235b54", "#3998f5", "#2f2aa0"))
+  scale_fill_manual(values=c("#D72323", "#F98B39", "#FCFF7D", "#CCA60A", "#235b54", "#3998f5", "#2f2aa0"))+
+  scale_y_discrete(limits=rev)
 diff_abund_hydro_plot_subset
 
 
@@ -10732,7 +10750,8 @@ diff_abund_hep_plot_subset<-ggplot(sigtab_exposed_hep_Bow_subset, aes(y=Genus, x
   rremove("grid")+
   xlim(-30,30)+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#235b54"))
+  scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#235b54"))+
+  scale_y_discrete(limits=rev)
 diff_abund_hep_plot_subset
 
 
@@ -10772,7 +10791,8 @@ diff_abund_chiro_plot_subset<-ggplot(sigtab_exposed_chiro_Bow_subset, aes(y=Genu
    xlim(c(-30, 30))+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#991919", "#fcff5d", "#235b54"))
+  scale_fill_manual(values=c("#991919", "#fcff5d", "#235b54"))+
+   scale_y_discrete(limits=rev)
 diff_abund_chiro_plot_subset
 
 
@@ -10809,7 +10829,8 @@ diff_abund_perl_plot_subset<-ggplot(sigtab_exposed_perl_Bow_subset, aes(y=Genus,
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#ff3333", "#991919", "#fcff5d", "#235b54" ,"#2f2aa0"))
+  scale_fill_manual(values=c("#ff3333", "#991919", "#fcff5d", "#235b54" ,"#2f2aa0"))+
+   scale_y_discrete(limits=rev)
 diff_abund_perl_plot_subset
 
 
@@ -10846,7 +10867,8 @@ diff_abund_trichop_plot_subset<-ggplot(sigtab_exposed_trichop_Bow_subset, aes(y=
    xlim(c(-30, 30))+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#235b54"))
+  scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#235b54"))+
+   scale_y_discrete(limits=rev)
 diff_abund_trichop_plot_subset
 
 #Ephemeroptera
@@ -10882,7 +10904,8 @@ diff_abund_ephem_plot_subset<-ggplot(sigtab_exposed_ephem_Bow_subset, aes(y=Genu
    xlim(c(-30, 30))+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#fcff5d", "#235b54"))
+  scale_fill_manual(values=c("#fcff5d", "#235b54"))+
+   scale_y_discrete(limits=rev)
 diff_abund_ephem_plot_subset
 
 #Diptera
@@ -10918,7 +10941,8 @@ diff_abund_dip_plot_subset<-ggplot(sigtab_exposed_dip_Bow_subset, aes(y=Genus, x
   guides(nrow=8)+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#228c68", "#235b54"))
+  scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#228c68", "#235b54"))+
+   scale_y_discrete(limits=rev)
 diff_abund_dip_plot_subset
 
 #Araneidae
@@ -10952,7 +10976,8 @@ diff_abund_aran_plot_subset<-ggplot(sigtab_exposed_aran_Bow_subset, aes(y=Genus,
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#fcff5d", "#235b54"))
+  scale_fill_manual(values=c("#fcff5d", "#235b54"))+
+   scale_y_discrete(limits=rev)
 diff_abund_aran_plot_subset
 
 
@@ -10987,7 +11012,8 @@ diff_abund_tetra_plot_subset<-ggplot(sigtab_exposed_tetra_Bow_subset, aes(y=Genu
   rremove("grid")+
    xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_fill_manual(values=c("#fcff5d", "#235b54"))
+  scale_fill_manual(values=c("#fcff5d", "#235b54"))+
+   scale_y_discrete(limits=rev)
 diff_abund_tetra_plot_subset
 
 # Hydropsychidae #
