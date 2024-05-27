@@ -789,17 +789,27 @@ N_plot_lar<-ggplot(isotope_subset_lar, aes(x=Site_Code, y=d15N))+
 #### ANOVA across sites and individual taxa ####
 #Larvae
 
-isotope_subset_lar<-subset(lar_basal, Taxa!="Perlidae" & Taxa!="Coleoptera")
+isotope_subset_lar<-subset(isotope, Stage!="Adult" & Taxa!="Perlidae" & Taxa!="Coleoptera" & Taxa!="Chironomidae" & Taxa!="Leptoceridae")
 
-shapiro.test(isotope_subset_lar$d15N)  #Normal, p = 0.09. 
-leveneTest(data=isotope_subset_lar, d15N~Site*Taxa) #homogeneity p = 0.807
-hist(isotope_subset_lar$d15N) #looks normal
+shapiro.test(isotope_subset_lar$d15N)  #Normal, p = 0.06. 
+leveneTest(data=isotope_subset_lar, d15N~Site*Taxa) #homogeneity p = 0.705
+hist(isotope_subset_lar$d15N) #looks decently normal 
+
 
 #Parametric test
 
 summary(N_lar<-aov(data=isotope_subset_lar, d15N~Site*Taxa))
 emmeans(N_lar, pairwise ~ Site | Taxa)
 plot(N_lar) #Not completely normal but other plots look pretty good. Slight deviations and probably okay to continue with ANOVA.
+
+
+# Adults
+
+isotope_subset_ad<-subset(isotope, Stage=="Adult")
+
+shapiro.test(isotope_subset_lar$d15N)  #Normal, p = 0.09. 
+leveneTest(data=isotope_subset_lar, d15N~Site*Taxa) #homogeneity p = 0.807
+hist(isotope_subset_lar$d15N) #looks normal
 
 
 #### Araneidae ####

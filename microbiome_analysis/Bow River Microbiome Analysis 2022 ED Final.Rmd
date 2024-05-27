@@ -184,6 +184,9 @@ psbl<-subset_samples(ps, Sample_Type == "Blank") #Removing ASVs where the abunda
 psbl<-prune_taxa(taxa_sums(psbl) > 0, psbl)
 psbl #1809 taxa and 23 samples
 
+psbl_1<-subset_samples(psbl, Blank_Type!="Buffer tube" & Blank_Type!="DNA extraction reagent")
+psbl_1 #19 samples
+
 table(tax_table(psbl)[,"Kingdom"], exclude=NULL) #all bacteria
 
 psbl2<-subset_taxa(psbl, !Order %in% c("","Chloroplast") & !Family %in% c("", "Mitochondria"))
@@ -5525,9 +5528,11 @@ Transforming the data to proportions (relative abundance) is the best method of 
 #### Bow River ####
 #Combine filtered experimental samples with blanks
 nsamples(Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")) #276 samples
-nsamples(blank_Bow) #17
-exp_bl_ps_Bow<-merge_phyloseq(blank_Bow, Bow_ps)
-nsamples(exp_bl_ps_Bow) #293 (276 samples, 17 blanks)
+nsamples(psbl_1) #19
+bl_Bow<-subset_samples(psbl_1, Stream_Type!="ACWA Streams")
+nsamples(bl_Bow) #13
+exp_bl_ps_Bow<-merge_phyloseq(bl_Bow, Bow_ps)
+nsamples(exp_bl_ps_Bow) #289 (276 samples, 13 blanks)
 
 #Ordinating blanks with experimental samples to see how closely related they are
 
@@ -5545,7 +5550,7 @@ plot_ordination(ps_rel_abun_Bow, ordination_all_Bow, shape="Blank_collection_met
  
 set.seed(1)
 ord_NMDS_blanks_Bow = ordinate(ps_rel_abun_Bow, method="NMDS", distance=dist_all_Bow)
-ord_NMDS_blanks_Bow #stress=0.196
+ord_NMDS_blanks_Bow #stress=0.192
 
 
 blank_nmds_Bow<-plot_ordination(ps_rel_abun_Bow, ord_NMDS_blanks_Bow, color="Sample_Type", shape="Blank_Type") + 
@@ -5566,23 +5571,23 @@ blank_nmds_Bow<-plot_ordination(ps_rel_abun_Bow, ord_NMDS_blanks_Bow, color="Sam
 blank_nmds_Bow$Blank_Type <- factor(blank_nmds_Bow$Blank_Type, levels = c("Tweezer water rinse","Bedsheet","Buffer tube","DNA extraction reagent","Nested PCR negative"))
 print(blank_nmds_Bow)
 
-#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples Bow River.png", height=10, width=12)
+#ggsave(filename="microbiome_analysis/Final analysis/Beta Diversity Graphs/blank and experimental samples Bow River.png", height=8, width=10)
 
 metadata_blanks_Bow <- data.frame(sample_data(ps_rel_abun_Bow))
 
 adonis.blanks.Bow <- adonis2(dist_all_Bow ~ Sample_Type, data = metadata_blanks_Bow)
-adonis.blanks.Bow #p<0.001. Significant dissimilarity between blank samples and invertebrate samples
-#F(1, 291) = 3.48, P < 0.001
+adonis.blanks.Bow #p=0.002. Significant dissimilarity between blank samples and invertebrate samples
+#F(1, 288) = 2.85, P = 0.002
 
 #Testing variance (beta dispersion) differences between samples and blanks:
 bd_blanks_Bow<-betadisper(dist_all_Bow, metadata_blanks_Bow$Sample_Type)
-anova(bd_blanks_Bow) #Sig. dispersion F(1,291) = 54.5, p<0.001
+anova(bd_blanks_Bow) #Sig. dispersion F(1,288) = 60.5, p<0.001
 
 
 ## Separating out respective blanks for each sample type ##
 
 #Water July (larvae and blanks from July)
-water_July<-subset_samples(ps_rel_abun, Blank_collection_method=="Water July")
+water_July<-subset_samples(ps_rel_abun_Bow, Blank_collection_method=="Water July")
 dist_wat_July<-phyloseq::distance(water_July, method="bray")
 metadata_wat_July<-data.frame(sample_data(water_July))
 adonis.blank.lar.July<-adonis2(dist_wat_July ~ Sample_Type, data = metadata_wat_July)
@@ -5591,18 +5596,8 @@ adonis.blank.lar.July #p=0.001 sig. diff.
 bd_wat_July<-betadisper(dist_wat_July, metadata_wat_July$Sample_Type)
 anova(bd_wat_July) #Sig. dispersion
 
-#Water September (larvae and blanks from September)
-water_Sept<-subset_samples(ps_rel_abun, Blank_collection_method=="Water September")
-dist_wat_Sept<-phyloseq::distance(water_Sept, method="bray")
-metadata_wat_Sept<-data.frame(sample_data(water_Sept))
-adonis.blank.lar.Sept<-adonis2(dist_wat_Sept ~ Sample_Type, data = metadata_wat_Sept)
-adonis.blank.lar.Sept #p=0.001 sig. diff. 
-
-bd_wat_Sept<-betadisper(dist_wat_Sept, metadata_wat_Sept$Sample_Type)
-anova(bd_wat_Sept) #Sig. dispersion
-
 #Bedsheet 
-bedsheet_ps<-subset_samples(ps_rel_abun, Blank_collection_method=="Sheet")
+bedsheet_ps<-subset_samples(ps_rel_abun_Bow, Blank_collection_method=="Sheet")
 bedsheet_bray<-phyloseq::distance(bedsheet_ps, method="bray")
 metadata_bedsheet<-data.frame(sample_data(bedsheet_ps))
 adonis.blank.bedsheet<-adonis2(bedsheet_bray ~ Sample_Type, data = metadata_bedsheet)
@@ -5610,17 +5605,6 @@ adonis.blank.bedsheet #p=0.001 sig. diff.
 
 bd_bedsheet<-betadisper(bedsheet_bray, metadata_bedsheet$Sample_Type)
 anova(bd_bedsheet) #Sig. dispersion
-
-#Floating emergence traps
-emerg_trap_ps<-subset_samples(ps_rel_abun, Blank_collection_method=="Mesh")
-emerg_trap_bray<-phyloseq::distance(emerg_trap_ps, method="bray")
-metadata_emerg_trap<-data.frame(sample_data(emerg_trap_ps))
-adonis.blank.emerg_trap<-adonis2(emerg_trap_bray ~ Sample_Type, data = metadata_emerg_trap)
-adonis.blank.emerg_trap #p=0.041 sig. diff. 
-
-bd_emerg_trap<-betadisper(emerg_trap_bray, metadata_emerg_trap$Sample_Type)
-anova(bd_emerg_trap) #no sig. dispersion
-
 
 #Pairwise comparisons between all blank collection methods
 pairwise.adonis2(dist_all~ Blank_collection_method, data = metadata_blanks) 
@@ -14498,6 +14482,49 @@ picrust_diff_abund_hydro_Bow_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed hydro diff abun pathways.png", height=24, width=22)
 
 
+## Using Cushing Bridge as a reference site ##
+
+picrust_hydro_ps_Bow<-subset_samples(picrust_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
+
+picrust_hydro_ps_Bow_subset<-subset_samples(picrust_hydro_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_hydro_Bow_subset <- phyloseq_to_deseq2(picrust_hydro_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_hydro_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_hydro_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_hydro_Bow_subset <- DESeq(picrust_deseq_exposed_hydro_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_hydro_Bow_subset <- results(picrust_deseq_exposed_hydro_Bow_subset, cooksCutoff = FALSE)
+picrust_res_deseq_exposed_hydro_Bow_subset
+alpha = 0.001
+
+picrust_sigtab_exposed_hydro_Bow_subset = picrust_res_deseq_exposed_hydro_Bow_subset[which(picrust_res_deseq_exposed_hydro_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_hydro_Bow_subset = cbind(as(picrust_sigtab_exposed_hydro_Bow_subset, "data.frame"), as(tax_table(picrust_hydro_ps_Bow_subset)[rownames(picrust_sigtab_exposed_hydro_Bow_subset), ], "matrix"))
+
+x_exposed_hydro_Bow_subset_picrust = tapply(picrust_sigtab_exposed_hydro_Bow_subset$log2FoldChange, picrust_sigtab_exposed_hydro_Bow_subset$description, function(x) max(x))
+x_exposed_hydro_Bow_subset_picrust = sort(x_exposed_hydro_Bow_subset_picrust, TRUE)
+picrust_sigtab_exposed_hydro_Bow_subset$description = factor(as.character(picrust_sigtab_exposed_hydro_Bow_subset$description), levels=names(x_exposed_hydro_Bow_subset_picrust))
+#4 differentially expressed pathways
+
+picrust_diff_abund_hydro_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_hydro_Bow_subset, aes(x=log2FoldChange, y=description))+
+  geom_point(pch=21, size=8, fill="black") + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+   xlim(c(-30, 30))+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
+
+picrust_diff_abund_hydro_Bow_plot_subset
+
+
+
 #COCH - SUN
 
 picrust_hydro_sun_coch<-subset_samples(picrust_hydro_ps_Bow, Site=="Cochrane" | Site=="Sunalta")
@@ -14604,6 +14631,126 @@ picrust_diff_abund_hydro_pmf_coch_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch hydro diff abun pathways.png", height=24, width=22)
 
+
+#CUSHBR - COCH
+
+picrust_hydro_cush_coch<-subset_samples(picrust_hydro_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_hydro <- phyloseq_to_deseq2(picrust_hydro_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_hydro <- DESeq(picrust_deseq_cush_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_hydro <- results(picrust_deseq_cush_coch_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_hydro = picrust_res_deseq_cush_coch_hydro[which(picrust_res_deseq_cush_coch_hydro$padj < alpha), ]
+picrust_sigtab_cush_coch_hydro = cbind(as(picrust_sigtab_cush_coch_hydro, "data.frame"), as(tax_table(picrust_hydro_cush_coch)[rownames(picrust_sigtab_cush_coch_hydro), ], "matrix"))
+#10 diff abun pathways
+
+picrust_diff_abund_hydro_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_hydro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch hydro diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - SUN
+
+picrust_hydro_cush_sun<-subset_samples(picrust_hydro_ps_Bow, Site=="Cushing Bridge" | Site=="Sunalta")
+
+picrust_deseq_cush_sun_hydro <- phyloseq_to_deseq2(picrust_hydro_cush_sun, ~ Site)
+
+picrust_deseq_cush_sun_hydro <- DESeq(picrust_deseq_cush_sun_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_sun_hydro <- results(picrust_deseq_cush_sun_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_sun_hydro = picrust_res_deseq_cush_sun_hydro[which(picrust_res_deseq_cush_sun_hydro$padj < alpha), ]
+picrust_sigtab_cush_sun_hydro = cbind(as(picrust_sigtab_cush_sun_hydro, "data.frame"), as(tax_table(picrust_hydro_cush_sun)[rownames(picrust_sigtab_cush_sun_hydro), ], "matrix"))
+#7 diff abun pathways
+
+picrust_diff_abund_hydro_cush_sun_plot<-ggplot(picrust_sigtab_cush_sun_hydro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_cush_sun_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-sun hydro diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - GRVBR
+
+picrust_hydro_cush_grvbr<-subset_samples(picrust_hydro_ps_Bow, Site=="Cushing Bridge" | Site=="Graves Bridge")
+
+picrust_deseq_cush_grvbr_hydro <- phyloseq_to_deseq2(picrust_hydro_cush_grvbr, ~ Site)
+
+picrust_deseq_cush_grvbr_hydro <- DESeq(picrust_deseq_cush_grvbr_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_grvbr_hydro <- results(picrust_deseq_cush_grvbr_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_grvbr_hydro = picrust_res_deseq_cush_grvbr_hydro[which(picrust_res_deseq_cush_grvbr_hydro$padj < alpha), ]
+picrust_sigtab_cush_grvbr_hydro = cbind(as(picrust_sigtab_cush_grvbr_hydro, "data.frame"), as(tax_table(picrust_hydro_cush_grvbr)[rownames(picrust_sigtab_cush_grvbr_hydro), ], "matrix"))
+#1 diff abun pathways
+
+picrust_diff_abund_hydro_cush_grvbr_plot<-ggplot(picrust_sigtab_cush_grvbr_hydro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_cush_grvbr_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-grvbr hydro diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - PMF
+
+picrust_hydro_cush_pmf<-subset_samples(picrust_hydro_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_hydro <- phyloseq_to_deseq2(picrust_hydro_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_hydro <- DESeq(picrust_deseq_cush_pmf_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_hydro <- results(picrust_deseq_cush_pmf_hydro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_hydro = picrust_res_deseq_cush_pmf_hydro[which(picrust_res_deseq_cush_pmf_hydro$padj < alpha), ]
+picrust_sigtab_cush_pmf_hydro = cbind(as(picrust_sigtab_cush_pmf_hydro, "data.frame"), as(tax_table(picrust_hydro_cush_pmf)[rownames(picrust_sigtab_cush_pmf_hydro), ], "matrix"))
+#52 diff abun pathways
+
+picrust_diff_abund_hydro_cush_pmf_plot<-ggplot(picrust_sigtab_cush_pmf_hydro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hydro_cush_pmf_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-pmf hydro diff abun pathways.png", height=24, width=22)
+
 #### Heptageniidae ####
 
 #Exposed vs non wastewater exposed sites
@@ -14636,6 +14783,47 @@ picrust_diff_abund_hep_Bow_plot<-ggplot(picrust_sigtab_exposed_hep_Bow, aes(x=lo
 picrust_diff_abund_hep_Bow_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed hep diff abun pathways.png", height=24, width=22)
+
+
+## Using Cushing Bridge as a reference site ##
+
+
+picrust_hep_ps_Bow<-subset_samples(picrust_ps, Family=="Heptageniidae" & Stream_Type=="Bow River")
+
+picrust_hep_ps_Bow_subset<-subset_samples(picrust_hep_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_hep_Bow_subset <- phyloseq_to_deseq2(picrust_hep_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_hep_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_hep_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_hep_Bow_subset <- DESeq(picrust_deseq_exposed_hep_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_hep_Bow_subset <- results(picrust_deseq_exposed_hep_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_hep_Bow_subset = picrust_res_deseq_exposed_hep_Bow_subset[which(picrust_res_deseq_exposed_hep_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_hep_Bow_subset = cbind(as(picrust_sigtab_exposed_hep_Bow_subset, "data.frame"), as(tax_table(picrust_hep_ps_Bow_subset)[rownames(picrust_sigtab_exposed_hep_Bow_subset), ], "matrix"))
+
+x_exposed_hep_Bow_subset_picrust = tapply(picrust_sigtab_exposed_hep_Bow_subset$log2FoldChange, picrust_sigtab_exposed_hep_Bow_subset$description, function(x) max(x))
+x_exposed_hep_Bow_subset_picrust = sort(x_exposed_hep_Bow_subset_picrust, TRUE)
+picrust_sigtab_exposed_hep_Bow_subset$description = factor(as.character(picrust_sigtab_exposed_hep_Bow_subset$description), levels=names(x_exposed_hep_Bow_subset_picrust))
+#12 differentially expressed pathways
+
+picrust_diff_abund_hep_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_hep_Bow_subset, aes(x=log2FoldChange, y=description))+
+  geom_point(pch=21, size=8, fill="black") + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+   xlim(c(-30, 30))+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
+
+picrust_diff_abund_hep_Bow_plot_subset
 
 
 #COCH - SUN
@@ -14743,6 +14931,112 @@ picrust_diff_abund_hep_pmf_coch_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch hep diff abun pathways.png", height=24, width=22)
 
+
+
+#CUSHBR - COCH
+
+picrust_hep_cush_coch<-subset_samples(picrust_hep_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_hep <- phyloseq_to_deseq2(picrust_hep_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_hep <- DESeq(picrust_deseq_cush_coch_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_hep <- results(picrust_deseq_cush_coch_hep, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_hep = picrust_res_deseq_cush_coch_hep[which(picrust_res_deseq_cush_coch_hep$padj < alpha), ]
+picrust_sigtab_cush_coch_hep = cbind(as(picrust_sigtab_cush_coch_hep, "data.frame"), as(tax_table(picrust_hep_cush_coch)[rownames(picrust_sigtab_cush_coch_hep), ], "matrix"))
+#15 diff abun pathways
+
+picrust_diff_abund_hep_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_hep, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hep_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch hep diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - SUN
+
+picrust_hep_cush_sun<-subset_samples(picrust_hep_ps_Bow, Site=="Cushing Bridge" | Site=="Sunalta")
+
+picrust_deseq_cush_sun_hep <- phyloseq_to_deseq2(picrust_hep_cush_sun, ~ Site)
+
+picrust_deseq_cush_sun_hep <- DESeq(picrust_deseq_cush_sun_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_sun_hep <- results(picrust_deseq_cush_sun_hep, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_sun_hep = picrust_res_deseq_cush_sun_hep[which(picrust_res_deseq_cush_sun_hep$padj < alpha), ]
+picrust_sigtab_cush_sun_hep = cbind(as(picrust_sigtab_cush_sun_hep, "data.frame"), as(tax_table(picrust_hep_cush_sun)[rownames(picrust_sigtab_cush_sun_hep), ], "matrix"))
+#0 diff abun pathways
+
+
+#CUSHBR - GRVBR
+
+picrust_hep_cush_grvbr<-subset_samples(picrust_hep_ps_Bow, Site=="Cushing Bridge" | Site=="Graves Bridge")
+
+picrust_deseq_cush_grvbr_hep <- phyloseq_to_deseq2(picrust_hep_cush_grvbr, ~ Site)
+
+picrust_deseq_cush_grvbr_hep <- DESeq(picrust_deseq_cush_grvbr_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_grvbr_hep <- results(picrust_deseq_cush_grvbr_hep, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_grvbr_hep = picrust_res_deseq_cush_grvbr_hep[which(picrust_res_deseq_cush_grvbr_hep$padj < alpha), ]
+picrust_sigtab_cush_grvbr_hep = cbind(as(picrust_sigtab_cush_grvbr_hep, "data.frame"), as(tax_table(picrust_hep_cush_grvbr)[rownames(picrust_sigtab_cush_grvbr_hep), ], "matrix"))
+#15 diff abun pathways
+
+picrust_diff_abund_hep_cush_grvbr_plot<-ggplot(picrust_sigtab_cush_grvbr_hep, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hep_cush_grvbr_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-grvbr hep diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - PMF
+
+picrust_hep_cush_pmf<-subset_samples(picrust_hep_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_hep <- phyloseq_to_deseq2(picrust_hep_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_hep <- DESeq(picrust_deseq_cush_pmf_hep, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_hep <- results(picrust_deseq_cush_pmf_hep, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_hep = picrust_res_deseq_cush_pmf_hep[which(picrust_res_deseq_cush_pmf_hep$padj < alpha), ]
+picrust_sigtab_cush_pmf_hep = cbind(as(picrust_sigtab_cush_pmf_hep, "data.frame"), as(tax_table(picrust_hep_cush_pmf)[rownames(picrust_sigtab_cush_pmf_hep), ], "matrix"))
+#10 diff abun pathways
+
+picrust_diff_abund_hep_cush_pmf_plot<-ggplot(picrust_sigtab_cush_pmf_hep, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_hep_cush_pmf_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-pmf hep diff abun pathways.png", height=24, width=22)
+
 #### Chironomidae ####
 
 #Exposed vs non wastewater exposed sites
@@ -14775,6 +15069,48 @@ picrust_diff_abund_chiro_Bow_plot<-ggplot(picrust_sigtab_exposed_chiro_Bow, aes(
 picrust_diff_abund_chiro_Bow_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed chiro diff abun pathways.png", height=24, width=22)
+
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_chiro_ps_Bow<-subset_samples(picrust_ps, Family=="Chironomidae" & Stream_Type=="Bow River")
+
+picrust_chiro_ps_Bow_subset<-subset_samples(picrust_chiro_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_chiro_Bow_subset <- phyloseq_to_deseq2(picrust_chiro_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_chiro_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_chiro_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_chiro_Bow_subset <- DESeq(picrust_deseq_exposed_chiro_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_chiro_Bow_subset <- results(picrust_deseq_exposed_chiro_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_chiro_Bow_subset = picrust_res_deseq_exposed_chiro_Bow_subset[which(picrust_res_deseq_exposed_chiro_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_chiro_Bow_subset = cbind(as(picrust_sigtab_exposed_chiro_Bow_subset, "data.frame"), as(tax_table(picrust_chiro_ps_Bow_subset)[rownames(picrust_sigtab_exposed_chiro_Bow_subset), ], "matrix"))
+
+x_exposed_chiro_Bow_subset_picrust = tapply(picrust_sigtab_exposed_chiro_Bow_subset$log2FoldChange, picrust_sigtab_exposed_chiro_Bow_subset$description, function(x) max(x))
+
+x_exposed_chiro_Bow_subset_picrust = sort(x_exposed_chiro_Bow_subset_picrust, TRUE)
+
+picrust_sigtab_exposed_chiro_Bow_subset$description = factor(as.character(picrust_sigtab_exposed_chiro_Bow_subset$description), levels=names(x_exposed_chiro_Bow_subset_picrust))
+#5 differentially expressed pathways
+
+picrust_diff_abund_chiro_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_chiro_Bow_subset, aes(x=log2FoldChange, y=description))+
+  geom_point(pch=21, size=8, fill="black") + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+   xlim(c(-30, 30))+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
+
+picrust_diff_abund_chiro_Bow_plot_subset
 
 
 #CUSHBR - COCH
@@ -14836,6 +15172,67 @@ picrust_diff_abund_chiro_pmf_coch_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch chiro diff abun pathways.png", height=24, width=22)
 
+
+#CUSHBR - COCH
+
+picrust_chiro_cush_coch<-subset_samples(picrust_chiro_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_chiro <- phyloseq_to_deseq2(picrust_chiro_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_chiro <- DESeq(picrust_deseq_cush_coch_chiro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_chiro <- results(picrust_deseq_cush_coch_chiro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_chiro = picrust_res_deseq_cush_coch_chiro[which(picrust_res_deseq_cush_coch_chiro$padj < alpha), ]
+picrust_sigtab_cush_coch_chiro = cbind(as(picrust_sigtab_cush_coch_chiro, "data.frame"), as(tax_table(picrust_chiro_cush_coch)[rownames(picrust_sigtab_cush_coch_chiro), ], "matrix"))
+#3 diff abun pathways
+
+picrust_diff_abund_chiro_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_chiro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_chiro_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch chiro diff abun pathways.png", height=24, width=22)
+
+
+
+#CUSHBR - PMF
+
+picrust_chiro_cush_pmf<-subset_samples(picrust_chiro_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_chiro <- phyloseq_to_deseq2(picrust_chiro_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_chiro <- DESeq(picrust_deseq_cush_pmf_chiro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_chiro <- results(picrust_deseq_cush_pmf_chiro, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_chiro = picrust_res_deseq_cush_pmf_chiro[which(picrust_res_deseq_cush_pmf_chiro$padj < alpha), ]
+picrust_sigtab_cush_pmf_chiro = cbind(as(picrust_sigtab_cush_pmf_chiro, "data.frame"), as(tax_table(picrust_chiro_cush_pmf)[rownames(picrust_sigtab_cush_pmf_chiro), ], "matrix"))
+#5 diff abun pathways
+
+picrust_diff_abund_chiro_cush_pmf_plot<-ggplot(picrust_sigtab_cush_pmf_chiro, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_chiro_cush_pmf_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-pmf chiro diff abun pathways.png", height=24, width=22)
+
 #### Perlidae ####
 
 #Exposed vs non wastewater exposed sites
@@ -14853,6 +15250,49 @@ alpha = 0.001
 picrust_sigtab_exposed_perl_Bow = picrust_res_deseq_exposed_perl_Bow[which(picrust_res_deseq_exposed_perl_Bow$padj < alpha), ]
 picrust_sigtab_exposed_perl_Bow = cbind(as(picrust_sigtab_exposed_perl_Bow, "data.frame"), as(tax_table(picrust_perl_ps_Bow)[rownames(picrust_sigtab_exposed_perl_Bow), ], "matrix"))
 #0 diff abun path
+
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_perl_ps_Bow<-subset_samples(picrust_ps, Family=="Perlidae" & Stream_Type=="Bow River")
+
+picrust_perl_ps_Bow_subset<-subset_samples(picrust_perl_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_perl_Bow_subset <- phyloseq_to_deseq2(picrust_perl_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_perl_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_perl_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_perl_Bow_subset <- DESeq(picrust_deseq_exposed_perl_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_perl_Bow_subset <- results(picrust_deseq_exposed_perl_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_perl_Bow_subset = picrust_res_deseq_exposed_perl_Bow_subset[which(picrust_res_deseq_exposed_perl_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_perl_Bow_subset = cbind(as(picrust_sigtab_exposed_perl_Bow_subset, "data.frame"), as(tax_table(picrust_perl_ps_Bow_subset)[rownames(picrust_sigtab_exposed_perl_Bow_subset), ], "matrix"))
+
+x_exposed_perl_Bow_subset_picrust = tapply(picrust_sigtab_exposed_perl_Bow_subset$log2FoldChange, picrust_sigtab_exposed_perl_Bow_subset$description, function(x) max(x))
+
+x_exposed_perl_Bow_subset_picrust = sort(x_exposed_perl_Bow_subset_picrust, TRUE)
+
+picrust_sigtab_exposed_perl_Bow_subset$description = factor(as.character(picrust_sigtab_exposed_perl_Bow_subset$description), levels=names(x_exposed_perl_Bow_subset_picrust))
+#31 differentially expressed pathways
+
+picrust_diff_abund_perl_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_perl_Bow_subset, aes(x=log2FoldChange, y=description))+
+  geom_point(pch=21, size=8, fill="black") + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+   xlim(c(-30, 30))+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
+
+picrust_diff_abund_perl_Bow_plot_subset
+
 
 
 #CUSHBR - COCH
@@ -14914,6 +15354,66 @@ picrust_diff_abund_perl_pmf_coch_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch perl diff abun pathways.png", height=24, width=22)
 
+
+#CUSHBR - COCH
+
+picrust_perl_cush_coch<-subset_samples(picrust_perl_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_perl <- phyloseq_to_deseq2(picrust_perl_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_perl <- DESeq(picrust_deseq_cush_coch_perl, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_perl <- results(picrust_deseq_cush_coch_perl, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_perl = picrust_res_deseq_cush_coch_perl[which(picrust_res_deseq_cush_coch_perl$padj < alpha), ]
+picrust_sigtab_cush_coch_perl = cbind(as(picrust_sigtab_cush_coch_perl, "data.frame"), as(tax_table(picrust_perl_cush_coch)[rownames(picrust_sigtab_cush_coch_perl), ], "matrix"))
+#4 diff abun pathways
+
+picrust_diff_abund_perl_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_perl, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_perl_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch perl diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - PMF
+
+picrust_perl_cush_pmf<-subset_samples(picrust_perl_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_perl <- phyloseq_to_deseq2(picrust_perl_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_perl <- DESeq(picrust_deseq_cush_pmf_perl, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_perl <- results(picrust_deseq_cush_pmf_perl, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_perl = picrust_res_deseq_cush_pmf_perl[which(picrust_res_deseq_cush_pmf_perl$padj < alpha), ]
+picrust_sigtab_cush_pmf_perl = cbind(as(picrust_sigtab_cush_pmf_perl, "data.frame"), as(tax_table(picrust_perl_cush_pmf)[rownames(picrust_sigtab_cush_pmf_perl), ], "matrix"))
+#31 diff abun pathways
+
+picrust_diff_abund_perl_cush_pmf_plot<-ggplot(picrust_sigtab_cush_pmf_perl, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_perl_cush_pmf_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-pmf perl diff abun pathways.png", height=24, width=22)
+
 #### Trichoptera ####
 
 #Exposed vs non wastewater exposed sites
@@ -14946,6 +15446,49 @@ picrust_diff_abund_trichop_Bow_plot<-ggplot(picrust_sigtab_exposed_trichop_Bow, 
 picrust_diff_abund_trichop_Bow_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed trichop diff abun pathways.png", height=24, width=22)
+
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_trichop_ps_Bow<-subset_samples(picrust_ps, Family=="Trichoptera" & Stream_Type=="Bow River")
+
+picrust_trichop_ps_Bow_subset<-subset_samples(picrust_trichop_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_trichop_Bow_subset <- phyloseq_to_deseq2(picrust_trichop_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_trichop_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_trichop_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_trichop_Bow_subset <- DESeq(picrust_deseq_exposed_trichop_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_trichop_Bow_subset <- results(picrust_deseq_exposed_trichop_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_trichop_Bow_subset = picrust_res_deseq_exposed_trichop_Bow_subset[which(picrust_res_deseq_exposed_trichop_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_trichop_Bow_subset = cbind(as(picrust_sigtab_exposed_trichop_Bow_subset, "data.frame"), as(tax_table(picrust_trichop_ps_Bow_subset)[rownames(picrust_sigtab_exposed_trichop_Bow_subset), ], "matrix"))
+
+x_exposed_trichop_Bow_subset_picrust = tapply(picrust_sigtab_exposed_trichop_Bow_subset$log2FoldChange, picrust_sigtab_exposed_trichop_Bow_subset$description, function(x) max(x))
+
+x_exposed_trichop_Bow_subset_picrust = sort(x_exposed_trichop_Bow_subset_picrust, TRUE)
+
+picrust_sigtab_exposed_trichop_Bow_subset$description = factor(as.character(picrust_sigtab_exposed_trichop_Bow_subset$description), levels=names(x_exposed_trichop_Bow_subset_picrust))
+#2 differentially expressed pathways
+
+picrust_diff_abund_trichop_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_trichop_Bow_subset, aes(x=log2FoldChange, y=description))+
+  geom_point(pch=21, size=8, fill="black") + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+   xlim(c(-30, 30))+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
+
+picrust_diff_abund_trichop_Bow_plot_subset
+
 
 
 #COCH - SUN
@@ -15038,6 +15581,97 @@ picrust_diff_abund_trichop_grvbr_coch_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/grvbr-coch trichop diff abun pathways.png", height=24, width=22)
 
 
+#CUSHBR - COCH
+
+picrust_trichop_cush_coch<-subset_samples(picrust_trichop_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_trichop <- phyloseq_to_deseq2(picrust_trichop_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_trichop <- DESeq(picrust_deseq_cush_coch_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_trichop <- results(picrust_deseq_cush_coch_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_trichop = picrust_res_deseq_cush_coch_trichop[which(picrust_res_deseq_cush_coch_trichop$padj < alpha), ]
+picrust_sigtab_cush_coch_trichop = cbind(as(picrust_sigtab_cush_coch_trichop, "data.frame"), as(tax_table(picrust_trichop_cush_coch)[rownames(picrust_sigtab_cush_coch_trichop), ], "matrix"))
+#2 diff abun pathways
+
+picrust_diff_abund_trichop_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_trichop, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch trichop diff abun pathways.png", height=24, width=22)
+
+
+
+#CUSHBR - SUN
+
+picrust_trichop_cush_sun<-subset_samples(picrust_trichop_ps_Bow, Site=="Cushing Bridge" | Site=="Sunalta")
+
+picrust_deseq_cush_sun_trichop <- phyloseq_to_deseq2(picrust_trichop_cush_sun, ~ Site)
+
+picrust_deseq_cush_sun_trichop <- DESeq(picrust_deseq_cush_sun_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_sun_trichop <- results(picrust_deseq_cush_sun_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_sun_trichop = picrust_res_deseq_cush_sun_trichop[which(picrust_res_deseq_cush_sun_trichop$padj < alpha), ]
+picrust_sigtab_cush_sun_trichop = cbind(as(picrust_sigtab_cush_sun_trichop, "data.frame"), as(tax_table(picrust_trichop_cush_sun)[rownames(picrust_sigtab_cush_sun_trichop), ], "matrix"))
+#1 diff abun pathways
+
+picrust_diff_abund_trichop_cush_sun_plot<-ggplot(picrust_sigtab_cush_sun_trichop, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_cush_sun_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-sun trichop diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - GRVBR
+
+picrust_trichop_cush_grvbr<-subset_samples(picrust_trichop_ps_Bow, Site=="Cushing Bridge" | Site=="Graves Bridge")
+
+picrust_deseq_cush_grvbr_trichop <- phyloseq_to_deseq2(picrust_trichop_cush_grvbr, ~ Site)
+
+picrust_deseq_cush_grvbr_trichop <- DESeq(picrust_deseq_cush_grvbr_trichop, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_grvbr_trichop <- results(picrust_deseq_cush_grvbr_trichop, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_grvbr_trichop = picrust_res_deseq_cush_grvbr_trichop[which(picrust_res_deseq_cush_grvbr_trichop$padj < alpha), ]
+picrust_sigtab_cush_grvbr_trichop = cbind(as(picrust_sigtab_cush_grvbr_trichop, "data.frame"), as(tax_table(picrust_trichop_cush_grvbr)[rownames(picrust_sigtab_cush_grvbr_trichop), ], "matrix"))
+#2 diff abun pathways
+
+picrust_diff_abund_trichop_cush_grvbr_plot<-ggplot(picrust_sigtab_cush_grvbr_trichop, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_trichop_cush_grvbr_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-grvbr trichop diff abun pathways.png", height=24, width=22)
+
+
 #### Ephemeroptera Bow ####
 
 #Exposed vs non wastewater exposed sites
@@ -15070,6 +15704,28 @@ picrust_diff_abund_ephem_Bow_plot<-ggplot(picrust_sigtab_exposed_ephem_Bow, aes(
 picrust_diff_abund_ephem_Bow_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed ephem diff abun pathways.png", height=24, width=22)
+
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_ephem_ps_Bow<-subset_samples(picrust_ps, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+
+picrust_ephem_ps_Bow_subset<-subset_samples(picrust_ephem_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_ephem_Bow_subset <- phyloseq_to_deseq2(picrust_ephem_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_ephem_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_ephem_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_ephem_Bow_subset <- DESeq(picrust_deseq_exposed_ephem_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_ephem_Bow_subset <- results(picrust_deseq_exposed_ephem_Bow_subset, cooksCutoff = FALSE)
+picrust_res_deseq_exposed_ephem_Bow_subset
+alpha = 0.001
+picrust_sigtab_exposed_ephem_Bow_subset = picrust_res_deseq_exposed_ephem_Bow_subset[which(picrust_res_deseq_exposed_ephem_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_ephem_Bow_subset = cbind(as(picrust_sigtab_exposed_ephem_Bow_subset, "data.frame"), as(tax_table(picrust_ephem_ps_Bow_subset)[rownames(picrust_sigtab_exposed_ephem_Bow_subset), ], "matrix"))
+#0
 
 
 #COCH - SUN
@@ -15178,6 +15834,114 @@ picrust_diff_abund_ephem_pmf_coch_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch ephem diff abun pathways.png", height=24, width=22)
 
 
+
+#CUSHBR - COCH
+
+picrust_ephem_cush_coch<-subset_samples(picrust_ephem_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_ephem <- phyloseq_to_deseq2(picrust_ephem_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_ephem <- DESeq(picrust_deseq_cush_coch_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_ephem <- results(picrust_deseq_cush_coch_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_ephem = picrust_res_deseq_cush_coch_ephem[which(picrust_res_deseq_cush_coch_ephem$padj < alpha), ]
+picrust_sigtab_cush_coch_ephem = cbind(as(picrust_sigtab_cush_coch_ephem, "data.frame"), as(tax_table(picrust_ephem_cush_coch)[rownames(picrust_sigtab_cush_coch_ephem), ], "matrix"))
+#34 diff abun pathways
+
+picrust_diff_abund_ephem_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_ephem, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch ephem diff abun pathways.png", height=24, width=22)
+
+
+
+#CUSHBR - SUN
+
+picrust_ephem_cush_sun<-subset_samples(picrust_ephem_ps_Bow, Site=="Cushing Bridge" | Site=="Sunalta")
+
+picrust_deseq_cush_sun_ephem <- phyloseq_to_deseq2(picrust_ephem_cush_sun, ~ Site)
+
+picrust_deseq_cush_sun_ephem <- DESeq(picrust_deseq_cush_sun_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_sun_ephem <- results(picrust_deseq_cush_sun_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_sun_ephem = picrust_res_deseq_cush_sun_ephem[which(picrust_res_deseq_cush_sun_ephem$padj < alpha), ]
+picrust_sigtab_cush_sun_ephem = cbind(as(picrust_sigtab_cush_sun_ephem, "data.frame"), as(tax_table(picrust_ephem_cush_sun)[rownames(picrust_sigtab_cush_sun_ephem), ], "matrix"))
+#34 diff abun pathways
+
+picrust_diff_abund_ephem_cush_sun_plot<-ggplot(picrust_sigtab_cush_sun_ephem, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_cush_sun_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-sun ephem diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - GRVBR
+
+picrust_ephem_cush_grvbr<-subset_samples(picrust_ephem_ps_Bow, Site=="Cushing Bridge" | Site=="Graves Bridge")
+
+picrust_deseq_cush_grvbr_ephem <- phyloseq_to_deseq2(picrust_ephem_cush_grvbr, ~ Site)
+
+picrust_deseq_cush_grvbr_ephem <- DESeq(picrust_deseq_cush_grvbr_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_grvbr_ephem <- results(picrust_deseq_cush_grvbr_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_grvbr_ephem = picrust_res_deseq_cush_grvbr_ephem[which(picrust_res_deseq_cush_grvbr_ephem$padj < alpha), ]
+picrust_sigtab_cush_grvbr_ephem = cbind(as(picrust_sigtab_cush_grvbr_ephem, "data.frame"), as(tax_table(picrust_ephem_cush_grvbr)[rownames(picrust_sigtab_cush_grvbr_ephem), ], "matrix"))
+#33 diff abun pathways
+
+picrust_diff_abund_ephem_cush_grvbr_plot<-ggplot(picrust_sigtab_cush_grvbr_ephem, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_ephem_cush_grvbr_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-grvbr ephem diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - PMF
+
+picrust_ephem_cush_pmf<-subset_samples(picrust_ephem_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_ephem <- phyloseq_to_deseq2(picrust_ephem_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_ephem <- DESeq(picrust_deseq_cush_pmf_ephem, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_ephem <- results(picrust_deseq_cush_pmf_ephem, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_ephem = picrust_res_deseq_cush_pmf_ephem[which(picrust_res_deseq_cush_pmf_ephem$padj < alpha), ]
+picrust_sigtab_cush_pmf_ephem = cbind(as(picrust_sigtab_cush_pmf_ephem, "data.frame"), as(tax_table(picrust_ephem_cush_pmf)[rownames(picrust_sigtab_cush_pmf_ephem), ], "matrix"))
+#0 diff abun pathways
+
+
+
 #### Diptera ####
 
 #Exposed vs non wastewater exposed sites
@@ -15210,6 +15974,28 @@ picrust_diff_abund_dip_Bow_plot<-ggplot(picrust_sigtab_exposed_dip_Bow, aes(x=lo
 picrust_diff_abund_dip_Bow_plot
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/exposed-non exposed dip diff abun pathways.png", height=24, width=22)
+
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_dip_ps_Bow<-subset_samples(picrust_ps, Family=="Diptera" & Stream_Type=="Bow River")
+
+picrust_dip_ps_Bow_subset<-subset_samples(picrust_dip_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_dip_Bow_subset <- phyloseq_to_deseq2(picrust_dip_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_dip_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_dip_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_dip_Bow_subset <- DESeq(picrust_deseq_exposed_dip_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_dip_Bow_subset <- results(picrust_deseq_exposed_dip_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_dip_Bow_subset = picrust_res_deseq_exposed_dip_Bow_subset[which(picrust_res_deseq_exposed_dip_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_dip_Bow_subset = cbind(as(picrust_sigtab_exposed_dip_Bow_subset, "data.frame"), as(tax_table(picrust_dip_ps_Bow_subset)[rownames(picrust_sigtab_exposed_dip_Bow_subset), ], "matrix"))
+#0
+
 
 
 #CUSHBR - COCH
@@ -15272,6 +16058,21 @@ picrust_diff_abund_dip_pmf_coch_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch dip diff abun pathways.png", height=24, width=22)
 
 
+#CUSHBR - PMF
+
+picrust_dip_cush_pmf<-subset_samples(picrust_dip_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_dip <- phyloseq_to_deseq2(picrust_dip_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_dip <- DESeq(picrust_deseq_cush_pmf_dip, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_dip <- results(picrust_deseq_cush_pmf_dip, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_dip = picrust_res_deseq_cush_pmf_dip[which(picrust_res_deseq_cush_pmf_dip$padj < alpha), ]
+picrust_sigtab_cush_pmf_dip = cbind(as(picrust_sigtab_cush_pmf_dip, "data.frame"), as(tax_table(picrust_dip_cush_pmf)[rownames(picrust_sigtab_cush_pmf_dip), ], "matrix"))
+#0 diff abun pathways
+
+
 #### Araneidae ####
 
 #Exposed vs non wastewater exposed sites
@@ -15289,6 +16090,48 @@ alpha = 0.001
 picrust_sigtab_exposed_aran_Bow = picrust_res_deseq_exposed_aran_Bow[which(picrust_res_deseq_exposed_aran_Bow$padj < alpha), ]
 picrust_sigtab_exposed_aran_Bow = cbind(as(picrust_sigtab_exposed_aran_Bow, "data.frame"), as(tax_table(picrust_aran_ps_Bow)[rownames(picrust_sigtab_exposed_aran_Bow), ], "matrix"))
 #0 diff abun path
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_aran_ps_Bow<-subset_samples(picrust_ps, Family=="Araneidae" & Stream_Type=="Bow River")
+
+picrust_aran_ps_Bow_subset<-subset_samples(picrust_aran_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_aran_Bow_subset <- phyloseq_to_deseq2(picrust_aran_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_aran_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_aran_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_aran_Bow_subset <- DESeq(picrust_deseq_exposed_aran_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_aran_Bow_subset <- results(picrust_deseq_exposed_aran_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_aran_Bow_subset = picrust_res_deseq_exposed_aran_Bow_subset[which(picrust_res_deseq_exposed_aran_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_aran_Bow_subset = cbind(as(picrust_sigtab_exposed_aran_Bow_subset, "data.frame"), as(tax_table(picrust_aran_ps_Bow_subset)[rownames(picrust_sigtab_exposed_aran_Bow_subset), ], "matrix"))
+
+x_exposed_aran_Bow_subset_picrust = tapply(picrust_sigtab_exposed_aran_Bow_subset$log2FoldChange, picrust_sigtab_exposed_aran_Bow_subset$description, function(x) max(x))
+
+x_exposed_aran_Bow_subset_picrust = sort(x_exposed_aran_Bow_subset_picrust, TRUE)
+
+picrust_sigtab_exposed_aran_Bow_subset$description = factor(as.character(picrust_sigtab_exposed_aran_Bow_subset$description), levels=names(x_exposed_aran_Bow_subset_picrust))
+#3 differentially expressed pathways
+
+picrust_diff_abund_aran_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_aran_Bow_subset, aes(x=log2FoldChange, y=description))+
+  geom_point(pch=21, size=8, fill="black") + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
+          theme(legend.text=element_text(size=34, color="black")) + 
+          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  rremove("grid")+
+   xlim(c(-30, 30))+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")+
+  scale_y_discrete(limits=rev)
+
+picrust_diff_abund_aran_Bow_plot_subset
+
 
 #COCH - SUN
 
@@ -15380,6 +16223,68 @@ picrust_diff_abund_aran_pmf_coch_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/pmf-coch aran diff abun pathways.png", height=24, width=22)
 
 
+
+#CUSHBR - COCH
+
+picrust_aran_cush_coch<-subset_samples(picrust_aran_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_aran <- phyloseq_to_deseq2(picrust_aran_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_aran <- DESeq(picrust_deseq_cush_coch_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_aran <- results(picrust_deseq_cush_coch_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_aran = picrust_res_deseq_cush_coch_aran[which(picrust_res_deseq_cush_coch_aran$padj < alpha), ]
+picrust_sigtab_cush_coch_aran = cbind(as(picrust_sigtab_cush_coch_aran, "data.frame"), as(tax_table(picrust_aran_cush_coch)[rownames(picrust_sigtab_cush_coch_aran), ], "matrix"))
+#0 diff abun pathways
+
+
+
+#CUSHBR - SUN
+
+picrust_aran_cush_sun<-subset_samples(picrust_aran_ps_Bow, Site=="Cushing Bridge" | Site=="Sunalta")
+
+picrust_deseq_cush_sun_aran <- phyloseq_to_deseq2(picrust_aran_cush_sun, ~ Site)
+
+picrust_deseq_cush_sun_aran <- DESeq(picrust_deseq_cush_sun_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_sun_aran <- results(picrust_deseq_cush_sun_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_sun_aran = picrust_res_deseq_cush_sun_aran[which(picrust_res_deseq_cush_sun_aran$padj < alpha), ]
+picrust_sigtab_cush_sun_aran = cbind(as(picrust_sigtab_cush_sun_aran, "data.frame"), as(tax_table(picrust_aran_cush_sun)[rownames(picrust_sigtab_cush_sun_aran), ], "matrix"))
+#2 diff abun pathways
+
+
+#CUSHBR - GRVBR
+
+picrust_aran_cush_grvbr<-subset_samples(picrust_aran_ps_Bow, Site=="Cushing Bridge" | Site=="Graves Bridge")
+
+picrust_deseq_cush_grvbr_aran <- phyloseq_to_deseq2(picrust_aran_cush_grvbr, ~ Site)
+
+picrust_deseq_cush_grvbr_aran <- DESeq(picrust_deseq_cush_grvbr_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_grvbr_aran <- results(picrust_deseq_cush_grvbr_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_grvbr_aran = picrust_res_deseq_cush_grvbr_aran[which(picrust_res_deseq_cush_grvbr_aran$padj < alpha), ]
+picrust_sigtab_cush_grvbr_aran = cbind(as(picrust_sigtab_cush_grvbr_aran, "data.frame"), as(tax_table(picrust_aran_cush_grvbr)[rownames(picrust_sigtab_cush_grvbr_aran), ], "matrix"))
+#0 diff abun pathways
+
+
+#CUSHBR - pmf
+
+picrust_aran_cush_pmf<-subset_samples(picrust_aran_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_aran <- phyloseq_to_deseq2(picrust_aran_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_aran <- DESeq(picrust_deseq_cush_pmf_aran, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_aran <- results(picrust_deseq_cush_pmf_aran, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_aran = picrust_res_deseq_cush_pmf_aran[which(picrust_res_deseq_cush_pmf_aran$padj < alpha), ]
+picrust_sigtab_cush_pmf_aran = cbind(as(picrust_sigtab_cush_pmf_aran, "data.frame"), as(tax_table(picrust_aran_cush_pmf)[rownames(picrust_sigtab_cush_pmf_aran), ], "matrix"))
+#133 diff abun pathways
+
+
 #### Tetragnathidae ####
 
 #Exposed vs non wastewater exposed sites
@@ -15397,6 +16302,27 @@ alpha = 0.001
 picrust_sigtab_exposed_tetra_Bow = picrust_res_deseq_exposed_tetra_Bow[which(picrust_res_deseq_exposed_tetra_Bow$padj < alpha), ]
 picrust_sigtab_exposed_tetra_Bow = cbind(as(picrust_sigtab_exposed_tetra_Bow, "data.frame"), as(tax_table(picrust_tetra_ps_Bow)[rownames(picrust_sigtab_exposed_tetra_Bow), ], "matrix"))
 #0 diff abun path
+
+
+## Using Cushing Bridge as a reference site ##
+
+picrust_tetra_ps_Bow<-subset_samples(picrust_ps, Family=="Tetragnathidae" & Stream_Type=="Bow River")
+
+picrust_tetra_ps_Bow_subset<-subset_samples(picrust_tetra_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+
+picrust_deseq_exposed_tetra_Bow_subset <- phyloseq_to_deseq2(picrust_tetra_ps_Bow_subset, ~ Exposure)
+
+#Re level the reference variable so that the comparison is exposed vs unexposed
+picrust_deseq_exposed_tetra_Bow_subset$Exposure <-relevel(picrust_deseq_exposed_tetra_Bow_subset$Exposure, "Unexposed")
+
+picrust_deseq_exposed_tetra_Bow_subset <- DESeq(picrust_deseq_exposed_tetra_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_exposed_tetra_Bow_subset <- results(picrust_deseq_exposed_tetra_Bow_subset, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_exposed_tetra_Bow_subset = picrust_res_deseq_exposed_tetra_Bow_subset[which(picrust_res_deseq_exposed_tetra_Bow_subset$padj < alpha), ]
+
+picrust_sigtab_exposed_tetra_Bow_subset = cbind(as(picrust_sigtab_exposed_tetra_Bow_subset, "data.frame"), as(tax_table(picrust_tetra_ps_Bow_subset)[rownames(picrust_sigtab_exposed_tetra_Bow_subset), ], "matrix"))
+#0
 
 
 #COCH - SUN
@@ -15503,6 +16429,113 @@ alpha = 0.001
 picrust_sigtab_pmf_coch_tetra = picrust_res_deseq_pmf_coch_tetra[which(picrust_res_deseq_pmf_coch_tetra$padj < alpha), ]
 picrust_sigtab_pmf_coch_tetra = cbind(as(picrust_sigtab_pmf_coch_tetra, "data.frame"), as(tax_table(picrust_tetra_pmf_coch)[rownames(picrust_sigtab_pmf_coch_tetra), ], "matrix"))
 #0 observations
+
+
+
+#CUSHBR - COCH
+
+picrust_tetra_cush_coch<-subset_samples(picrust_tetra_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
+
+picrust_deseq_cush_coch_tetra <- phyloseq_to_deseq2(picrust_tetra_cush_coch, ~ Site)
+
+picrust_deseq_cush_coch_tetra <- DESeq(picrust_deseq_cush_coch_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_coch_tetra <- results(picrust_deseq_cush_coch_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_coch_tetra = picrust_res_deseq_cush_coch_tetra[which(picrust_res_deseq_cush_coch_tetra$padj < alpha), ]
+picrust_sigtab_cush_coch_tetra = cbind(as(picrust_sigtab_cush_coch_tetra, "data.frame"), as(tax_table(picrust_tetra_cush_coch)[rownames(picrust_sigtab_cush_coch_tetra), ], "matrix"))
+#19 diff abun pathways
+
+picrust_diff_abund_tetra_cush_coch_plot<-ggplot(picrust_sigtab_cush_coch_tetra, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_tetra_cush_coch_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-coch tetra diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - SUN
+
+picrust_tetra_cush_sun<-subset_samples(picrust_tetra_ps_Bow, Site=="Cushing Bridge" | Site=="Sunalta")
+
+picrust_deseq_cush_sun_tetra <- phyloseq_to_deseq2(picrust_tetra_cush_sun, ~ Site)
+
+picrust_deseq_cush_sun_tetra <- DESeq(picrust_deseq_cush_sun_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_sun_tetra <- results(picrust_deseq_cush_sun_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_sun_tetra = picrust_res_deseq_cush_sun_tetra[which(picrust_res_deseq_cush_sun_tetra$padj < alpha), ]
+picrust_sigtab_cush_sun_tetra = cbind(as(picrust_sigtab_cush_sun_tetra, "data.frame"), as(tax_table(picrust_tetra_cush_sun)[rownames(picrust_sigtab_cush_sun_tetra), ], "matrix"))
+#1 diff abun pathways
+
+picrust_diff_abund_tetra_cush_sun_plot<-ggplot(picrust_sigtab_cush_sun_tetra, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_tetra_cush_sun_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-sun tetra diff abun pathways.png", height=24, width=22)
+
+
+#CUSHBR - GRVBR
+
+picrust_tetra_cush_grvbr<-subset_samples(picrust_tetra_ps_Bow, Site=="Cushing Bridge" | Site=="Graves Bridge")
+
+picrust_deseq_cush_grvbr_tetra <- phyloseq_to_deseq2(picrust_tetra_cush_grvbr, ~ Site)
+
+picrust_deseq_cush_grvbr_tetra <- DESeq(picrust_deseq_cush_grvbr_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_grvbr_tetra <- results(picrust_deseq_cush_grvbr_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_grvbr_tetra = picrust_res_deseq_cush_grvbr_tetra[which(picrust_res_deseq_cush_grvbr_tetra$padj < alpha), ]
+picrust_sigtab_cush_grvbr_tetra = cbind(as(picrust_sigtab_cush_grvbr_tetra, "data.frame"), as(tax_table(picrust_tetra_cush_grvbr)[rownames(picrust_sigtab_cush_grvbr_tetra), ], "matrix"))
+#0 diff abun pathways
+
+
+#CUSHBR - PMF
+
+picrust_tetra_cush_pmf<-subset_samples(picrust_tetra_ps_Bow, Site=="Cushing Bridge" | Site=="Policeman Flats")
+
+picrust_deseq_cush_pmf_tetra <- phyloseq_to_deseq2(picrust_tetra_cush_pmf, ~ Site)
+
+picrust_deseq_cush_pmf_tetra <- DESeq(picrust_deseq_cush_pmf_tetra, test = "Wald", fitType = "parametric", sfType = "poscounts")
+
+picrust_res_deseq_cush_pmf_tetra <- results(picrust_deseq_cush_pmf_tetra, cooksCutoff = FALSE)
+alpha = 0.001
+picrust_sigtab_cush_pmf_tetra = picrust_res_deseq_cush_pmf_tetra[which(picrust_res_deseq_cush_pmf_tetra$padj < alpha), ]
+picrust_sigtab_cush_pmf_tetra = cbind(as(picrust_sigtab_cush_pmf_tetra, "data.frame"), as(tax_table(picrust_tetra_cush_pmf)[rownames(picrust_sigtab_cush_pmf_tetra), ], "matrix"))
+#8 diff abun pathways
+
+picrust_diff_abund_tetra_cush_pmf_plot<-ggplot(picrust_sigtab_cush_pmf_tetra, aes(x=log2FoldChange, y=description))+
+  geom_point(size=6) + 
+  theme_bw()+
+  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
+          theme(legend.text=element_text(size=24, color="black")) + 
+          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
+  guides(nrow=8)+
+  rremove("grid")+
+ labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
+  scale_color_brewer(palette = "Set3")
+
+picrust_diff_abund_tetra_cush_pmf_plot
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-pmf tetra diff abun pathways.png", height=24, width=22)
+
 
 #### Hydropsychidae ACWA ####
 
@@ -15625,107 +16658,36 @@ ggplot(picrust_sigtab_EFF5_EFF15_ephem_ACWA, aes(x=log2FoldChange, y=description
 
 #### All taxa plotted together Bow River ####
 
-#Hydropsychidae Bow
-
-picrust_diff_abund_hydro_Bow_plot<-ggplot(picrust_sigtab_exposed_hydro_Bow, aes(x=log2FoldChange, y=description))+
-  geom_point(size=8) + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
-          theme(legend.text=element_text(size=34, color="black")) + 
-          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE))+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-picrust_diff_abund_hydro_Bow_plot
-
-
-#Heptageniidae
-
-picrust_diff_abund_hep_Bow_plot<-ggplot(picrust_sigtab_exposed_hep_Bow, aes(x=log2FoldChange, y=description))+
-  geom_point(size=8) + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
-          theme(legend.text=element_text(size=34, color="black")) + 
-          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE))+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-picrust_diff_abund_hep_Bow_plot
-
-
-#Chironomidae
-
-picrust_diff_abund_chiro_Bow_plot<-ggplot(picrust_sigtab_exposed_chiro_Bow, aes(x=log2FoldChange, y=description))+
-  geom_point(size=8) + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
-          theme(legend.text=element_text(size=34, color="black")) + 
-          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE))+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-picrust_diff_abund_chiro_Bow_plot
-
-
-#Trichoptera
-
-picrust_diff_abund_trichop_Bow_plot<-ggplot(picrust_sigtab_exposed_trichop_Bow, aes(x=log2FoldChange, y=description))+
-  geom_point(size=8) + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
-          theme(legend.text=element_text(size=34, color="black")) + 
-          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE))+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-picrust_diff_abund_trichop_Bow_plot
-
-#Ephemeroptera Bow
-picrust_diff_abund_ephem_Bow_plot<-ggplot(picrust_sigtab_exposed_ephem_Bow, aes(x=log2FoldChange, y=description))+
-  geom_point(size=8) + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=16, face="italic", color="black")) + theme(axis.text.x=element_text(size=16, color="black"), axis.title=element_text(size=36)) +
-          theme(legend.text=element_text(size=34, color="black")) + 
-          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
-  guides(color=guide_legend(nrow=3, byrow=TRUE))+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-picrust_diff_abund_ephem_Bow_plot
-
-
 # Hydropsychidae #
-picrust_diff_abund_hydro_Bow_plot_1<- picrust_diff_abund_hydro_Bow_plot + rremove("axis.title") + rremove("legend")
+picrust_diff_abund_hydro_Bow_plot_1<- picrust_diff_abund_hydro_Bow_plot_subset + rremove("axis.title") + rremove("legend")
 picrust_diff_abund_hydro_Bow_plot_1
 
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA hydro lar cushbr as reference.png", height=10, width=18, bg="white")
+
 # Heptageniidae #
-picrust_diff_abund_hep_plot_1<- picrust_diff_abund_hep_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_hep_plot_1<- picrust_diff_abund_hep_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
 picrust_diff_abund_hep_plot_1
 
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA hep lar cushbr as reference.png", height=10, width=24, bg="white")
+
 # Chironomidae #
-picrust_diff_abund_chiro_plot_1<- picrust_diff_abund_chiro_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_chiro_plot_1<- picrust_diff_abund_chiro_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
 picrust_diff_abund_chiro_plot_1
 
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA chiro lar cushbr as reference.png", height=10, width=24, bg="white")
+
 # Trichoptera #
-picrust_diff_abund_trichop_plot_1<- picrust_diff_abund_trichop_Bow_plot + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_trichop_plot_1<- picrust_diff_abund_trichop_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
 picrust_diff_abund_trichop_plot_1
 
-# Ephemeroptera #
-picrust_diff_abund_ephem_plot_1<- picrust_diff_abund_ephem_Bow_plot + rremove("axis.title")+ rremove("legend")
-picrust_diff_abund_ephem_plot_1
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA trichop ad cushbr as reference.png", height=10, width=24, bg="white")
 
-ggarrange(picrust_diff_abund_hydro_Bow_plot_1,  picrust_diff_abund_hep_plot_1, picrust_diff_abund_chiro_plot_1, picrust_diff_abund_trichop_plot_1, picrust_diff_abund_ephem_plot_1, nrow=2, ncol=3, common.legend = T, legend="bottom")
+# Araneidae #
 
-#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA across taxa Bow River faceted.png", height=28, width=30, bg="white")
+picrust_diff_abund_aran_Bow_plot_1<-picrust_diff_abund_aran_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_aran_Bow_plot_1
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA aran cushbr as reference.png", height=10, width=28, bg="white")
 
 
 #### Taxa plotted all together ACWA ####
