@@ -35,13 +35,10 @@ library(pairwiseAdonis)
 library(ggpubr)
 library(ggh4x)
 library(car)
+library(grid)
 
-isotope<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022.csv")
+isotope<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_1.csv")
 isotope$Site<-factor(isotope$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
-
-#isotope$Aqu_Terr<-factor(isotope$Aqu_Terr, levels=c("Leaves", "biofilm", "lar_aquatic", "Ad_aquatic", "Terrestrial", "Spider"), labels=c("Riparian Leaves", "Biofilm", "Aquatic Larvae", "Aquatic Adults", "Terrestrial Prey", "Spiders"))
-
-inverts<-subset(isotope, Tissue.Type=="Whole Invertebrate")
 ```
 
 # Sample sizes
@@ -63,245 +60,25 @@ pmf_ad<-subset(inverts, Site=="Policeman Flats" & Stage=="Adult")#14
 
 #Spiders n = 3/family/site
 
-#### Cochrane ####
 
-#FFG
 
-filt_collec_coch<-subset(inverts, Site=="Cochrane" & FFG=="Filterer-Collector") #4
+summary_taxa<-isotope %>% 
+  dplyr::select("Taxa", "Stage", "d13C", "d15N", "Site")%>%
+  dplyr::group_by(Taxa, Stage, Site) %>%
+  dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
 
-gath_collec_coch<-subset(inverts, Site=="Cochrane" & FFG=="Gatherer-Collector") #3
+View(summary_taxa)
 
-piercer_coch<-subset(inverts, Site=="Cochrane" & FFG=="Piercer") #3
 
-scraper_coch<-subset(inverts, Site=="Cochrane" & FFG=="Scraper") #3
+#Combine taxa by larvae, adults, spiders, biofilm, leaves, and by functional feeding group
 
-pred_coch<-subset(inverts, Site=="Cochrane" & FFG=="Predator") #10
+summary_FFG<-isotope %>% 
+  dplyr::select("FFG", "Stage", "d13C", "d15N", "Site")%>%
+  dplyr::group_by(FFG, Stage, Site) %>%
+  dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
 
-#Family
+View(summary_FFG)
 
-#Adults
-
-ad<-subset(isotope, Aqu_Terr == "Ad_aquatic") #55
-
-lepto_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Leptoceridae") #0
-hydro_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Hydropsychidae") #2
-ephem_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Ephemerellidae") #0
-chiro_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Chironomidae") #3
-rhya_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Rhyacophilidae") #3
-chloro_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Chloroperlidae") #1
-hep_ad_coch<-subset(ad, Site=="Cochrane" & Taxa=="Heptageniidae") #0
-lepidop_coch<-subset(inverts, Taxa=="Lepidoptera" & Site=="Cochrane") #3
-
-#Larvae
-
-lar<-subset(isotope, Aqu_Terr == "lar_aquatic") #54
-
-hydro_lar_coch<-subset(lar, Taxa=="Hydropsychidae" & Site=="Cochrane") #2
-ephem_lar_coch<-subset(lar, Taxa=="Ephemerellidae" & Site=="Cochrane") #0
-chiro_lar_coch<-subset(lar, Taxa=="Chironomidae" & Site=="Cochrane") #0
-lepto_lar_coch<-subset(lar, Taxa=="Leptoceridae" & Site=="Cochrane") #0
-perl_lar_coch<-subset(lar, Taxa=="Perlidae" & Site=="Cochrane") #0
-chloro_lar_coch<-subset(lar, Taxa=="Chloroperlidae" & Site=="Cochrane") #1
-hep_lar_coch<-subset(lar, Taxa=="Heptageniidae" & Site=="Cochrane") #3
-
-#Spiders
-
-tetra_coch<-subset(inverts, Taxa=="Tetragnathidae" & Site=="Cochrane") #3
-aran_coch<-subset(inverts, Taxa=="Araneidae" & Site=="Cochrane") #3
-
-#Biofilm
-
-biofilm_coch<-subset(isotope, Taxa=="Biofilm" & Site=="Cochrane") #3
-leaves_coch<-subset(isotope, Taxa=="Terrestrial Leaves" & Site=="Cochrane") #3
-
-
-#### Sunalta ####
-
-#FFG
-
-filt_collec_sun<-subset(inverts, Site=="Sunalta" & FFG=="Filterer-Collector") #5
-
-gath_collec_sun<-subset(inverts, Site=="Sunalta" & FFG=="Gatherer-Collector") #7
-
-piercer_sun<-subset(inverts, Site=="Sunalta" & FFG=="Piercer") #3
-
-scraper_sun<-subset(inverts, Site=="Sunalta" & FFG=="Scraper") #4
-
-pred_sun<-subset(inverts, Site=="Sunalta" & FFG=="Predator") #15
-
-#Family
-
-#Adults
-
-lepto_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Leptoceridae") #0
-hydro_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Hydropsychidae") #3
-ephem_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Ephemerellidae") #1
-chiro_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Chironomidae") #3
-rhya_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Rhyacophilidae") #3
-chloro_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Chloroperlidae") #0
-hep_ad_sun<-subset(ad, Site=="Sunalta" & Taxa=="Heptageniidae") #1
-lepidop_sun<-subset(inverts, Taxa=="Lepidoptera" & Site=="Sunalta") #3
-
-#Larvae
-
-hydro_lar_sun<-subset(lar, Taxa=="Hydropsychidae" & Site=="Sunalta") #2
-ephem_lar_sun<-subset(lar, Taxa=="Ephemerellidae" & Site=="Sunalta") #0
-chiro_lar_sun<-subset(lar, Taxa=="Chironomidae" & Site=="Sunalta") #0
-lepto_lar_sun<-subset(lar, Taxa=="Leptoceridae" & Site=="Sunalta") #0
-perl_lar_sun<-subset(lar, Taxa=="Perlidae" & Site=="Sunalta") #0
-chloro_lar_sun<-subset(lar, Taxa=="Chloroperlidae" & Site=="Sunalta") #1
-hep_lar_sun<-subset(lar, Taxa=="Heptageniidae" & Site=="Sunalta") #3
-
-#Spiders
-
-tetra_sun<-subset(inverts, Taxa=="Tetragnathidae" & Site=="Sunalta") #3
-aran_sun<-subset(inverts, Taxa=="Araneidae" & Site=="Sunalta") #3
-
-#Basal food sources
-
-biofilm_sun<-subset(isotope, Taxa=="Biofilm" & Site=="Sunalta") #3
-leaves_sun<-subset(isotope, Taxa=="Terrestrial Leaves" & Site=="Sunalta") #3
-
-#### Cushing Bridge ####
-
-#FFG
-
-filt_collec_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Filterer-Collector") #3
-
-gath_collec_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Gatherer-Collector") #7
-
-piercer_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Piercer") #0
-
-scraper_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Scraper") #3
-
-pred_cush<-subset(inverts, Site=="Cushing Bridge" & FFG=="Predator") #10
-
-#Family
-
-#Adults
-
-lepto_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Leptoceridae") #1
-hydro_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Hydropsychidae") #3
-ephem_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Ephemerellidae") #2
-chiro_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Chironomidae") #3
-rhya_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Rhyacophilidae") #3
-chloro_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Chloroperlidae") #0
-hep_ad_cush<-subset(ad, Site=="Cushing Bridge" & Taxa=="Heptageniidae") #1
-lepidop_cush<-subset(inverts, Taxa=="Lepidoptera" & Site=="Cushing Bridge") #0
-
-#Larvae
-
-hydro_lar_cush<-subset(lar, Taxa=="Hydropsychidae" & Site=="Cushing Bridge") #0
-ephem_lar_cush<-subset(lar, Taxa=="Ephemerellidae" & Site=="Cushing Bridge") #0
-chiro_lar_cush<-subset(lar, Taxa=="Chironomidae" & Site=="Cushing Bridge") #1
-lepto_lar_cush<-subset(lar, Taxa=="Leptoceridae" & Site=="Cushing Bridge") #0
-perl_lar_cush<-subset(lar, Taxa=="Perlidae" & Site=="Cushing Bridge") #0
-chloro_lar_cush<-subset(lar, Taxa=="Chloroperlidae" & Site=="Cushing Bridge") #3
-hep_lar_cush<-subset(lar, Taxa=="Heptageniidae" & Site=="Cushing Bridge") #2
-
-#Spiders
-
-tetra_cush<-subset(inverts, Taxa=="Tetragnathidae" & Site=="Cushing Bridge") #3
-aran_cush<-subset(inverts, Taxa=="Araneidae" & Site=="Cushing Bridge") #3
-
-#Basal food sources
-
-biofilm_cush<-subset(isotope, Taxa=="Biofilm" & Site=="Cushing Bridge") #3
-leaves_cush<-subset(isotope, Taxa=="Terrestrial Leaves" & Site=="Cushing Bridge") #3
-
-#### Graves Bridge ####
-
-#FFG
-
-filt_collec_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Filterer-Collector") #6
-
-gath_collec_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Gatherer-Collector") #10
-
-piercer_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Piercer") #3
-
-scraper_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Scraper") #4
-
-pred_grvbr<-subset(inverts, Site=="Graves Bridge" & FFG=="Predator") #16
-
-#Family
-
-#Adults
-
-lepto_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Leptoceridae") #0
-hydro_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Hydropsychidae") #3
-ephem_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Ephemerellidae") #3
-chiro_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Chironomidae") #1
-rhya_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Rhyacophilidae") #1
-chloro_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Chloroperlidae") #3
-hep_ad_grvbr<-subset(ad, Site=="Graves Bridge" & Taxa=="Heptageniidae") #1
-lepidop_grvbr<-subset(inverts, Taxa=="Lepidoptera" & Site=="Graves Bridge") #3
-
-#Larvae
-
-hydro_lar_grvbr<-subset(lar, Taxa=="Hydropsychidae" & Site=="Graves Bridge") #3
-ephem_lar_grvbr<-subset(lar, Taxa=="Ephemerellidae" & Site=="Graves Bridge") #3
-chiro_lar_grvbr<-subset(lar, Taxa=="Chironomidae" & Site=="Graves Bridge") #3
-lepto_lar_grvbr<-subset(lar, Taxa=="Leptoceridae" & Site=="Graves Bridge") #0
-perl_lar_grvbr<-subset(lar, Taxa=="Perlidae" & Site=="Graves Bridge") #0
-chloro_lar_grvbr<-subset(lar, Taxa=="Chloroperlidae" & Site=="Graves Bridge") #3
-hep_lar_grvbr<-subset(lar, Taxa=="Heptageniidae" & Site=="Graves Bridge") #3
-
-#Spiders
-
-tetra_grvbr<-subset(inverts, Taxa=="Tetragnathidae" & Site=="Graves Bridge") #3
-aran_grvbr<-subset(inverts, Taxa=="Araneidae" & Site=="Graves Bridge") #3
-
-#Basal food sources
-
-biofilm_grvbr<-subset(isotope, Taxa=="Biofilm" & Site=="Graves Bridge") #3
-leaves_grvbr<-subset(isotope, Taxa=="Terrestrial Leaves" & Site=="Graves Bridge") #3
-
-#### Policeman Flats ####
-
-#FFG
-
-filt_collec_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Filterer-Collector") #6
-
-gath_collec_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Gatherer-Collector") #11
-
-piercer_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Piercer") #3
-
-scraper_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Scraper") #4
-
-pred_pmf<-subset(inverts, Site=="Policeman Flats" & FFG=="Predator") #12
-
-#Family
-
-#Adults
-
-lepto_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Leptoceridae") #3
-hydro_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Hydropsychidae") #3
-ephem_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Ephemerellidae") #2
-chiro_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Chironomidae") #2
-rhya_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Rhyacophilidae") #1
-chloro_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Chloroperlidae") #0
-hep_ad_pmf<-subset(ad, Site=="Policeman Flats" & Taxa=="Heptageniidae") #1
-lepidop_pmf<-subset(inverts, Taxa=="Lepidoptera" & Site=="Policeman Flats") #3
-
-#Larvae
-
-hydro_lar_pmf<-subset(lar, Taxa=="Hydropsychidae" & Site=="Policeman Flats") #3
-ephem_lar_pmf<-subset(lar, Taxa=="Ephemerellidae" & Site=="Policeman Flats") #3
-chiro_lar_pmf<-subset(lar, Taxa=="Chironomidae" & Site=="Policeman Flats") #1
-lepto_lar_pmf<-subset(lar, Taxa=="Leptoceridae" & Site=="Policeman Flats") #0
-perl_lar_pmf<-subset(lar, Taxa=="Perlidae" & Site=="Policeman Flats") #4
-chloro_lar_pmf<-subset(lar, Taxa=="Chloroperlidae" & Site=="Policeman Flats") #0
-hep_lar_pmf<-subset(lar, Taxa=="Heptageniidae" & Site=="Policeman Flats") #3
-
-#Spiders
-
-tetra_pmf<-subset(inverts, Taxa=="Tetragnathidae" & Site=="Policeman Flats") #3
-aran_pmf<-subset(inverts, Taxa=="Araneidae" & Site=="Policeman Flats") #3
-
-#Basal food sources
-
-biofilm_pmf<-subset(isotope, Taxa=="Biofilm" & Site=="Policeman Flats") #3
-leaves_pmf<-subset(isotope, Taxa=="Terrestrial Leaves" & Site=="Policeman Flats") #3
 ```
 
 # Preliminary data checks (carbonates/lipid effect/HCl treated biofilm)
@@ -660,20 +437,6 @@ ggplot(data.sum.1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa))+
 ```{r}
 #### N plot across sites ####
 
-#Grouped by sample group (Aqu_Terr)
-N_plot<-ggplot(isotope, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
-  geom_boxplot()+
-  theme_bw()+
-  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=18), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black"))+
-  ylim(-1, 17)+
-  rremove("grid")+
-  xlab("Site")+
-  facet_grid(~Aqu_Terr, scales="free_x")
-N_plot
-
-#ggsave(filename="Stable_isotope_ED/Figures/Nitrogen enrichment of basal food source and organisms across sites no terrestrial prey.png", height=7, width=12)
-
 colorado <- function(src, boulder) {
   if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
   src_levels <- levels(src)                                 # retrieve the levels in their order
@@ -697,119 +460,199 @@ isotope$FFG<-factor(isotope$FFG, levels=c("Basal food source", "Scraper", "Filte
 
 isotope$Site_Code<-factor(isotope$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
+#Plotting by individual taxa
 N_plot_taxa<-ggplot(isotope, aes(x=Site_Code, y=d15N))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=18), strip.text.x = element_text(size=16), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
+  theme(axis.title.y.left = element_text(size=18), strip.text.x = element_text(size=6), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
   ylim(-1, 17)+
   rremove("grid")+
   xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
+  facet_nested_wrap(~FFG + Taxa_Specific, scales="free_x", nrow=1)
 N_plot_taxa
 
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\Nitrogen enrichment of taxa and FFG across sites.png", height=10, width=26)
+#If analyzing by individual taxa, remove these samples due to low sample size (2 replicates or less per site):
+#-Heptageniidae Adult
+#-Heptageniidae larvae at Cushing Bridge
+#-Hydropsychidae Adult at Cochrane
+#-Hydropsychidae larvae
+#-Chironomidae Adult
+#-Chiornomidae Larvae
+#-Ephemerellidae Adult
+#-Leptoceridae Adult
+#-Chloroperlidae adult
+#-Coleoptera
+#-Perlidae Larvae
+#Rhyacophilidae Adult
 
-isotope_subset<-subset(isotope, Taxa!="Perlidae" & Taxa!="Coleoptera" & Taxa!="Leptoceridae")
 
-isotope_subset$Taxa<-factor(isotope_subset$Taxa, levels=c("Biofilm", "Terrestrial Leaves", "Heptageniidae", "Hydropsychidae", "Chironomidae", "Ephemerellidae", "Lepidoptera", "Chloroperlidae", "Rhyacophilidae", "Araneidae", "Tetragnathidae"))
-
-isotope_subset$FFG<-factor(isotope_subset$FFG, levels=c("Basal food source", "Scraper", "Filterer-Collector", "Gatherer-Collector", "Piercer", "Predator"))
-
-isotope_subset$Site_Code<-factor(isotope_subset$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
-
-N_plot_taxa_subset<-ggplot(isotope_subset, aes(x=Site_Code, y=d15N))+
+N_plot_FFG<-ggplot(isotope, aes(x=Site_Code, y=d15N))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope_subset$Site_Code, c("GRVBR", "PMF"))))+
+  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
   ylim(-1, 17)+
   rremove("grid")+
   xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
-N_plot_taxa_subset
+  facet_nested_wrap(~FFG + Stage, scales="free_x", nrow=1)
+N_plot_FFG
 
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\Nitrogen enrichment of taxa and FFG across sites subset.png", height=10, width=26)
+#If analyzing by functional feeding group, remove these samples due to low sample size (2 replicates or less per site):
+#-Heptageniidae Adults
+#-Heptageniidae larvae at Cushing Bridge 
+#-Hydropsychidae Adults at Cochrane
+#-Hydropsychidae larvae at Cochrane and Sunalta (Potentially all of them)
+#-Chironomidae larvae at Cushing Bridge 
+#-Rhyacophilidae Adult at Cushing Bridge
 
 
+#Subset samples with low replicates so that we can group by functional feeding group
 
-# Larvae grouped by functional feeding group
+isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
+isotope_subset$Site<-factor(isotope_subset$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
-colorado <- function(src, boulder) {
-  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
-  src_levels <- levels(src)                                 # retrieve the levels in their order
-  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
-   if (any(brave)){
-      b_pos <- which(src_levels == boulder[1])
-    for(i in 2:length(boulder)){# if so
-       # then find out where they are
-      b_pos <- append(b_pos, which(src_levels == boulder[i]))
-    }
-      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
-      b_vec[b_pos] <- "bold"# make our targets bold
-      b_vec
-    # return the new vector
-  }
-}
+isotope_subset_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves")
 
-lar_basal<-subset(isotope, Aqu_Terr!="Ad_aquatic")
+isotope_subset_no_food_sources$Stage<-factor(isotope_subset_no_food_sources$Stage, levels=c("Aquatic larvae", "Aquatic adult","Terrestrial adult","Spider"))
 
-lar_basal$Taxa<-factor(lar_basal$Taxa, levels=c("Biofilm", "Terrestrial Leaves", "Heptageniidae", "Hydropsychidae", "Chironomidae", "Ephemerellidae", "Chloroperlidae", "Perlidae", "Coleoptera", "Araneidae", "Tetragnathidae", "Lepidoptera"))
+isotope_subset_no_food_sources$Site_Code<-factor(isotope_subset_no_food_sources$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
-lar_basal$FFG<-factor(lar_basal$FFG, levels=c("Basal food source", "Scraper", "Filterer-Collector", "Gatherer-Collector", "Predator", "Piercer"))
+isotope_subset_no_food_sources$FFG<-factor(isotope_subset_no_food_sources$FFG, levels=c("Scraper", "Gatherer-Collector", "Filterer-Collector", "Predator", "Piercer"))
 
-lar_basal$Site_Code<-factor(lar_basal$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
-
-ggplot(lar_basal, aes(x=Site_Code, y=d15N))+
+N_plot_taxa_subset_no_food_sources<-ggplot(isotope_subset_no_food_sources, aes(x=Site_Code, y=d15N))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=18), strip.text.x = element_text(size=16), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
+  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
   ylim(-1, 17)+
   rremove("grid")+
   xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
+  facet_nested_wrap(~Stage + FFG, scales="free_x", nrow=1)
+N_plot_taxa_subset_no_food_sources
 
-isotope_subset_lar<-subset(lar_basal, Taxa!="Perlidae" & Taxa!="Coleoptera")
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\N plot across FFG and stage subsetted data.png", height=10, width=26)
 
-N_plot_lar<-ggplot(isotope_subset_lar, aes(x=Site_Code, y=d15N))+
+
+#Just larvae and spiders
+isotope_subset_lar_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Aquatic larvae" | Stage=="Spider")
+
+N_plot_taxa_subset_lar<-ggplot(isotope_subset_lar_no_food_sources, aes(x=Site_Code, y=d15N))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope_subset_lar$Site_Code, c("GRVBR", "PMF"))))+
+  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
   ylim(-1, 17)+
   rremove("grid")+
   xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
+  facet_nested_wrap(~Stage + FFG, scales="free_x", nrow=1)
+N_plot_taxa_subset_lar
+
+summary_FFG_lar<-isotope_subset_lar %>% 
+  dplyr::select("FFG", "Stage", "d13C", "d15N", "Site")%>%
+  dplyr::group_by(FFG, Stage, Site) %>%
+  dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
+
+View(summary_FFG_lar)
 
 
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\Nitrogen enrichment of taxa and FFG across sites larval aquatic insects.png", height=10, width=26)
+#Just adults and spiders
+
+isotope_subset_ad<-subset(isotope_subset, Stage=="Aquatic adult" | Stage=="Terrestrial adult" | Stage=="Spider")
+
+N_plot_taxa_subset_ad<-ggplot(isotope_subset_ad, aes(x=Site_Code, y=d15N))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
+  ylim(-1, 17)+
+  rremove("grid")+
+  xlab("Site")+
+  facet_nested_wrap(~Stage + FFG, scales="free_x", nrow=1)
+N_plot_taxa_subset_ad
+
+summary_FFG_ad<-isotope_subset_ad %>% 
+  dplyr::select("FFG", "Stage", "d13C", "d15N", "Site")%>%
+  dplyr::group_by(FFG, Stage, Site) %>%
+  dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
+
+View(summary_FFG_ad)
 
 
-#### ANOVA across sites and individual taxa ####
-#Larvae
+#### ANOVA across sites and FFGs ####
 
-isotope_subset_lar<-subset(isotope, Stage!="Adult" & Taxa!="Perlidae" & Taxa!="Coleoptera" & Taxa!="Chironomidae" & Taxa!="Leptoceridae")
+#All stages and FFGs together
 
-shapiro.test(isotope_subset_lar$d15N)  #Normal, p = 0.06. 
-leveneTest(data=isotope_subset_lar, d15N~Site*Taxa) #homogeneity p = 0.705
-hist(isotope_subset_lar$d15N) #looks decently normal 
+shapiro.test(isotope_subset_no_food_sources$d15N) #0.112
+leveneTest(data=isotope_subset_no_food_sources, d15N~Site*FFG*Stage) #0.082
+plot(isotope_subset_no_food_sources$d15N)
+
+summary(N_FFG<-aov(data=isotope_subset_no_food_sources, d15N~Site+FFG+Stage))
+emmeans(N_FFG, pairwise ~ Site | FFG)
+emmeans(N_FFG, pairwise ~ Site | Stage)
+emmeans(N_FFG, pairwise ~ Stage | FFG)
+
+#Aquatic larvae
+
+isotope_subset_only_lar_no_food_sources<-subset(isotope_subset_lar_no_food_sources, Stage=="Aquatic larvae")
+
+shapiro.test(isotope_subset_only_lar_no_food_sources$d15N)  #Normal, p = 0.165
+leveneTest(data=isotope_subset_only_lar_no_food_sources, d15N~Site*FFG) #homogeneity p = 0.053
+hist(isotope_subset_only_lar_no_food_sources$d15N) #looks bimodel 
 
 
 #Parametric test
 
-summary(N_lar<-aov(data=isotope_subset_lar, d15N~Site*Taxa))
-emmeans(N_lar, pairwise ~ Site | Taxa)
-plot(N_lar) #Not completely normal but other plots look pretty good. Slight deviations and probably okay to continue with ANOVA.
+summary(N_lar_FFG<-aov(data=isotope_subset_only_lar_no_food_sources, d15N~Site+FFG))
+emmeans(N_lar_FFG, pairwise ~ Site | FFG)
+
+plot(N_lar_FFG) #Scale-Location plot isn't the best but there is no clear pattern in residual variance
 
 
-# Adults
+#Aquatic adults
 
-isotope_subset_ad<-subset(isotope, Stage=="Adult")
+isotope_subset_only_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Aquatic adult")
 
-shapiro.test(isotope_subset_lar$d15N)  #Normal, p = 0.09. 
-leveneTest(data=isotope_subset_lar, d15N~Site*Taxa) #homogeneity p = 0.807
-hist(isotope_subset_lar$d15N) #looks normal
+shapiro.test(isotope_subset_only_ad_no_food_sources$d15N)  #Normal, p = 0.166
+leveneTest(data=isotope_subset_only_ad_no_food_sources, d15N~Site*Taxa) #homogeneity p = 0.89
+hist(isotope_subset_only_ad_no_food_sources$d15N) #looks decently normal
+
+#Parametric test
+
+summary(N_ad_FFG<-aov(data=isotope_subset_only_ad_no_food_sources, d15N~Site*FFG))
+emmeans(N_ad_FFG, pairwise ~ Site | FFG)
+
+plot(N_ad_FFG) #Scale-Location plot isn't great
+
+
+#Terrestrial Adults
+
+isotope_subset_only_terr_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Terrestrial adult")
+
+shapiro.test(isotope_subset_only_terr_ad_no_food_sources$d15N)  #Normal, p = 0.3559
+leveneTest(data=isotope_subset_only_terr_ad_no_food_sources, d15N~Site*Taxa) #homogeneity p = 0.95
+hist(isotope_subset_only_terr_ad_no_food_sources$d15N) #looks decently normal, possibly uniform-ish
+
+#Parametric test
+
+summary(N_terr_ad_FFG<-aov(data=isotope_subset_only_terr_ad_no_food_sources, d15N~Site))
+emmeans(N_terr_ad_FFG, pairwise ~ Site) #Policeman Flats lower than all other sites
+
+plot(N_terr_ad_FFG) #Fits assumptions of normality
+
+
+#Spiders
+
+isotope_subset_only_spiders_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Spider")
+
+shapiro.test(isotope_subset_only_spiders_no_food_sources$d15N)  #Not normal, p < 0.001
+leveneTest(data=isotope_subset_only_spiders_no_food_sources, d15N~Site) #homogeneity p = 0.234
+hist(isotope_subset_only_spiders_no_food_sources$d15N) #looks right skewed
+
+#Non-parametric test
+
+kruskal.test(data=isotope_subset_only_spiders_no_food_sources, d15N~Site) #p=0.005
+dunnTest(data=isotope_subset_only_spiders_no_food_sources, d15N~Site) #Graves Bridge diff from all other sites
 
 
 #### Araneidae ####
@@ -1009,185 +852,106 @@ ggplot(adephem, aes(x=Site, y=d15N))+
 ```{r}
 #### C plot across sites ####
 
-colorado <- function(src, boulder) {
-  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
-  src_levels <- levels(src)                                 # retrieve the levels in their order
-  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
-   if (any(brave)){
-      b_pos <- which(src_levels == boulder[1])
-    for(i in 2:length(boulder)){# if so
-       # then find out where they are
-      b_pos <- append(b_pos, which(src_levels == boulder[i]))
-    }
-      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
-      b_vec[b_pos] <- "bold"# make our targets bold
-      b_vec
-    # return the new vector
-  }
-}
+isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
+isotope_subset$Site<-factor(isotope_subset$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
-isotope$Taxa<-factor(isotope$Taxa, levels=c("Biofilm", "Terrestrial Leaves", "Heptageniidae", "Hydropsychidae", "Chironomidae", "Ephemerellidae", "Leptoceridae", "Lepidoptera", "Chloroperlidae", "Perlidae", "Rhyacophilidae", "Coleoptera", "Araneidae", "Tetragnathidae"))
+isotope_subset_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves")
 
-isotope$FFG<-factor(isotope$FFG, levels=c("Basal food source", "Scraper", "Filterer-Collector", "Gatherer-Collector", "Piercer", "Predator"))
+isotope_subset_no_food_sources$Stage<-factor(isotope_subset_no_food_sources$Stage, levels=c("Aquatic larvae", "Aquatic adult","Terrestrial adult","Spider"))
 
-isotope$Site_Code<-factor(isotope$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+isotope_subset_no_food_sources$Site_Code<-factor(isotope_subset_no_food_sources$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
-C_plot_taxa<-ggplot(isotope, aes(x=Site_Code, y=d13C))+
+isotope_subset_no_food_sources$FFG<-factor(isotope_subset_no_food_sources$FFG, levels=c("Scraper", "Gatherer-Collector", "Filterer-Collector", "Predator", "Piercer"))
+
+
+C_plot_taxa_subset_no_food_sources<-ggplot(isotope_subset_no_food_sources, aes(x=Site_Code, y=d13C))+
   geom_boxplot()+
   theme_bw()+
   ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=18), strip.text.x = element_text(size=16), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope$Site_Code, c("GRVBR", "PMF"))))+
-  #ylim(-1, 17)+
+  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope_subset_no_food_sources$Site_Code, c("GRVBR", "PMF"))))+
   rremove("grid")+
   xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
-C_plot_taxa
+  facet_nested_wrap(~Stage + FFG, scales="free_x", nrow=1)
+C_plot_taxa_subset_no_food_sources
 
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\Carbon across taxa,FFG and sites.png", height=10, width=26)
-
-isotope_subset<-subset(isotope, Taxa!="Perlidae" & Taxa!="Leptoceridae" & Taxa!="Coleoptera")
-
-isotope_subset$Taxa<-factor(isotope_subset$Taxa, levels=c("Biofilm", "Terrestrial Leaves", "Heptageniidae", "Hydropsychidae", "Chironomidae", "Ephemerellidae", "Lepidoptera", "Chloroperlidae","Rhyacophilidae", "Araneidae", "Tetragnathidae"))
-
-isotope_subset$FFG<-factor(isotope_subset$FFG, levels=c("Basal food source", "Scraper", "Filterer-Collector", "Gatherer-Collector", "Piercer", "Predator"))
-
-isotope_subset$Site_Code<-factor(isotope_subset$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
-
-C_plot_taxa_subset<-ggplot(isotope_subset, aes(x=Site_Code, y=d13C))+
-  geom_boxplot()+
-  theme_bw()+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope_subset$Site_Code, c("GRVBR", "PMF"))))+
-  rremove("grid")+
-  xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
-C_plot_taxa_subset
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\Carbon across taxa, FFG and sites subset.png", height=10, width=26)
-
-
-# Larvae grouped by functional feeding group
-
-colorado <- function(src, boulder) {
-  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
-  src_levels <- levels(src)                                 # retrieve the levels in their order
-  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
-   if (any(brave)){
-      b_pos <- which(src_levels == boulder[1])
-    for(i in 2:length(boulder)){# if so
-       # then find out where they are
-      b_pos <- append(b_pos, which(src_levels == boulder[i]))
-    }
-      b_vec <- rep("plain", length(src_levels))               # make'm all plain first
-      b_vec[b_pos] <- "bold"# make our targets bold
-      b_vec
-    # return the new vector
-  }
-}
-
-lar_basal<-subset(isotope, Aqu_Terr!="Ad_aquatic")
-
-lar_basal$Taxa<-factor(lar_basal$Taxa, levels=c("Biofilm", "Terrestrial Leaves", "Heptageniidae", "Hydropsychidae", "Chironomidae", "Ephemerellidae", "Chloroperlidae", "Perlidae", "Coleoptera", "Araneidae", "Tetragnathidae", "Lepidoptera"))
-
-lar_basal$FFG<-factor(lar_basal$FFG, levels=c("Basal food source", "Scraper", "Filterer-Collector", "Gatherer-Collector", "Predator", "Piercer"))
-
-lar_basal$Site_Code<-factor(lar_basal$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
-
-ggplot(lar_basal, aes(x=Site_Code, y=d13C))+
-  geom_boxplot()+
-  theme_bw()+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=18), strip.text.x = element_text(size=16), axis.title.x = element_text(size=18), axis.text.x = element_text(size=16, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(lar_basal$Site_Code, c("GRVBR", "PMF"))))+
-  rremove("grid")+
-  xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
-
-isotope_subset_lar<-subset(lar_basal, Taxa!="Perlidae" & Taxa!="Coleoptera")
-
-C_plot_lar <- ggplot(isotope_subset_lar, aes(x=Site_Code, y=d13C))+
-  geom_boxplot()+
-  theme_bw()+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.title.y.left = element_text(size=22), strip.text.x = element_text(size=20), axis.title.x = element_text(size=22), axis.text.y = element_text(size=20, color="black"), axis.text.x = element_text(size=20, angle = 45, vjust=1.0, hjust=1, color="black", face=colorado(isotope_subset_lar$Site_Code, c("GRVBR", "PMF"))))+
-  rremove("grid")+
-  xlab("Site")+
-  facet_nested_wrap(~FFG + Taxa, scales="free_x", nrow=1)
-
-
-#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\carbon of larval taxa and FFG across sites larval aquatic insects.png", height=10, width=26)
-
-
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\C plot across FFG and stage subsetted data.png", height=10, width=26)
 
 #### ANOVA across sites and individual taxa ####
 
-#Larvae
+#All stages and FFGs together
 
-isotope_subset_lar<-subset(lar_basal, Taxa!="Perlidae" & Taxa!="Coleoptera")
+shapiro.test(isotope_subset_no_food_sources$d13C) #0.169
+leveneTest(data=isotope_subset_no_food_sources, d13C~Site*FFG*Stage) #0.334
+plot(isotope_subset_no_food_sources$d13C)
 
-shapiro.test(isotope_subset_lar$d13C)  #Not normal, p < 0.001 
-leveneTest(data=isotope_subset_lar, d13C~Site*Taxa) #homogeneity p = 0.333
-hist(isotope_subset_lar$d13C) #right skewed
+summary(C_FFG<-aov(data=isotope_subset_no_food_sources, d13C~Site+FFG+Stage))
+emmeans(C_FFG, pairwise ~ Site | FFG)
+emmeans(C_FFG, pairwise ~ Site | Stage)
+emmeans(C_FFG, pairwise ~ Stage | FFG)
+
+#Aquatic larvae
+
+isotope_subset_only_lar_no_food_sources<-subset(isotope_subset_lar_no_food_sources, Stage=="Aquatic larvae")
+
+shapiro.test(isotope_subset_only_lar_no_food_sources$d13C)  #Normal, p = 0.087
+leveneTest(data=isotope_subset_only_lar_no_food_sources, d13C~Site*FFG) #homogeneity p = 0.653
+hist(isotope_subset_only_lar_no_food_sources$d13C) #decently normal 
+
 
 #Parametric test
 
-summary(C_lar<-aov(data=isotope_subset_lar, sqrtClar~Site*Taxa))
-emmeans(C_lar, pairwise ~ Site | Taxa)
-plot(C_lar) #Doesn't fit assumptions of ANOVA very well
+summary(C_lar_FFG<-aov(data=isotope_subset_only_lar_no_food_sources, d13C~Site+FFG))
+emmeans(C_lar_FFG, pairwise ~ Site | FFG)
+
+plot(C_lar_FFG) #Not completely normal but only slightly deviates from QQ-plot
 
 
-#Transform the data to meet assumptions of normality
-#Square root transformation:
+#Aquatic adults
 
-sqrtClar<-sqrt(max(isotope_subset_lar$d13C + 1) - isotope_subset_lar$d13C)
-isotope_subset_lar<-cbind(sqrtClar, isotope_subset_lar)
+isotope_subset_only_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Aquatic adult")
 
-shapiro.test(isotope_subset_lar$sqrtClar)  #Not normal, p < 0.001 
-leveneTest(data=isotope_subset_lar, sqrtClar~Site*Taxa) #homogeneity p = 0.335
-hist(isotope_subset_lar$sqrtClar) #left skewed
+shapiro.test(isotope_subset_only_ad_no_food_sources$d13C)  #Normal, p = 0.435
+leveneTest(data=isotope_subset_only_ad_no_food_sources, d13C~Site*Taxa) #homogeneity p = 0.07
+hist(isotope_subset_only_ad_no_food_sources$d13C) #looks decently normal, uniform-ish
 
-#Try log transformation:
-logClar<-log10(max(isotope_subset_lar$d13C + 1) - isotope_subset_lar$d13C)
-isotope_subset_lar<-cbind(logClar, isotope_subset_lar)
+#Parametric test
 
-shapiro.test(isotope_subset_lar$logClar)  #Not normal, p < 0.001 
-leveneTest(data=isotope_subset_lar, logClar~Site*Taxa) #homogeneity p = 0.37
-hist(isotope_subset_lar$logClar) #even more left skewed
+summary(C_ad_FFG<-aov(data=isotope_subset_only_ad_no_food_sources, d13C~Site+FFG))
+emmeans(C_ad_FFG, pairwise ~ Site | FFG)
 
-#Standardize the data to render them all as positive values then use a generalised linear model and data distribution to run the regression
-
-#Add minimum value to all other values to shift data to only contain positive values
-
-norm_C<-(isotope_subset_lar$d13C + abs(min(isotope_subset_lar$d13C))) + 0.001
-isotope_subset_lar<-cbind(isotope_subset_lar, norm_C)
-hist(isotope_subset_lar$norm_C)
-summary(isotope_subset_lar$norm_C)
-
-reg<-glm(norm_C ~ Site * Taxa, data=isotope_subset_lar, family="Gamma")
-emmeans(reg, pairwise ~ Site |Taxa)
-
-plot(reg)
+plot(C_ad_FFG) #Not completely normal but only slightly deviates from QQ-plot
 
 
+#Terrestrial Adults
 
-install.packages("ARTool")
+isotope_subset_only_terr_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Terrestrial adult")
 
-library(ARTool)
-library(emmeans)
+shapiro.test(isotope_subset_only_terr_ad_no_food_sources$d13C)  #Normal, p = 0.43
+leveneTest(data=isotope_subset_only_terr_ad_no_food_sources, d13C~Site) #homogeneity p = 0.88
+hist(isotope_subset_only_terr_ad_no_food_sources$d13C) #looks uniform
 
-# Perform ART ANOVA
-art_model_lar <- art(d13C ~ Site * Taxa, data = isotope_subset_lar)
+#Parametric test
 
-# ANOVA table
-anova(art_model_lar) #Error in Anova.III.lm(mod, error, singular.ok = singular.ok, ...) : there are aliased coefficients in the model
+summary(C_terr_ad_FFG<-aov(data=isotope_subset_only_terr_ad_no_food_sources, d13C~Site))
+emmeans(C_terr_ad_FFG, pairwise ~ Site) #No differences
 
-# Obtain estimated marginal means for pairwise comparisons
-em <- emmeans(art_model, pairwise ~ factor1 | factor2)
-summary(em)
+plot(C_terr_ad_FFG) #Fits assumptions of normality
 
-# For interaction effects
-em_interaction <- emmeans(art_model, pairwise ~ factor1 * factor2)
-summary(em_interaction)
 
+#Spiders
+
+isotope_subset_only_spiders_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Spider")
+
+shapiro.test(isotope_subset_only_spiders_no_food_sources$d13C)  #Not normal, p = 0.27
+leveneTest(data=isotope_subset_only_spiders_no_food_sources, d13C~Site) #homogeneity p = 0.13
+hist(isotope_subset_only_spiders_no_food_sources$d13C) #looks decently normal
+
+#Non-parametric test
+
+summary(C_spiders_FFG<-aov(data=isotope_subset_only_spiders_no_food_sources, d13C~Site))
+emmeans(C_spiders_FFG, pairwise ~ Site) #Cochrane more negative than all other sites
+
+plot(C_spiders_FFG) #Fits assumptions of normality
 
 #### Araneidae ####
 araneidae<-subset(inverts, Taxa=="Araneidae")
@@ -1385,15 +1149,14 @@ ggplot(adephem, aes(x=Site, y=d15N))+
 # Combining C and N boxplot across sites 
 
 ```{r}
-C_plot_lar<-C_plot_lar + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
-N_plot_lar<-N_plot_lar + theme(axis.title.x = element_blank())
+C_plot_lar<-C_plot_taxa_subset_no_food_sources + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+N_plot_lar<-N_plot_taxa_subset_no_food_sources + theme(axis.title.x = element_blank())
 
 C_N_combined<-ggarrange(C_plot_lar, N_plot_lar, nrow=2, ncol=1, align="v")
 
-library(grid)
 annotate_figure(C_N_combined, bottom = textGrob("Site", gp = gpar(cex = 1.6)))
 
-#ggsave(filename="stable_isotope_analysis/Figures/C and N across taxa groups and sites larval aquatic insects.png", height=14, width=26, bg="white")
+#ggsave(filename="stable_isotope_analysis/Figures/C and N across FFG and sites no food sources.png", height=14, width=26, bg="white")
 ```
 
 
@@ -1563,12 +1326,24 @@ pmf_food_source
 # Table of mean d13C and d15N values (+/- SD) across sites and sample type 
 
 ```{r}
-C_N_sum_tab<-isotope %>% 
+#Grouped by individual taxa and sample type
+
+C_N_sum_tab<-isotope_subset_no_food_sources %>% 
   dplyr::select("Taxa", "Stage", "d13C", "d15N", "Site")%>%
   dplyr::group_by(Taxa, Stage, Site) %>%
   dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
 
 View(C_N_sum_tab)
+#Some taxa don't have enough replicates
+
+#Grouped by Functional Feeding Group and sample type
+
+summary_FFG<-isotope_subset_no_food_sources %>% 
+  dplyr::select("FFG", "Stage", "d13C", "d15N", "Site")%>%
+  dplyr::group_by(FFG, Stage, Site) %>%
+  dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
+
+View(summary_FFG)
 ```
 
 # Running MixSIAR model

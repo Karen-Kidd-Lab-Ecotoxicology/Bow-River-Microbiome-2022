@@ -1,0 +1,185 @@
+SampleName,Stage,Aqu_Terr,Site,Site_Code,Taxa,Taxa_Specific,FFG,sample_group,Consumer,Mass,Tissue Type,Date,d13C,d15N,%C,%N,C/N
+COCH_SHRUB_SI_1,Shrub,Leaves,Cochrane,COCH,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,N/A,Shrub,03-Mar-23,-29.8,1.9,48.25,2.1,23
+COCH_SHRUB_SI_2,Shrub,Leaves,Cochrane,COCH,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.148,Shrub,03-Mar-23,-28.5,-0.2,50.4,1.9,25.9
+COCH_SHRUB_SI_3,Shrub,Leaves,Cochrane,COCH,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.16,Shrub,03-Mar-23,-28.9,-1.2,52.3,1.6,31.8
+SUNAL_SHRUB_SI_1,Shrub,Leaves,Sunalta,SUN,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.152,Shrub,03-Mar-23,-28.8,1.9,50.1,2.2,22.9
+SUNAL_SHRUB_SI_2,Shrub,Leaves,Sunalta,SUN,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.172,Shrub,03-Mar-23,-27.5,1.6,50.7,2.4,21.4
+SUNAL_SHRUB_SI_3,Shrub,Leaves,Sunalta,SUN,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.05,Shrub,03-Mar-23,-28.9,5.7,50,2.1,23.5
+CUSHBR_SHRUB_SI_1,Shrub,Leaves,Cushing Bridge,CUSHBR,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.063,Shrub,03-Mar-23,-28.1,2.6,49.7,1.7,29.2
+CUSHBR_SHRUB_SI_2,Shrub,Leaves,Cushing Bridge,CUSHBR,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.081,Shrub,03-Mar-23,-29.1,2.9,47.1,2.4,19.4
+CUSHBR_SHRUB_SI_3,Shrub,Leaves,Cushing Bridge,CUSHBR,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.114,Shrub,03-Mar-23,-28.8,2.6,48.1,2.3,20.7
+GRVBR_SHRUB_SI_1,Shrub,Leaves,Graves Bridge,GRVBR,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.13,Shrub,03-Mar-23,-29,6.4,46.7,4.1,11.4
+GRVBR_SHRUB_SI_2,Shrub,Leaves,Graves Bridge,GRVBR,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.097,Shrub,03-Mar-23,-28.1,8.3,49.7,2.4,20.5
+GRVBR_SHRUB_SI_3,Shrub,Leaves,Graves Bridge,GRVBR,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.121,Shrub,03-Mar-23,-29.4,5.3,49.1,2.4,20.6
+POLFLT_SHRUB_SI_1,Shrub,Leaves,Policeman Flats,PMF,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,N/A,Shrub,03-Mar-23,-29.25,5.5,51.55,3,17.4
+POLFLT_SHRUB_SI_2,Shrub,Leaves,Policeman Flats,PMF,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.073,Shrub,03-Mar-23,-26.5,5.1,50.5,2.2,22.6
+POLFLT_SHRUB_SI_3,Shrub,Leaves,Policeman Flats,PMF,Terrestrial Leaves,Terrestrial Leaves,Basal food source,Basal Food Source,Basal food source,3.174,Shrub,03-Mar-23,-26.8,7.1,52,2.1,25.2
+COCH_Biofilm_SI_1,Biofilm,biofilm,Cochrane,COCH,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.136,Biofilm,03-Mar-23,-14.7,2.9,8.4,0.4,21.6
+COCH_Biofilm_SI_2,Biofilm,biofilm,Cochrane,COCH,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.168,Biofilm,03-Mar-23,-14.7,2.5,8.6,0.4,22.2
+COCH_Biofilm_SI_3,Biofilm,biofilm,Cochrane,COCH,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.16,Biofilm,03-Mar-23,-14.3,2.2,8.3,0.4,22.5
+SUNAL_Biofilm_SI_1,Biofilm,biofilm,Sunalta,SUN,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.196,Biofilm,03-Mar-23,-16.8,5.3,8.8,0.7,13.5
+SUNAL_Biofilm_SI_2,Biofilm,biofilm,Sunalta,SUN,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.15,Biofilm,03-Mar-23,-12.2,4.9,6.8,0.3,20.4
+SUNAL_Biofilm_SI_3,Biofilm,biofilm,Sunalta,SUN,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.152,Biofilm,03-Mar-23,-25.7,-1.1,37.1,3.4,11
+CUSHBR_Biofilm_SI_1,Biofilm,biofilm,Cushing Bridge,CUSHBR,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.195,Biofilm,03-Mar-23,-10.5,5.6,6.3,0.3,23.7
+CUSHBR_Biofilm_SI_2,Biofilm,biofilm,Cushing Bridge,CUSHBR,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,N/A,Biofilm,03-Mar-23,-7.5,3.9,4.55,0.15,34.7
+CUSHBR_Biofilm_SI_3,Biofilm,biofilm,Cushing Bridge,CUSHBR,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.007,Biofilm,03-Mar-23,-7.4,5.8,4.7,0.1,32.4
+GRVBR_Biofilm_SI_1,Biofilm,biofilm,Graves Bridge,GRVBR,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.17,Biofilm,03-Mar-23,-8.8,4,4.9,0.2,29.8
+GRVBR_Biofilm_SI_2,Biofilm,biofilm,Graves Bridge,GRVBR,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.196,Biofilm,03-Mar-23,-21.7,8.3,14.1,1.1,13.3
+GRVBR_Biofilm_SI_3,Biofilm,biofilm,Graves Bridge,GRVBR,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.003,Biofilm,03-Mar-23,-24.3,9.9,20.9,2.2,9.5
+POLFLT_Biofilm_SI_2,Biofilm,biofilm,Policeman Flats,PMF,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,3.141,Biofilm,03-Mar-23,-26,-0.8,37.8,3.5,10.8
+POLFLT_Biofilm_SI_3,Biofilm,biofilm,Policeman Flats,PMF,Biofilm,Biofilm,Basal food source,Basal Food Source,Basal food source,N/A,Biofilm,03-Mar-23,-25.6,-1.05,35.9,3.3,10.9
+POLFLT_Lar_Hydro_SI_2,Larvae,lar_aquatic,Policeman Flats,PMF,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.113,Whole Invertebrate,01-Mar-23,-25.3,7.4,53.8,9.5,5.7
+GRVBR_Lar_Hydro_SI_3,Larvae,lar_aquatic,Graves Bridge,GRVBR,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.126,Whole Invertebrate,01-Mar-23,-27.4,10.7,49.5,9.2,5.4
+GRVBR_Lar_Hydro_SI_1,Larvae,lar_aquatic,Graves Bridge,GRVBR,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.158,Whole Invertebrate,28-Feb-23,-28.1,11.4,53.7,7.4,7.3
+GRVBR_Lar_Hydro_SI_2,Larvae,lar_aquatic,Graves Bridge,GRVBR,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.086,Whole Invertebrate,28-Feb-23,-27.7,11.2,45.3,8.1,5.6
+SUNAL_Lar_Hydro_SI_1,Larvae,lar_aquatic,Sunalta,SUN,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.027,Whole Invertebrate,28-Feb-23,-28.5,6.4,47.5,9.3,5.1
+COCH_Lar_Hydro_SI_2,Larvae,lar_aquatic,Cochrane,COCH,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.149,Whole Invertebrate,28-Feb-23,-30.6,6.9,52.8,9.8,5.4
+POLFLT_Lar_Hydro_SI_1,Larvae,lar_aquatic,Policeman Flats,PMF,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.133,Whole Invertebrate,28-Feb-23,-24.6,7.3,48.8,9.9,4.9
+POLFLT_Lar_Hydro_SI_3,Larvae,lar_aquatic,Policeman Flats,PMF,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.043,Whole Invertebrate,28-Feb-23,-25.1,6.7,45.5,9.1,5
+COCH_Lar_Hydro_SI_1,Larvae,lar_aquatic,Cochrane,COCH,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,N/A,Whole Invertebrate,01-Mar-23,-31.15,7.75,57.65,11.65,4.95
+SUNAL_Lar_Hydro_SI_2,Larvae,lar_aquatic,Sunalta,SUN,Hydropsychidae,Hydropsychidae Larvae,Filterer-Collector,Aquatic Larvae ,Primary Consumer,1.17,Whole Invertebrate,02-Mar-23,-27.8,6.2,48.6,10.1,4.8
+POLFLT_Lar_Mayfly_2_SI_1,Larvae,lar_aquatic,Policeman Flats,PMF,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.11,Whole Invertebrate,01-Mar-23,-23.8,4.4,51.8,10.4,5
+GRVBR_Lar_Mayfly_2_SI_3,Larvae,lar_aquatic,Graves Bridge,GRVBR,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.11,Whole Invertebrate,01-Mar-23,-29.2,9.5,52.9,7.6,7
+POLFLT_Lar_Mayfly_2_SI_2,Larvae,lar_aquatic,Policeman Flats,PMF,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.08,Whole Invertebrate,01-Mar-23,-26.3,5.2,51,9.8,5.2
+POLFLT_Lar_Mayfly_2_SI_3,Larvae,lar_aquatic,Policeman Flats,PMF,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.202,Whole Invertebrate,28-Feb-23,-26.9,6.6,52.9,10.5,5.1
+GRVBR_Lar_Mayfly_2_SI_2,Larvae,lar_aquatic,Graves Bridge,GRVBR,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.184,Whole Invertebrate,28-Feb-23,-28.1,9.2,44.8,7.4,6
+GRVBR_Lar_Mayfly_2_SI_1,Larvae,lar_aquatic,Graves Bridge,GRVBR,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.129,Whole Invertebrate,28-Feb-23,-29.1,8.6,48.7,4.9,9.9
+SUNAL_Lar_Mayfly_2_SI_1,Larvae,lar_aquatic,Sunalta,SUN,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.046,Whole Invertebrate,02-Mar-23,-28.7,5,52,7.8,6.7
+SUNAL_Lar_Mayfly_2_SI_3,Larvae,lar_aquatic,Sunalta,SUN,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.089,Whole Invertebrate,02-Mar-23,-29.1,5.6,44.3,5.8,7.7
+SUNAL_Lar_Mayfly_2_SI_2,Larvae,lar_aquatic,Sunalta,SUN,Ephemerellidae,Ephemerellidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.183,Whole Invertebrate,02-Mar-23,-28.6,5.9,49,9.2,5.3
+POLFLT_Lar_Chiro_SI_1,Larvae,lar_aquatic,Policeman Flats,PMF,Chironomidae,Chironomidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.08,Whole Invertebrate,01-Mar-23,-25.8,6.9,48.3,10.1,4.8
+CUSHBR_Lar_Chiro_SI_1,Larvae,lar_aquatic,Cushing Bridge,CUSHBR,Chironomidae,Chironomidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.08,Whole Invertebrate,01-Mar-23,-31.2,7.4,53.6,10,5.4
+GRVBR_Lar_Chiro_SI_2,Larvae,lar_aquatic,Graves Bridge,GRVBR,Chironomidae,Chironomidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.092,Whole Invertebrate,01-Mar-23,-30.2,10.8,49.6,9.1,5.5
+GRVBR_Lar_Chiro_SI_1,Larvae,lar_aquatic,Graves Bridge,GRVBR,Chironomidae,Chironomidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.112,Whole Invertebrate,28-Feb-23,-30.5,10.4,48.2,8.9,5.4
+GRVBR_Lar_Chiro_SI_3,Larvae,lar_aquatic,Graves Bridge,GRVBR,Chironomidae,Chironomidae Larvae,Gatherer-Collector,Aquatic Larvae ,Primary Consumer,1.012,Whole Invertebrate,28-Feb-23,-29.6,10.5,38.9,7.3,5.3
+POLFLT_Ad_Lepto_SI_1,Adult,Ad_aquatic,Policeman Flats,PMF,Leptoceridae,Leptoceridae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.085,Whole Invertebrate,01-Mar-23,-25.1,7.8,52.7,9.1,5.8
+POLFLT_Ad_Lepto_SI_3,Adult,Ad_aquatic,Policeman Flats,PMF,Leptoceridae,Leptoceridae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.124,Whole Invertebrate,01-Mar-23,-25,9.5,52.8,12.4,4.3
+POLFLT_Ad_Lepto_SI_2,Adult,Ad_aquatic,Policeman Flats,PMF,Leptoceridae,Leptoceridae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,N/A,Whole Invertebrate,01-Mar-23,-25.7,9.05,53.65,11.95,4.5
+CUSHBR_Ad_Lepto_SI_1,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Leptoceridae,Leptoceridae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.136,Whole Invertebrate,28-Feb-23,-26,8.3,52.8,11.6,4.5
+COCH_Ad_Hydro_SI_1,Adult,Ad_aquatic,Cochrane,COCH,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.069,Whole Invertebrate,01-Mar-23,-31.4,9,53.4,11.7,4.6
+POLFLT_Ad_Hydro_SI_2,Adult,Ad_aquatic,Policeman Flats,PMF,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.192,Whole Invertebrate,01-Mar-23,-24.1,5.9,53.3,11.8,4.5
+SUNAL_Ad_Hydro_SI_3,Adult,Ad_aquatic,Sunalta,SUN,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.046,Whole Invertebrate,01-Mar-23,-30.4,7.7,55.9,10.2,5.5
+CUSHBR_Ad_Hydro_SI_2,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.004,Whole Invertebrate,01-Mar-23,-28.7,8.5,54.3,11,4.9
+GRVBR_Ad_Hydro_SI_3,Adult,Ad_aquatic,Graves Bridge,GRVBR,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.001,Whole Invertebrate,01-Mar-23,-25.6,14.1,54,11.1,4.8
+CUSHBR_Ad_Hydro_SI_3,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.032,Whole Invertebrate,01-Mar-23,-27.5,10.1,53.1,12.5,4.2
+POLFLT_Ad_Hydro_SI_1,Adult,Ad_aquatic,Policeman Flats,PMF,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.05,Whole Invertebrate,01-Mar-23,-25.1,6.4,54.9,10.4,5.3
+POLFLT_Ad_Hydro_SI_3,Adult,Ad_aquatic,Policeman Flats,PMF,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.103,Whole Invertebrate,28-Feb-23,-23.4,8.7,54.7,11.1,4.9
+SUNAL_Ad_Hydro_SI_2,Adult,Ad_aquatic,Sunalta,SUN,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.084,Whole Invertebrate,28-Feb-23,-30.3,8.6,54.6,10.9,5
+COCH_Ad_Hydro_SI_2,Adult,Ad_aquatic,Cochrane,COCH,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.021,Whole Invertebrate,02-Mar-23,-31.9,9,54.5,11.3,4.8
+GRVBR_Ad_Hydro_SI_1,Adult,Ad_aquatic,Graves Bridge,GRVBR,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.072,Whole Invertebrate,02-Mar-23,-25.9,14.5,55.4,10.1,5.5
+CUSHBR_Ad_Hydro_SI_1,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,N/A,Whole Invertebrate,02-Mar-23,-27.9,10.15,53.2,11.35,4.7
+GRVBR_Ad_Hydro_SI_2,Adult,Ad_aquatic,Graves Bridge,GRVBR,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,N/A,Whole Invertebrate,02-Mar-23,-25.65,14.2,54.15,10.65,5.05
+SUNAL_Ad_Hydro_SI_1,Adult,Ad_aquatic,Sunalta,SUN,Hydropsychidae,Hydropsychidae Adult,Filterer-Collector,Aquatic Adult ,Primary Consumer,1.015,Whole Invertebrate,02-Mar-23,-30.3,8.6,52.2,11.5,4.5
+POLFLT_Ad_Mayfly_2_SI_1,Adult,Ad_aquatic,Policeman Flats,PMF,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.188,Whole Invertebrate,01-Mar-23,-24.4,7.3,49.1,14.4,3.4
+SUNAL_Ad_Mayfly_2_SI_1,Adult,Ad_aquatic,Sunalta,SUN,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.15,Whole Invertebrate,01-Mar-23,-27.7,6.9,49.1,14.6,3.4
+GRVBR_Ad_Mayfly_2_SI_2,Adult,Ad_aquatic,Graves Bridge,GRVBR,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.01,Whole Invertebrate,01-Mar-23,-26.8,11.6,50.7,13.1,3.9
+POLFLT_Ad_Mayfly_2_SI_2,Adult,Ad_aquatic,Policeman Flats,PMF,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.115,Whole Invertebrate,28-Feb-23,-22.9,5.3,48.2,15.6,3.1
+GRVBR_Ad_Mayfly_2_SI_1,Adult,Ad_aquatic,Graves Bridge,GRVBR,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.158,Whole Invertebrate,28-Feb-23,-29.3,11.7,53.7,11.4,4.7
+GRVBR_Ad_Mayfly_2_SI_3,Adult,Ad_aquatic,Graves Bridge,GRVBR,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.04,Whole Invertebrate,28-Feb-23,-23.5,11.2,50.7,14.9,3.4
+CUSHBR_Ad_Mayfly_2_SI_2,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.181,Whole Invertebrate,28-Feb-23,-27.1,6.9,50.9,13.2,3.9
+CUSHBR_Ad_Mayfly_2_SI_1,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Ephemerellidae,Ephemerellidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.017,Whole Invertebrate,28-Feb-23,-27.9,7.1,47.9,11.6,4.1
+SUNAL_Ad_Chiro_SI_1,Adult,Ad_aquatic,Sunalta,SUN,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.006,Whole Invertebrate,01-Mar-23,-30.8,10.5,52.6,10.4,5.1
+COCH_Ad_Chiro_SI_2,Adult,Ad_aquatic,Cochrane,COCH,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.012,Whole Invertebrate,01-Mar-23,-28.4,10.3,50,11.3,4.4
+GRVBR_Ad_Chiro_SI_1,Adult,Ad_aquatic,Graves Bridge,GRVBR,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.106,Whole Invertebrate,01-Mar-23,-26.3,8.8,50.3,9.7,5.2
+SUNAL_Ad_Chiro_SI_2,Adult,Ad_aquatic,Sunalta,SUN,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.197,Whole Invertebrate,01-Mar-23,-29,8.2,52.3,9.8,5.3
+SUNAL_Ad_Chiro_SI_3,Adult,Ad_aquatic,Sunalta,SUN,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,0.859,Whole Invertebrate,01-Mar-23,-28.2,10.8,50.4,9.6,5.3
+POLFLT_Ad_Chiro_SI_2,Adult,Ad_aquatic,Policeman Flats,PMF,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.163,Whole Invertebrate,01-Mar-23,-31.7,10.8,49,10.7,4.6
+COCH_Ad_Chiro_SI_1,Adult,Ad_aquatic,Cochrane,COCH,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.13,Whole Invertebrate,01-Mar-23,-27.1,6,48.7,10,4.9
+CUSHBR_Ad_Chiro_SI_1,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.1,Whole Invertebrate,28-Feb-23,-31,10.1,53.2,11,4.8
+POLFLT_Ad_Chiro_SI_1,Adult,Ad_aquatic,Policeman Flats,PMF,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.201,Whole Invertebrate,28-Feb-23,-23.9,10.9,50,10.6,4.7
+COCH_Ad_Chiro_SI_3,Adult,Ad_aquatic,Cochrane,COCH,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.045,Whole Invertebrate,28-Feb-23,-32.2,9.5,49.9,9.3,5.4
+CUSHBR_Ad_Chiro_SI_2,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.042,Whole Invertebrate,28-Feb-23,-25.6,10.7,53.9,10.8,5
+CUSHBR_Ad_Chiro_SI_3,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Chironomidae,Chironomidae Adult,Gatherer-Collector,Aquatic Adult ,Primary Consumer,1.073,Whole Invertebrate,28-Feb-23,-28.5,8.4,51.5,9.7,5.3
+COCH_Lepidop_SI_3,Adult,Terrestrial,Cochrane,COCH,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.141,Whole Invertebrate,01-Mar-23,-29.2,5.5,51.9,12.6,4.1
+POLFLT_Lepidop_SI_3,Adult,Terrestrial,Policeman Flats,PMF,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.187,Whole Invertebrate,01-Mar-23,-25.9,1.2,53,9.1,5.8
+COCH_Lepidop_SI_2,Adult,Terrestrial,Cochrane,COCH,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.137,Whole Invertebrate,01-Mar-23,-25.7,5.9,54.6,10.4,5.3
+POLFLT_Lepidop_SI_2,Adult,Terrestrial,Policeman Flats,PMF,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.01,Whole Invertebrate,01-Mar-23,-26.8,0.9,57.3,9.6,6
+COCH_Lepidop_SI_1,Adult,Terrestrial,Cochrane,COCH,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,N/A,Whole Invertebrate,01-Mar-23,-26.8,8.3,51.8,10.1,5.1
+POLFLT_Lepidop_SI_1,Adult,Terrestrial,Policeman Flats,PMF,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.128,Whole Invertebrate,01-Mar-23,-27.6,3.3,57.9,10,5.8
+SUNAL_Lepidop_SI_1,Adult,Terrestrial,Sunalta,SUN,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.16,Whole Invertebrate,01-Mar-23,-30.2,5.1,59.8,8.7,6.9
+SUNAL_Lepidop_SI_3,Adult,Terrestrial,Sunalta,SUN,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,0.98,Whole Invertebrate,01-Mar-23,-30.2,6.9,52,12.5,4.2
+SUNAL_Lepidop_SI_2,Adult,Terrestrial,Sunalta,SUN,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.041,Whole Invertebrate,01-Mar-23,-28.3,7.1,59,8.8,6.7
+GRVBR_Lepidop_SI_3,Adult,Terrestrial,Graves Bridge,GRVBR,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.193,Whole Invertebrate,28-Feb-23,-25.5,7.5,52.3,11.6,4.5
+GRVBR_Lepidop_SI_2,Adult,Terrestrial,Graves Bridge,GRVBR,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,N/A,Whole Invertebrate,28-Feb-23,-27.5,6.1,44.5,6.95,7.2
+GRVBR_Lepidop_SI_1,Adult,Terrestrial,Graves Bridge,GRVBR,Lepidoptera,Lepidoptera Adult,Piercer,Terrestrial Prey,Primary Consumer,1.073,Whole Invertebrate,28-Feb-23,-28.1,4,49.7,10.1,4.9
+CUSHBR_Tetragnatha_SI_1,Spider,Spider,Cushing Bridge,CUSHBR,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.044,Whole Invertebrate,01-Mar-23,-27.2,9.2,49.9,12.1,4.1
+POLFLT_Tetragnatha_SI_3,Spider,Spider,Policeman Flats,PMF,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.015,Whole Invertebrate,01-Mar-23,-24.8,8.6,52.6,12.1,4.4
+GRVBR_Tetragnatha_SI_1,Spider,Spider,Graves Bridge,GRVBR,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.067,Whole Invertebrate,01-Mar-23,-24.4,12.3,47.8,12.4,3.9
+COCH_Tetragnatha_SI_1,Spider,Spider,Cochrane,COCH,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.17,Whole Invertebrate,01-Mar-23,-29.3,9.5,49.4,12.2,4.1
+SUNAL_Tetragnatha_SI_1,Spider,Spider,Sunalta,SUN,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,N/A,Whole Invertebrate,28-Feb-23,-28.4,9.15,53.75,11.85,4.55
+CUSHBR_Tetragnatha_SI_2,Spider,Spider,Cushing Bridge,CUSHBR,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.108,Whole Invertebrate,28-Feb-23,-26.3,8.4,45.2,12.9,3.5
+CUSHBR_Tetragnatha_SI_3,Spider,Spider,Cushing Bridge,CUSHBR,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.049,Whole Invertebrate,28-Feb-23,-26.7,8.7,46,12.1,3.8
+SUNAL_Tetragnatha_SI_2,Spider,Spider,Sunalta,SUN,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.005,Whole Invertebrate,28-Feb-23,-26.9,7.6,47,11.2,4.2
+GRVBR_Tetragnatha_SI_3,Spider,Spider,Graves Bridge,GRVBR,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.164,Whole Invertebrate,28-Feb-23,-23.9,13.5,52.8,13.2,4
+POLFLT_Tetragnatha_SI_2,Spider,Spider,Policeman Flats,PMF,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.005,Whole Invertebrate,28-Feb-23,-25.9,8.8,47.1,10.7,4.4
+POLFLT_Tetragnatha_SI_1,Spider,Spider,Policeman Flats,PMF,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.035,Whole Invertebrate,28-Feb-23,-24.3,9.1,43.1,11.6,3.7
+COCH_Tetragnatha_SI_3,Spider,Spider,Cochrane,COCH,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.02,Whole Invertebrate,28-Feb-23,-29,8.8,43.4,11.3,3.9
+COCH_Tetragnatha_SI_2,Spider,Spider,Cochrane,COCH,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.038,Whole Invertebrate,28-Feb-23,-30.1,8.5,43.5,11,4
+SUNAL_Tetragnatha_SI_3,Spider,Spider,Sunalta,SUN,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.104,Whole Invertebrate,02-Mar-23,-26.7,9.7,49,12.6,3.9
+GRVBR_Tetragnatha_SI_2,Spider,Spider,Graves Bridge,GRVBR,Tetragnathidae,Tetragnathidae,Predator,Spider,Secondary Consumer,1.106,Whole Invertebrate,02-Mar-23,-24.9,13.4,50.5,11.8,4.3
+CUSHBR_Araneid_SI_2,Spider,Spider,Cushing Bridge,CUSHBR,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.168,Whole Invertebrate,01-Mar-23,-26.4,7.8,48.9,12.6,3.9
+SUNAL_Araneid_SI_1,Spider,Spider,Sunalta,SUN,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,N/A,Whole Invertebrate,01-Mar-23,-26.95,8.95,46.9,12.45,3.8
+POLFLT_Araneid_SI_2,Spider,Spider,Policeman Flats,PMF,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,N/A,Whole Invertebrate,01-Mar-23,-25.45,7.75,51.05,12,4.25
+COCH_Araneid_SI_1,Spider,Spider,Cochrane,COCH,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.067,Whole Invertebrate,01-Mar-23,-29.2,7.3,48.4,12.3,3.9
+POLFLT_Araneid_SI_3,Spider,Spider,Policeman Flats,PMF,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,N/A,Whole Invertebrate,01-Mar-23,-25.5,7.5,50.15,12,4.2
+COCH_Araneid_SI_2,Spider,Spider,Cochrane,COCH,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.066,Whole Invertebrate,28-Feb-23,-28.8,9.2,49.6,12.9,3.8
+GRVBR_Araneid_SI_3,Spider,Spider,Graves Bridge,GRVBR,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.047,Whole Invertebrate,28-Feb-23,-26,13.1,48.3,10.1,4.8
+POLFLT_Araneid_SI_1,Spider,Spider,Policeman Flats,PMF,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.017,Whole Invertebrate,28-Feb-23,-24.4,7.8,44.7,10.5,4.3
+GRVBR_Araneid_SI_2,Spider,Spider,Graves Bridge,GRVBR,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.104,Whole Invertebrate,28-Feb-23,-24.2,12.3,47.1,12.7,3.7
+SUNAL_Araneid_SI_2,Spider,Spider,Sunalta,SUN,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.02,Whole Invertebrate,28-Feb-23,-28.6,7.8,50.6,11.2,4.5
+GRVBR_Araneid_SI_1,Spider,Spider,Graves Bridge,GRVBR,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.137,Whole Invertebrate,28-Feb-23,-25.5,12.4,53.9,11.4,4.7
+SUNAL_Araneid_SI_3,Spider,Spider,Sunalta,SUN,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,N/A,Whole Invertebrate,28-Feb-23,-27.7,8,51.45,11.75,4.35
+CUSHBR_Araneid_SI_2,Spider,Spider,Cushing Bridge,CUSHBR,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.12,Whole Invertebrate,02-Mar-23,-26.5,8.6,48.4,12,4
+CUSHBR_Araneid_SI_1,Spider,Spider,Cushing Bridge,CUSHBR,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.14,Whole Invertebrate,02-Mar-23,-26.5,8.9,48.5,12.6,3.9
+COCH_Araneid_SI_3,Spider,Spider,Cochrane,COCH,Araneidae,Araneidae,Predator,Spider,Secondary Consumer,1.145,Whole Invertebrate,02-Mar-23,-28.3,7.9,48.1,12.7,3.8
+SUNAL_Lar_Stonefly_1_SI_2,Larvae,lar_aquatic,Sunalta,SUN,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.044,Whole Invertebrate,01-Mar-23,-28.3,9,54.4,12.2,4.5
+POLFLT_Lar_Stonefly_1_SI_2,Larvae,lar_aquatic,Policeman Flats,PMF,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.09,Whole Invertebrate,01-Mar-23,-24.9,8.3,49.3,11.3,4.4
+POLFLT_Lar_Stonefly_1_SI_3,Larvae,lar_aquatic,Policeman Flats,PMF,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,N/A,Whole Invertebrate,01-Mar-23,-24.85,7.55,51.35,11.1,4.65
+SUNAL_Lar_Stonefly_1_SI_1,Larvae,lar_aquatic,Sunalta,SUN,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,N/A,Whole Invertebrate,28-Feb-23,-29.1,8.65,50.35,10.95,4.6
+SUNAL_Lar_Stonefly_1_SI_3,Larvae,lar_aquatic,Sunalta,SUN,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,N/A,Whole Invertebrate,28-Feb-23,-29.25,8.35,56.35,11.25,5
+POLFLT_Lar_Stonefly_1_SI_1,Larvae,lar_aquatic,Policeman Flats,PMF,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,N/A,Whole Invertebrate,28-Feb-23,-24.15,7.65,50.2,11.95,4.2
+POLFLT_Lar_Stonefly_1_2,Larvae,lar_aquatic,Policeman Flats,PMF,Perlidae,Perlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.165,Whole Invertebrate,02-Mar-23,-31.1,10.1,53.8,10.3,5.2
+SUNAL_Lar_Stonefly_2_SI_2,Larvae,lar_aquatic,Sunalta,SUN,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.099,Whole Invertebrate,01-Mar-23,-29,6.8,51.6,9.3,5.6
+CUSHBR_Lar_Stonefly_2_SI_3,Larvae,lar_aquatic,Cushing Bridge,CUSHBR,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.04,Whole Invertebrate,01-Mar-23,-29.2,6.6,46.9,7.1,6.6
+GRVBR_Lar_Stonefly_2_SI_3,Larvae,lar_aquatic,Graves Bridge,GRVBR,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.015,Whole Invertebrate,28-Feb-23,-28.2,9.4,45.2,7.3,6.1
+CUSHBR_Lar_Stonefly_2_SI_1,Larvae,lar_aquatic,Cushing Bridge,CUSHBR,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.063,Whole Invertebrate,28-Feb-23,-29.3,5.8,45.4,6.3,7.2
+CUSHBR_Lar_Stonefly_2_SI_2,Larvae,lar_aquatic,Cushing Bridge,CUSHBR,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.121,Whole Invertebrate,28-Feb-23,-29.3,5.3,52.4,7.7,6.8
+GRVBR_Lar_Stonefly_2_SI_1,Larvae,lar_aquatic,Graves Bridge,GRVBR,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.112,Whole Invertebrate,28-Feb-23,-28.2,9.9,57.3,10.5,5.5
+SUNAL_Lar_Stonefly_2_SI_3,Larvae,lar_aquatic,Sunalta,SUN,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.131,Whole Invertebrate,28-Feb-23,-28.3,6.4,57.1,9.8,5.8
+SUNAL_Lar_Stonefly_2_SI_1,Larvae,lar_aquatic,Sunalta,SUN,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.127,Whole Invertebrate,02-Mar-23,-28.5,7,48.2,9.5,5.1
+GRVBR_Lar_Stonefly_2_SI_2,Larvae,lar_aquatic,Graves Bridge,GRVBR,Chloroperlidae,Chloroperlidae Larvae,Predator,Aquatic Larvae ,Secondary Consumer,1.159,Whole Invertebrate,02-Mar-23,-27.9,9.4,51.7,9.9,5.2
+COCH_Ad_Rhya_SI_1,Adult,Ad_aquatic,Cochrane,COCH,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,N/A,Whole Invertebrate,02-Mar-23,-30.65,9.1,55.95,10.6,5.3
+SUNAL_Ad_Rhya_SI_1,Adult,Ad_aquatic,Sunalta,SUN,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.121,Whole Invertebrate,01-Mar-23,-31.6,8.6,51.6,9.8,5.2
+GRVBR_Ad_Rhya_SI_1,Adult,Ad_aquatic,Graves Bridge,GRVBR,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.069,Whole Invertebrate,01-Mar-23,-26.9,10.3,51.2,11.3,4.5
+CUSHBR_Ad_Rhya_SI_1,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,0.912,Whole Invertebrate,01-Mar-23,-26.9,10.4,51.9,9.7,5.3
+POLFLT_Ad_Rhya_SI_1,Adult,Ad_aquatic,Policeman Flats,PMF,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.045,Whole Invertebrate,01-Mar-23,-27.6,2.7,51.9,13.3,3.9
+COCH_Ad_Rhya_SI_2,Adult,Ad_aquatic,Cochrane,COCH,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,N/A,Whole Invertebrate,28-Feb-23,-23.85,7.9,57.9,10.1,5.75
+SUNAL_Ad_Rhya_SI_3,Adult,Ad_aquatic,Sunalta,SUN,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,N/A,Whole Invertebrate,02-Mar-23,-28.85,8.55,53.8,10.05,5.35
+SUNAL_Ad_Rhya_SI_2,Adult,Ad_aquatic,Sunalta,SUN,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.201,Whole Invertebrate,02-Mar-23,-33,9.7,54.3,10.1,5.4
+COCH_Ad_Rhya_SI_3,Adult,Ad_aquatic,Cochrane,COCH,Rhyacophilidae,Rhyacophilidae Adult,Predator,Aquatic Adult ,Secondary Consumer,N/A,Whole Invertebrate,02-Mar-23,-28.25,8.95,52.45,10.2,5.15
+GRVBR_Coleop_SI_2,Adult,Terrestrial,Graves Bridge,GRVBR,Coleoptera,Coleoptera Adult,Predator,Terrestrial Prey,Secondary Consumer,1.012,Whole Invertebrate,01-Mar-23,-24.8,6.8,49.7,10.8,4.6
+POLFLT_Coleop_SI_1,Adult,Terrestrial,Policeman Flats,PMF,Coleoptera,Coleoptera Adult,Predator,Terrestrial Prey,Secondary Consumer,1.126,Whole Invertebrate,01-Mar-23,-25.3,7.5,52.5,10,5.2
+GRVBR_Coleop_SI_3,Adult,Terrestrial,Graves Bridge,GRVBR,Coleoptera,Coleoptera Adult,Predator,Terrestrial Prey,Secondary Consumer,1.096,Whole Invertebrate,01-Mar-23,-26.3,5.4,52.5,9.8,5.4
+GRVBR_Coleop_SI_1,Adult,Terrestrial,Graves Bridge,GRVBR,Coleoptera,Coleoptera Adult,Predator,Terrestrial Prey,Secondary Consumer,1.157,Whole Invertebrate,01-Mar-23,-27,5.9,48.9,11,4.4
+GRVBR_Ad_Stonefly_2_SI_1,Adult,Ad_aquatic,Graves Bridge,GRVBR,Chloroperlidae,Chloroperlidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.118,Whole Invertebrate,01-Mar-23,-26.6,10,49.3,10.2,4.8
+GRVBR_Ad_Stonefly_2_SI_3,Adult,Ad_aquatic,Graves Bridge,GRVBR,Chloroperlidae,Chloroperlidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.104,Whole Invertebrate,01-Mar-23,-26.7,10.7,52.7,10.8,4.9
+COCH_Ad_Stonefly_2_SI_1,Adult,Ad_aquatic,Cochrane,COCH,Chloroperlidae,Chloroperlidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.175,Whole Invertebrate,28-Feb-23,-30.1,7.7,50.1,12.8,3.9
+GRVBR_Ad_Stonefly_2_SI_2,Adult,Ad_aquatic,Graves Bridge,GRVBR,Chloroperlidae,Chloroperlidae Adult,Predator,Aquatic Adult ,Secondary Consumer,1.044,Whole Invertebrate,02-Mar-23,-25.9,10.5,52.2,10.8,4.8
+COCH_Lar_Mayfly_1_SI_1,Larvae,lar_aquatic,Cochrane,COCH,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.153,Whole Invertebrate,01-Mar-23,-32.7,6.4,42.3,5.6,7.5
+GRVBR_Lar_Mayfly_1_SI_3,Larvae,lar_aquatic,Graves Bridge,GRVBR,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.103,Whole Invertebrate,01-Mar-23,-30.8,9.4,54.5,7.2,7.6
+CUSHBR_Lar_Mayfly_1_SI_2,Larvae,lar_aquatic,Cushing Bridge,CUSHBR,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.116,Whole Invertebrate,01-Mar-23,-31.5,6.5,51.8,6.8,7.6
+GRVBR_Lar_Mayfly_1_SI_2,Larvae,lar_aquatic,Graves Bridge,GRVBR,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.137,Whole Invertebrate,01-Mar-23,-29.6,9.8,50.8,8.8,5.8
+GRVBR_Lar_Mayfly_1_SI_1,Larvae,lar_aquatic,Graves Bridge,GRVBR,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.146,Whole Invertebrate,28-Feb-23,-30.1,9.4,52.3,7.7,6.8
+CUSHBR_Lar_Mayfly_1_SI_1,Larvae,lar_aquatic,Cushing Bridge,CUSHBR,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.029,Whole Invertebrate,28-Feb-23,-30.2,6.5,42.6,8.2,5.2
+SUNAL_Lar_Mayfly_1_SI_1,Larvae,lar_aquatic,Sunalta,SUN,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.02,Whole Invertebrate,28-Feb-23,-30.7,6.7,54.1,10.2,5.3
+SUNAL_Lar_Mayfly_1_SI_2,Larvae,lar_aquatic,Sunalta,SUN,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.038,Whole Invertebrate,28-Feb-23,-31.7,6,47.6,6.6,7.2
+SUNAL_Lar_Mayfly_1_SI_3,Larvae,lar_aquatic,Sunalta,SUN,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.093,Whole Invertebrate,28-Feb-23,-31.1,5.8,44,5.9,7.4
+POLFLT_Lar_Mayfly_1_SI_3,Larvae,lar_aquatic,Policeman Flats,PMF,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.108,Whole Invertebrate,28-Feb-23,-30.7,3.9,55.4,7.4,7.5
+COCH_Lar_Mayfly_1_SI_2,Larvae,lar_aquatic,Cochrane,COCH,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.127,Whole Invertebrate,28-Feb-23,-32.3,6.3,41.1,8.1,5.1
+POLFLT_Lar_Mayfly_1_SI_1,Larvae,lar_aquatic,Policeman Flats,PMF,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.095,Whole Invertebrate,28-Feb-23,-29,5.2,63.6,9.9,6.4
+POLFLT_Lar_Mayfly_1_SI_2,Larvae,lar_aquatic,Policeman Flats,PMF,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.014,Whole Invertebrate,28-Feb-23,-30.8,2.1,45.1,7,6.5
+COCH_Lar_Mayfly_1_SI_3,Larvae,lar_aquatic,Cochrane,COCH,Heptageniidae,Heptageniidae Larvae,Scraper,Aquatic Larvae ,Primary Consumer,1.086,Whole Invertebrate,28-Feb-23,-33.4,6,53.5,9.1,5.9
+POLFLT_Ad_Mayfly_1_SI_1,Adult,Ad_aquatic,Policeman Flats,PMF,Heptageniidae,Heptageniidae Adult,Scraper,Aquatic Adult ,Primary Consumer,1.184,Whole Invertebrate,01-Mar-23,-25,8,47.5,15.3,3.1
+SUNAL_Ad_Mayfly_1_SI_1,Adult,Ad_aquatic,Sunalta,SUN,Heptageniidae,Heptageniidae Adult,Scraper,Aquatic Adult ,Primary Consumer,1.024,Whole Invertebrate,01-Mar-23,-27.7,6.9,50,13.2,3.8
+GRVBR_Ad_Mayfly_1_SI_1,Adult,Ad_aquatic,Graves Bridge,GRVBR,Heptageniidae,Heptageniidae Adult,Scraper,Aquatic Adult ,Primary Consumer,1.112,Whole Invertebrate,28-Feb-23,-27.3,9.6,57,11.4,5
+CUSHBR_Ad_Mayfly_1_SI_1,Adult,Ad_aquatic,Cushing Bridge,CUSHBR,Heptageniidae,Heptageniidae Adult,Scraper,Aquatic Adult ,Primary Consumer,N/A,Whole Invertebrate,28-Feb-23,-28.9,9.45,53.9,12.8,4.2
