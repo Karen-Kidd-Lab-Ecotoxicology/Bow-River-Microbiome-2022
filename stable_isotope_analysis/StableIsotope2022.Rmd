@@ -431,9 +431,9 @@ ggplot(data.sum.1, aes(x=d13Cmn, y=d15Nmn, colour=Taxa))+
 
 ```
 
-# Nitrogen isotope {.tabset}
 
-## ANOVA/Kruskal tests across individual invertebrate families
+# Nitrogen isotope plots and ANOVAs across sites
+
 ```{r}
 #### N plot across sites ####
 
@@ -579,275 +579,173 @@ summary_FFG_ad<-isotope_subset_ad %>%
 View(summary_FFG_ad)
 
 
-#### ANOVA across sites and FFGs ####
+#### ANOVA across all FFGs and sites ####
+
+isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
+
+isotope_subset_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves")
+
+isotope_subset_no_food_sources$Stage<-factor(isotope_subset_no_food_sources$Stage, levels=c("Aquatic larvae", "Aquatic adult","Terrestrial adult","Spider"))
+
+isotope_subset_no_food_sources$Site_Code<-factor(isotope_subset_no_food_sources$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+isotope_subset_no_food_sources$FFG<-factor(isotope_subset_no_food_sources$FFG, levels=c("Scraper", "Gatherer-Collector", "Filterer-Collector", "Predator", "Piercer"))
+
 
 #All stages and FFGs together
 
 shapiro.test(isotope_subset_no_food_sources$d15N) #0.112
 leveneTest(data=isotope_subset_no_food_sources, d15N~Site*FFG*Stage) #0.082
-plot(isotope_subset_no_food_sources$d15N)
+hist(isotope_subset_no_food_sources$d15N) #looks normal
+plot(isotope_subset_no_food_sources$d15N) #looks evenly spread
 
-summary(N_FFG<-aov(data=isotope_subset_no_food_sources, d15N~Site+FFG+Stage))
-emmeans(N_FFG, pairwise ~ Site | FFG)
-emmeans(N_FFG, pairwise ~ Site | Stage)
-emmeans(N_FFG, pairwise ~ Stage | FFG)
+summary(N_FFG_1<-aov(data=isotope_subset_no_food_sources, d15N~Site*FFG*Stage))
+Anova(N_FFG_1, type=3) #aliased coefficients, run FFGs separately
 
-#Aquatic larvae
+emmeans(N_FFG_1, pairwise ~ Site | FFG | Stage)
 
-isotope_subset_only_lar_no_food_sources<-subset(isotope_subset_lar_no_food_sources, Stage=="Aquatic larvae")
+#### Aquatic Larvae ####
 
-shapiro.test(isotope_subset_only_lar_no_food_sources$d15N)  #Normal, p = 0.165
-leveneTest(data=isotope_subset_only_lar_no_food_sources, d15N~Site*FFG) #homogeneity p = 0.053
-hist(isotope_subset_only_lar_no_food_sources$d15N) #looks bimodel 
+isotope_aq_lar<-subset(isotope_subset_no_food_sources, Stage=="Aquatic larvae")
+shapiro.test(isotope_aq_lar$d15N) #0.165 #normal distribution
+leveneTest(data=isotope_aq_lar, d15N~Site*FFG) #0.053, homogeneity of variance
+hist(isotope_aq_lar$d15N) #looks potentially bimodel
+plot(isotope_aq_lar$d15N) #data looks evenly spread
 
+summary(N_lar_FFG_1<-lm(data=isotope_aq_lar, d15N~FFG*Site, na.action = na.exclude)) #Some interactions btw FFG and Site
+Anova(N_lar_FFG_1, type=3) #Aliased coefficients, run FFG separately
 
-#Parametric test
+# Scrapers 
 
-summary(N_lar_FFG<-aov(data=isotope_subset_only_lar_no_food_sources, d15N~Site+FFG))
-emmeans(N_lar_FFG, pairwise ~ Site | FFG)
+isotope_lar_scrapers<-subset(isotope_aq_lar, FFG=="Scraper")
 
-plot(N_lar_FFG) #Scale-Location plot isn't the best but there is no clear pattern in residual variance
+shapiro.test(isotope_lar_scrapers$d15N) #0.303 normal distribution
+leveneTest(data=isotope_lar_scrapers, d15N~Site) #0.183, homogeneity of variance
+hist(isotope_lar_scrapers$d15N) #looks uniform
+plot(isotope_lar_scrapers$d15N) #data looks evenly spread
 
+summary(N_lar_scraper<-aov(data=isotope_lar_scrapers, d15N~Site, na.action = na.exclude)) #p<0.001
+Anova(N_lar_scraper, type=3) #p<0.001
 
-#Aquatic adults
+emmeans(N_lar_scraper, pairwise ~ Site)
 
-isotope_subset_only_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Aquatic adult")
+plot(N_lar_scraper) #Adheres to assumptions
 
-shapiro.test(isotope_subset_only_ad_no_food_sources$d15N)  #Normal, p = 0.166
-leveneTest(data=isotope_subset_only_ad_no_food_sources, d15N~Site*Taxa) #homogeneity p = 0.89
-hist(isotope_subset_only_ad_no_food_sources$d15N) #looks decently normal
+# Gatherer - Collector
 
-#Parametric test
+isotope_lar_gath<-subset(isotope_aq_lar, FFG=="Gatherer-Collector")
 
-summary(N_ad_FFG<-aov(data=isotope_subset_only_ad_no_food_sources, d15N~Site*FFG))
-emmeans(N_ad_FFG, pairwise ~ Site | FFG)
+shapiro.test(isotope_lar_gath$d15N) #0.147 normal distribution
+leveneTest(data=isotope_lar_gath, d15N~Site) #0.08, homogeneity of variance
+hist(isotope_lar_gath$d15N) #looks potentially uniform
+plot(isotope_lar_gath$d15N) #data not evenly spread
 
-plot(N_ad_FFG) #Scale-Location plot isn't great
+summary(N_lar_gath<-aov(data=isotope_lar_gath, d15N~Site, na.action = na.exclude)) #p < 0.001
+Anova(N_lar_gath, type=3) #p<0.001
 
+emmeans(N_lar_gath, pairwise ~ Site)
 
-#Terrestrial Adults
+plot(N_lar_gath) #Adheres to assumptions
 
-isotope_subset_only_terr_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Terrestrial adult")
 
-shapiro.test(isotope_subset_only_terr_ad_no_food_sources$d15N)  #Normal, p = 0.3559
-leveneTest(data=isotope_subset_only_terr_ad_no_food_sources, d15N~Site*Taxa) #homogeneity p = 0.95
-hist(isotope_subset_only_terr_ad_no_food_sources$d15N) #looks decently normal, possibly uniform-ish
+# Predator
 
-#Parametric test
+isotope_lar_pred<-subset(isotope_aq_lar, FFG=="Predator")
 
-summary(N_terr_ad_FFG<-aov(data=isotope_subset_only_terr_ad_no_food_sources, d15N~Site))
-emmeans(N_terr_ad_FFG, pairwise ~ Site) #Policeman Flats lower than all other sites
+shapiro.test(isotope_lar_pred$d15N) #0.72 normal distribution
+leveneTest(data=isotope_lar_pred, d15N~Site) #0.187, homogeneity of variance
+hist(isotope_lar_pred$d15N) #uniform ish
+plot(isotope_lar_pred$d15N) #evenly spread
 
-plot(N_terr_ad_FFG) #Fits assumptions of normality
+summary(N_lar_pred<-aov(data=isotope_lar_pred, d15N~Site, na.action = na.exclude)) #p = 0.004
+Anova(N_lar_pred, type=3) #p=0.004
 
+emmeans(N_lar_pred, pairwise ~ Site) 
 
-#Spiders
+plot(N_lar_pred) #Adheres to assumptions
 
-isotope_subset_only_spiders_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Spider")
+#### Aquatic Adults ####
 
-shapiro.test(isotope_subset_only_spiders_no_food_sources$d15N)  #Not normal, p < 0.001
-leveneTest(data=isotope_subset_only_spiders_no_food_sources, d15N~Site) #homogeneity p = 0.234
-hist(isotope_subset_only_spiders_no_food_sources$d15N) #looks right skewed
+isotope_aq_ad<-subset(isotope_subset_no_food_sources, Stage=="Aquatic adult")
+shapiro.test(isotope_aq_ad$d15N) #0.166 normal distribution
+leveneTest(data=isotope_aq_ad, d15N~Site*FFG) #0.163, homogeneity of variance
+hist(isotope_aq_ad$d15N) #looks decently normal
+plot(isotope_aq_ad$d15N) #data looks evenly spread
 
-#Non-parametric test
+summary(N_ad_FFG_1<-aov(data=isotope_aq_ad, d15N~FFG*Site, na.action = na.exclude)) #some interactions with FFG and site
+Anova(N_ad_FFG_1, type=3) #Error in Anova.III.lm(mod, error, singular.ok = singular.ok, ...) : there are aliased coefficients in the model. Run FFGs separately
 
-kruskal.test(data=isotope_subset_only_spiders_no_food_sources, d15N~Site) #p=0.005
-dunnTest(data=isotope_subset_only_spiders_no_food_sources, d15N~Site) #Graves Bridge diff from all other sites
+# Gatherer - Collector
 
+isotope_ad_gath<-subset(isotope_aq_ad, FFG=="Gatherer-Collector")
+shapiro.test(isotope_ad_gath$d15N) #0.193 normal distribution
+leveneTest(data=isotope_ad_gath, d15N~Site) #0.435, homogeneity of variance
+hist(isotope_ad_gath$d15N) #slightly left skewed
+plot(isotope_ad_gath$d15N) #data looks evenly spread
 
-#### Araneidae ####
-araneidae<-subset(inverts, Taxa=="Araneidae")
-ggplot(araneidae, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Much higher in d15N at Graves Bridge. 
+summary(N_ad_gath<-aov(data=isotope_ad_gath, d15N~Site, na.action = na.exclude)) #p=0.207
+Anova(N_ad_gath, type=3) #p=0.207
+emmeans(N_ad_gath, pairwise ~ Site) #no differences
 
-shapiro.test(araneidae$d15N)  #Not normal
+# Filterer - Collector
 
-kruskal.test(d15N~Site, data=araneidae) #p=0.061. Probably due to small sample size
-dunnTest(d15N~Site, data=araneidae)
-#GRVBR - PMF p=0.034
+isotope_ad_filt<-subset(isotope_aq_ad, FFG=="Filterer-Collector")
+shapiro.test(isotope_ad_filt$d15N) #0.071 normal distribution
+leveneTest(data=isotope_ad_filt, d15N~Site) #0.655, homogeneity of variance
+hist(isotope_ad_filt$d15N) #Doesn't really look normal
+plot(isotope_ad_filt$d15N) #data not evenly spread
 
-#### Tetragnathidae ####
-tetragnathidae<-subset(inverts, Taxa=="Tetragnathidae")
-ggplot(tetragnathidae, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Much higher in d15N at Graves Bridge.
+summary(N_ad_filt<-aov(data=isotope_ad_filt, d15N~Site, na.action = na.exclude)) #p < 0.001
+Anova(N_ad_filt, type=3) #p<0.001
+emmeans(N_ad_filt, pairwise ~ Site)
 
-shapiro.test(tetragnathidae$d15N)  #Not normal
 
-kruskal.test(d15N~Site, data=tetragnathidae) #p=0.136
-dunnTest(d15N~Site, data=tetragnathidae)
-#No diff, probably because of the small sample size. 
+# Predator
 
+isotope_ad_pred<-subset(isotope_aq_ad, FFG=="Predator")
+shapiro.test(isotope_ad_pred$d15N) #0.575 normal distribution
+leveneTest(data=isotope_ad_pred, d15N~Site) #0.303, homogeneity of variance
+hist(isotope_ad_pred$d15N) 
+plot(isotope_ad_pred$d15N) #data evenly spread
 
-#### Hydropsychidae ####
+summary(N_ad_pred<-aov(data=isotope_ad_pred, d15N~Site, na.action = na.exclude)) #p = 0.004
+Anova(N_ad_pred, type=3) #p = 0.004
+emmeans(N_ad_pred, pairwise ~ Site)
 
-#Larvae
+plot(C_ad_pred)
 
-hydro_lar<-subset(isotope, Taxa_num=="2" & Stage=="Larvae")
-hydro_lar_d15N_plot<-ggplot(hydro_lar, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF")), y=d15N))+
-  geom_boxplot()+
-  theme_classic()+
-  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  xlab("Site")+
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=10),
-        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
-                        axis.title=element_text(size=16))
-
-hydro_lar_d15N_plot
-
-shapiro.test(hydro_lar$d15N)  #Not normal
-hist(hydro_lar$d15N) #not normal looking dist
-
-kruskal.test(d15N~Site, data=hydro_lar) #p=0.052
-dunnTest(d15N~Site, data=hydro_lar)
-#only diff btw graves bridge and sunalta
-
-#Adults
-
-hydro_ad<-subset(inverts, Taxa_num=="2" & Stage=="Adult")
-hydro_ad_d15N_plot<-ggplot(hydro_ad, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
-  geom_boxplot()+
-  theme_classic()+
-  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  xlab("Site")+
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=10),
-        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
-                        axis.title=element_text(size=16))
-hydro_ad_d15N_plot
-
-shapiro.test(hydro_ad$d15N)  #Not normal
-hist(log(hydro_ad$d15N)) #normal looking dist.
-
-kruskal.test(d15N~Site, data=hydro_ad) #p=0.044
-dunnTest(d15N~Site, data=hydro_ad)
-#Diff btw GRVBR - PMF
-
-
-#### Heptageniidae ####
-#Larvae
-larhep<-filter(inverts, Taxa=="Heptageniidae" & Stage=="Larvae")
-ggplot(larhep, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Graves Bridge is much higher in d15N
-
-shapiro.test(larhep$d15N)  #Normal
-hist(larhep$d15N) #normal looking dist.
-
-summary(hep_lm1<-lm(d15N~Site, data=larhep))
-emmeans(hep_lm1, specs = pairwise ~ Site)
-#Diff btw:
-#COCH - GRVBR
-#COCH - PMF
-#SUN - GRVBR
-#SUN - PMF
-#CUSHBR - GRVBR
-#CUSHBR - PMF
-#GRVBR - PMF
-
-
-#Adults
-adhep<-filter(inverts, Taxa=="Heptageniidae" &  Stage=="Adult")
-ggplot(adhep, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-
-#Not a large enough sample size to run stats
-
-#### Chironomidae ####
-#Larvae
-larchiro<-filter(inverts, Taxa=="Chironomidae" & Stage=="Larvae")
-ggplot(larchiro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not a large enough sample size to run stats
-
-#Adult
-adchiro<-filter(inverts, Taxa=="Chironomidae" & Stage=="Adult")
-ggplot(adchiro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not enough to really compare at Graves Bridge but might not be significantly higher than the other sites
-
-#### Chloroperlidae ####
-#larvae
-larchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Larvae")
-
-ggplot(larchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-
-shapiro.test(larchloro$d15N)  #Normal
-hist(larchloro$d15N) #Not normal looking.
-
-summary(chloro_lm1<-lm(d15N~Site, data=larchloro))
-emmeans(chloro_lm1, specs = pairwise ~ Site)
-#SUN - GRVBR p=0.0006
-#CUSHBR - GRVBR p < 0.001
-
-#adults
-adchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Adult")
-ggplot(adchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not enough samples for statistical comparison
-
-#### Perlidae ####
-
-#larvae
-larchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Larvae")
-
-ggplot(larchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-
-shapiro.test(larchloro$d15N)  #Normal
-hist(larchloro$d15N) #Not normal looking.
-
-summary(chloro_lm1<-lm(d15N~Site, data=larchloro))
-emmeans(chloro_lm1, specs = pairwise ~ Site)
-#SUN - GRVBR p=0.0006
-#CUSHBR - GRVBR p < 0.001
-
-#adults
-adchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Adult")
-ggplot(adchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not enough samples for statistical comparison
-
-#### Ephemerellidae ####
-#Larvae
-larephem<-subset(inverts, Taxa=="Ephemerellidae" & Stage=="Larvae")
-ggplot(larephem, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Higher at Graves Bridge
-
-shapiro.test(larephem$d15N)  #Normal
-hist(larephem$d15N) #Not normal looking.
-
-kruskal.test(d15N~Site, data=larephem) #p=0.066
-dunnTest(d15N~Site, data=larephem) #no diff
-
-#Adults
-adephem<-subset(inverts, Taxa=="Ephemerellidae" & Stage=="Adult")
-ggplot(adephem, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Higher at Graves Bridge
-
-#Not enough samples to run stats
 
+#### Terrestrial adults ####
 
+isotope_terr_ad<-subset(isotope_subset_no_food_sources, Stage=="Terrestrial adult")
+shapiro.test(isotope_terr_ad$d15N) #0.356 normal distribution
+leveneTest(data=isotope_terr_ad, d15N~Site) #0.953, homogeneity of variance
+hist(isotope_terr_ad$d15N) #looks uniform
+plot(isotope_terr_ad$d15N) #data looks evenly spread
+
+summary(N_terr_ad<-lm(data=isotope_terr_ad, d15N~Site, na.action = na.exclude))
+Anova(N_terr_ad, type=3) #p=0.011
+
+plot(N_terr_ad) #Fits assumptions of ANOVA/lm pretty well
+
+pairs(emmeans(N_terr_ad, ~Site)) 
+
+
+#### Spiders ####
+
+isotope_spiders<-subset(isotope_subset_no_food_sources, Stage=="Spider")
+shapiro.test(isotope_spiders$d15N) #p<0.001 not normal distribution
+leveneTest(data=isotope_spiders, d15N~Site) #0.234, homogeneity of variance
+hist(isotope_spiders$d15N) #looks right skewed
+plot(isotope_spiders$d15N) #data have a non-random pattern
+
+kruskal.test(data=isotope_spiders, d15N~Site) #p=0.0054
+dunnTest(data=isotope_spiders, d15N~Site)
+
+plot(C_spiders) #Fits assumptions of ANOVA/lm pretty well
 ```
 
-# Carbon isotope
+# Carbon isotope plots and ANOVAs across sites
 
 ```{r}
 #### C plot across sites ####
@@ -876,273 +774,184 @@ C_plot_taxa_subset_no_food_sources
 
 #ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\C plot across FFG and stage subsetted data.png", height=10, width=26)
 
-#### ANOVA across sites and individual taxa ####
+#### ANOVA across all FFGs and sites ####
+
+
+isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
+
+isotope_subset_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves")
+
+isotope_subset_no_food_sources$Stage<-factor(isotope_subset_no_food_sources$Stage, levels=c("Aquatic larvae", "Aquatic adult","Terrestrial adult","Spider"))
+
+isotope_subset_no_food_sources$Site_Code<-factor(isotope_subset_no_food_sources$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+
+isotope_subset_no_food_sources$FFG<-factor(isotope_subset_no_food_sources$FFG, levels=c("Scraper", "Gatherer-Collector", "Filterer-Collector", "Predator", "Piercer"))
+
+str(isotope_subset_no_food_sources)
+
 
 #All stages and FFGs together
 
 shapiro.test(isotope_subset_no_food_sources$d13C) #0.169
 leveneTest(data=isotope_subset_no_food_sources, d13C~Site*FFG*Stage) #0.334
-plot(isotope_subset_no_food_sources$d13C)
+hist(isotope_subset_no_food_sources$d13C) #looks normal
+plot(isotope_subset_no_food_sources$d13C) #looks evenly spread
 
-summary(C_FFG<-aov(data=isotope_subset_no_food_sources, d13C~Site+FFG+Stage))
-emmeans(C_FFG, pairwise ~ Site | FFG)
-emmeans(C_FFG, pairwise ~ Site | Stage)
-emmeans(C_FFG, pairwise ~ Stage | FFG)
+C_FFG_1<-lm(data=isotope_subset_no_food_sources, d13C~Site*FFG*Stage)
+Anova(C_FFG_1, type=3) #Error in Anova.III.lm(mod, error, singular.ok = singular.ok, ...) : there are aliased coefficients in the model. Probably due to 2 of the stages only having one FFG level?
 
-#Aquatic larvae
+plot(C_FFG_1)
 
-isotope_subset_only_lar_no_food_sources<-subset(isotope_subset_lar_no_food_sources, Stage=="Aquatic larvae")
+C_FFG_1_emm<-emmeans(C_FFG_1, ~ Site | Stage | FFG)
+pairs(C_FFG_1_emm, simple="each")
 
-shapiro.test(isotope_subset_only_lar_no_food_sources$d13C)  #Normal, p = 0.087
-leveneTest(data=isotope_subset_only_lar_no_food_sources, d13C~Site*FFG) #homogeneity p = 0.653
-hist(isotope_subset_only_lar_no_food_sources$d13C) #decently normal 
 
+#### Aquatic Larvae ####
 
-#Parametric test
+isotope_aq_lar<-subset(isotope_subset_no_food_sources, Stage=="Aquatic larvae")
+shapiro.test(isotope_aq_lar$d13C) #0.087 #normal distribution
+leveneTest(data=isotope_aq_lar, d13C~Site*FFG) #0.653, homogeneity of variance
+hist(isotope_aq_lar$d13C) #looks decently normal, slightly right skewed
+plot(isotope_aq_lar$d13C) #data looks evenly spread
 
-summary(C_lar_FFG<-aov(data=isotope_subset_only_lar_no_food_sources, d13C~Site+FFG))
-emmeans(C_lar_FFG, pairwise ~ Site | FFG)
+summary(C_lar_FFG_1<-lm(data=isotope_aq_lar, d13C~FFG*Site, na.action = na.exclude)) #No interactions btw FFG and Site, run each FFG separately
+Anova(C_lar_FFG_1, type=3) #Aliased coefficients, run FFG separately
 
-plot(C_lar_FFG) #Not completely normal but only slightly deviates from QQ-plot
+# Scrapers 
 
+isotope_lar_scrapers<-subset(isotope_aq_lar, FFG=="Scraper")
 
-#Aquatic adults
+shapiro.test(isotope_lar_scrapers$d13C) #0.890 normal distribution
+leveneTest(data=isotope_lar_scrapers, d13C~Site) #0.935, homogeneity of variance
+hist(isotope_lar_scrapers$d13C) #looks normal-ish
+plot(isotope_lar_scrapers$d13C) #data looks evenly spread
 
-isotope_subset_only_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Aquatic adult")
+summary(C_lar_scraper<-aov(data=isotope_lar_scrapers, d13C~Site, na.action = na.exclude)) #p=0.005
+Anova(C_lar_scraper, type=3) #p=0.005
 
-shapiro.test(isotope_subset_only_ad_no_food_sources$d13C)  #Normal, p = 0.435
-leveneTest(data=isotope_subset_only_ad_no_food_sources, d13C~Site*Taxa) #homogeneity p = 0.07
-hist(isotope_subset_only_ad_no_food_sources$d13C) #looks decently normal, uniform-ish
+emmeans(C_lar_scraper, pairwise ~ Site)
 
-#Parametric test
+plot(C_lar_scraper) #Adheres to assumptions
 
-summary(C_ad_FFG<-aov(data=isotope_subset_only_ad_no_food_sources, d13C~Site+FFG))
-emmeans(C_ad_FFG, pairwise ~ Site | FFG)
+# Gatherer - Collector
 
-plot(C_ad_FFG) #Not completely normal but only slightly deviates from QQ-plot
+isotope_lar_gath<-subset(isotope_aq_lar, FFG=="Gatherer-Collector")
 
+shapiro.test(isotope_lar_gath$d13C) #0.188 normal distribution
+leveneTest(data=isotope_lar_gath, d13C~Site) #0.344, homogeneity of variance
+hist(isotope_lar_gath$d13C) #looks potentially a bit right skewed
+plot(isotope_lar_gath$d13C) #data looks evenly spread
 
-#Terrestrial Adults
+summary(C_lar_gath<-aov(data=isotope_lar_gath, d13C~Site, na.action = na.exclude)) #p < 0.001
+Anova(C_lar_gath, type=3) #p<0.001
 
-isotope_subset_only_terr_ad_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Terrestrial adult")
+emmeans(C_lar_gath, pairwise ~ Site)
 
-shapiro.test(isotope_subset_only_terr_ad_no_food_sources$d13C)  #Normal, p = 0.43
-leveneTest(data=isotope_subset_only_terr_ad_no_food_sources, d13C~Site) #homogeneity p = 0.88
-hist(isotope_subset_only_terr_ad_no_food_sources$d13C) #looks uniform
+plot(C_lar_gath) #Adheres to assumptions
 
-#Parametric test
 
-summary(C_terr_ad_FFG<-aov(data=isotope_subset_only_terr_ad_no_food_sources, d13C~Site))
-emmeans(C_terr_ad_FFG, pairwise ~ Site) #No differences
+# Predator
 
-plot(C_terr_ad_FFG) #Fits assumptions of normality
+isotope_lar_pred<-subset(isotope_aq_lar, FFG=="Predator")
 
+shapiro.test(isotope_lar_pred$d13C) #0.0071 not normal distribution
+leveneTest(data=isotope_lar_pred, d13C~Site) #0.396, homogeneity of variance
+hist(isotope_lar_pred$d13C) #not very normal
+plot(isotope_lar_pred$d13C) #not evenly spread
 
-#Spiders
+kruskal.test(data=isotope_lar_pred, d13C~Site) #p=0.068
+dunnTest(data=isotope_lar_pred, d13C~Site) #no differences
 
-isotope_subset_only_spiders_no_food_sources<-subset(isotope_subset_no_food_sources, Stage=="Spider")
+summary(C_lar_pred<-aov(data=isotope_lar_pred, d13C~Site, na.action = na.exclude)) #p = 0.111
+Anova(C_lar_pred, type=3) #p=0.111
 
-shapiro.test(isotope_subset_only_spiders_no_food_sources$d13C)  #Not normal, p = 0.27
-leveneTest(data=isotope_subset_only_spiders_no_food_sources, d13C~Site) #homogeneity p = 0.13
-hist(isotope_subset_only_spiders_no_food_sources$d13C) #looks decently normal
+emmeans(C_lar_pred, pairwise ~ Site) #no diff
 
-#Non-parametric test
+plot(C_lar_pred) #Adheres to assumptions
 
-summary(C_spiders_FFG<-aov(data=isotope_subset_only_spiders_no_food_sources, d13C~Site))
-emmeans(C_spiders_FFG, pairwise ~ Site) #Cochrane more negative than all other sites
+#### Aquatic Adults ####
 
-plot(C_spiders_FFG) #Fits assumptions of normality
+isotope_aq_ad<-subset(isotope_subset_no_food_sources, Stage=="Aquatic adult")
+shapiro.test(isotope_aq_ad$d13C) #0.435 normal distribution
+leveneTest(data=isotope_aq_ad, d13C~Site*FFG) #0.535, homogeneity of variance
+hist(isotope_aq_ad$d13C) #looks decently normal, potentially uniform-ish?
+plot(isotope_aq_ad$d13C) #data looks evenly spread
 
-#### Araneidae ####
-araneidae<-subset(inverts, Taxa=="Araneidae")
-ggplot(araneidae, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Much higher in d15N at Graves Bridge. 
+summary(C_ad_FFG_1<-aov(data=isotope_aq_ad, d13C~FFG*Site, na.action = na.exclude)) #No interactions btw FFG and Site, run FFGs separately
+Anova(C_ad_FFG_1, type=3) #Error in Anova.III.lm(mod, error, singular.ok = singular.ok, ...) : there are aliased coefficients in the model. Run FFGs separately
 
-shapiro.test(araneidae$d15N)  #Not normal
+# Gatherer - Collector
 
-kruskal.test(d15N~Site, data=araneidae) #p=0.061. Probably due to small sample size
-dunnTest(d15N~Site, data=araneidae)
-#GRVBR - PMF p=0.034
+isotope_ad_gath<-subset(isotope_aq_ad, FFG=="Gatherer-Collector")
+shapiro.test(isotope_ad_gath$d13C) #0.755 normal distribution
+leveneTest(data=isotope_ad_gath, d13C~Site) #0.959, homogeneity of variance
+hist(isotope_ad_gath$d13C) #looks normal
+plot(isotope_ad_gath$d13C) #data looks evenly spread
 
-#### Tetragnathidae ####
-tetragnathidae<-subset(inverts, Taxa=="Tetragnathidae")
-ggplot(tetragnathidae, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Much higher in d15N at Graves Bridge.
+summary(C_ad_gath<-aov(data=isotope_ad_gath, d13C~Site, na.action = na.exclude)) #p=0.14
+Anova(C_ad_gath, type=3) #p=0.14
+emmeans(C_ad_gath, pairwise ~ Site) #no differences
 
-shapiro.test(tetragnathidae$d15N)  #Not normal
+# Filterer - Collector
 
-kruskal.test(d15N~Site, data=tetragnathidae) #p=0.136
-dunnTest(d15N~Site, data=tetragnathidae)
-#No diff, probably because of the small sample size. 
+isotope_ad_filt<-subset(isotope_aq_ad, FFG=="Filterer-Collector")
+shapiro.test(isotope_ad_filt$d13C) #0.285 normal distribution
+leveneTest(data=isotope_ad_filt, d13C~Site) #0.242, homogeneity of variance
+hist(isotope_ad_filt$d13C) #Doesn't really look normal
+plot(isotope_ad_filt$d13C) #data not evenly spread
 
+summary(C_ad_filt<-aov(data=isotope_ad_filt, d13C~Site, na.action = na.exclude)) #p < 0.001
+Anova(C_ad_filt, type=3) #p<0.001
+emmeans(C_ad_filt, pairwise ~ Site) #no differences
 
-#### Hydropsychidae ####
 
-#Larvae
-
-hydro_lar<-subset(isotope, Taxa_num=="2" & Stage=="Larvae")
-hydro_lar_d15N_plot<-ggplot(hydro_lar, aes(x=factor(Site, labels=c("COCH", "SUN", "GRVBR", "PMF")), y=d15N))+
-  geom_boxplot()+
-  theme_classic()+
-  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  xlab("Site")+
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=10),
-        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
-                        axis.title=element_text(size=16))
-
-hydro_lar_d15N_plot
-
-shapiro.test(hydro_lar$d15N)  #Not normal
-hist(hydro_lar$d15N) #not normal looking dist
-
-kruskal.test(d15N~Site, data=hydro_lar) #p=0.052
-dunnTest(d15N~Site, data=hydro_lar)
-#only diff btw graves bridge and sunalta
-
-#Adults
-
-hydro_ad<-subset(inverts, Taxa_num=="2" & Stage=="Adult")
-hydro_ad_d15N_plot<-ggplot(hydro_ad, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=d15N))+
-  geom_boxplot()+
-  theme_classic()+
-  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
-  xlab("Site")+
-  theme(axis.title.y=element_text(size=16),
-        axis.text.y=element_text(size=10),
-        axis.text.x=element_text(size=10, color="black", angle=45, vjust=0.8, hjust=0.9),
-                        axis.title=element_text(size=16))
-hydro_ad_d15N_plot
-
-shapiro.test(hydro_ad$d15N)  #Not normal
-hist(log(hydro_ad$d15N)) #normal looking dist.
-
-kruskal.test(d15N~Site, data=hydro_ad) #p=0.044
-dunnTest(d15N~Site, data=hydro_ad)
-#Diff btw GRVBR - PMF
-
-
-#### Heptageniidae ####
-#Larvae
-larhep<-filter(inverts, Taxa=="Heptageniidae" & Stage=="Larvae")
-ggplot(larhep, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Graves Bridge is much higher in d15N
-
-shapiro.test(larhep$d15N)  #Normal
-hist(larhep$d15N) #normal looking dist.
-
-summary(hep_lm1<-lm(d15N~Site, data=larhep))
-emmeans(hep_lm1, specs = pairwise ~ Site)
-#Diff btw:
-#COCH - GRVBR
-#COCH - PMF
-#SUN - GRVBR
-#SUN - PMF
-#CUSHBR - GRVBR
-#CUSHBR - PMF
-#GRVBR - PMF
-
-
-#Adults
-adhep<-filter(inverts, Taxa=="Heptageniidae" &  Stage=="Adult")
-ggplot(adhep, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-
-#Not a large enough sample size to run stats
-
-#### Chironomidae ####
-#Larvae
-larchiro<-filter(inverts, Taxa=="Chironomidae" & Stage=="Larvae")
-ggplot(larchiro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not a large enough sample size to run stats
-
-#Adult
-adchiro<-filter(inverts, Taxa=="Chironomidae" & Stage=="Adult")
-ggplot(adchiro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not enough to really compare at Graves Bridge but might not be significantly higher than the other sites
-
-#### Chloroperlidae ####
-#larvae
-larchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Larvae")
-
-ggplot(larchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-
-shapiro.test(larchloro$d15N)  #Normal
-hist(larchloro$d15N) #Not normal looking.
-
-summary(chloro_lm1<-lm(d15N~Site, data=larchloro))
-emmeans(chloro_lm1, specs = pairwise ~ Site)
-#SUN - GRVBR p=0.0006
-#CUSHBR - GRVBR p < 0.001
-
-#adults
-adchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Adult")
-ggplot(adchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not enough samples for statistical comparison
-
-#### Perlidae ####
-
-#larvae
-larchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Larvae")
-
-ggplot(larchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-
-shapiro.test(larchloro$d15N)  #Normal
-hist(larchloro$d15N) #Not normal looking.
-
-summary(chloro_lm1<-lm(d15N~Site, data=larchloro))
-emmeans(chloro_lm1, specs = pairwise ~ Site)
-#SUN - GRVBR p=0.0006
-#CUSHBR - GRVBR p < 0.001
-
-#adults
-adchloro<-filter(inverts, Taxa=="Chloroperlidae" & Stage=="Adult")
-ggplot(adchloro, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Not enough samples for statistical comparison
-
-#### Ephemerellidae ####
-#Larvae
-larephem<-subset(inverts, Taxa=="Ephemerellidae" & Stage=="Larvae")
-ggplot(larephem, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Higher at Graves Bridge
-
-shapiro.test(larephem$d15N)  #Normal
-hist(larephem$d15N) #Not normal looking.
-
-kruskal.test(d15N~Site, data=larephem) #p=0.066
-dunnTest(d15N~Site, data=larephem) #no diff
-
-#Adults
-adephem<-subset(inverts, Taxa=="Ephemerellidae" & Stage=="Adult")
-ggplot(adephem, aes(x=Site, y=d15N))+
-  geom_boxplot()+
-  theme_classic()
-#Higher at Graves Bridge
-
-#Not enough samples to run stats
+# Predator
 
+isotope_ad_pred<-subset(isotope_aq_ad, FFG=="Predator")
+shapiro.test(isotope_ad_pred$d13C) #0.943 normal distribution
+leveneTest(data=isotope_ad_pred, d13C~Site) #0.255, homogeneity of variance
+hist(isotope_ad_pred$d13C) #Sort of normal
+plot(isotope_ad_pred$d13C) #data evenly spread
 
+summary(C_ad_pred<-aov(data=isotope_ad_pred, d13C~Site, na.action = na.exclude)) #p = 0.066
+Anova(C_ad_pred, type=3) #p = 0.066
+emmeans(C_ad_pred, pairwise ~ Site) #no differences
+
+plot(C_ad_pred)
+
+
+#### Terrestrial adults ####
+
+isotope_terr_ad<-subset(isotope_subset_no_food_sources, Stage=="Terrestrial adult")
+shapiro.test(isotope_terr_ad$d13C) #0.431 normal distribution
+leveneTest(data=isotope_terr_ad, d13C~Site*FFG) #0.877, homogeneity of variance
+hist(isotope_terr_ad$d13C) #looks uniform
+plot(isotope_terr_ad$d13C) #data looks evenly spread
+
+summary(C_terr_ad<-lm(data=isotope_terr_ad, d13C~Site, na.action = na.exclude))
+Anova(C_terr_ad, type=3) #Not significantly different
+
+plot(C_terr_ad) #Fits assumptions of ANOVA/lm pretty well
+
+pairs(emmeans(C_terr_ad, ~Site)) #No differences
+
+
+#### Spiders ####
+
+isotope_spiders<-subset(isotope_subset_no_food_sources, Stage=="Spider")
+shapiro.test(isotope_spiders$d13C) #0.275 normal distribution
+leveneTest(data=isotope_spiders, d13C~Site*FFG) #0.130, homogeneity of variance
+hist(isotope_spiders$d13C) #looks decently normal
+plot(isotope_spiders$d13C) #data have a non-random pattern
+
+summary(C_spiders<-lm(data=isotope_spiders, d13C~Site, na.action = na.exclude))
+Anova(C_spiders, type=3)
+
+plot(C_spiders) #Fits assumptions of ANOVA/lm pretty well
+
+
+emm.spiders.c<-emmeans(C_spiders, ~ Site)
+pairs(emm.spiders.c, simple="each")
 
 ```
 
@@ -1160,166 +969,113 @@ annotate_figure(C_N_combined, bottom = textGrob("Site", gp = gpar(cex = 1.6)))
 ```
 
 
-# Food source reliance graph
+# Mean +/- SD C vs N of inverts across sites with basal food source median values graph
 
 ```{r}
+#### Carbon ####
 
-isotope_subset<-subset(isotope, FFG!="Basal food source")%>%
-  dplyr::select("Site_Code", "Taxa","d13C", "FFG")%>%
-  group_by(Site_Code, Taxa, FFG)%>%
+isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
+
+isotope_subset$Site<-factor(isotope_subset$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
+
+isotope_biofilm<-subset(isotope_subset, Taxa=="Biofilm")
+
+isotope_biofilm_C<-isotope_biofilm %>%
+  dplyr::select("Site", "d13C")%>%
+  group_by(Site)%>%
+  summarise(MedianC = median(d13C))
+
+isotope_leaves<-subset(isotope_subset, Taxa=="Terrestrial Leaves")
+
+isotope_leaves_C<-isotope_leaves %>%
+  dplyr::select("Site", "d13C")%>%
+  group_by(Site)%>%
+  summarise(MedianC = median(d13C))
+
+
+isotope_subset_no_food_sources_C<-isotope_subset_no_food_sources%>%
+  dplyr::select("Site", "FFG","Taxa_Specific", "d13C")%>%
+  group_by(Site, FFG, Taxa_Specific)%>%
   summarise(MeanC = mean(d13C), sdC = sd(d13C))
 
-Ylims<-aes(ymax=MeanC +sdC, ymin=MeanC-sdC)
+Ylims_C<-aes(ymax=MeanC + sdC, ymin=MeanC-sdC)
 
-isotope_subset$Site_Code<-factor(isotope_subset$Site_Code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+isotope_subset_no_food_sources_C$Taxa_Specific<-factor(isotope_subset_no_food_sources_C$Taxa_Specific, levels=c("Chironomidae Larvae", "Chloroperlidae Larvae", "Ephemerellidae Larvae", "Heptageniidae Larvae", "Perlidae Larvae", "Chironomidae Adult", "Chloroperlidae Adult", "Ephemerellidae Adult", "Hydropsychidae Adult", "Lepidoptera Adult", "Leptoceridae Adult", "Rhyacophilidae Adult", "Araneidae", "Tetragnathidae"))
 
-ggplot(isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
-  geom_point(size=4)+
-  facet_grid(~Site_Code)+
+C_reliance_graph<-ggplot(isotope_subset_no_food_sources_C, aes(x=FFG, y=MeanC, shape=FFG, color=Taxa_Specific))+
+  geom_point(size=6)+
+  facet_grid(~Site)+
   theme_bw() +
   rremove("grid")+
-  geom_errorbar(Ylims)+
+  geom_errorbar(Ylims_C)+
+   labs(shape="Functional Feeding Group", colour="Invertebrate Taxa")+
+  geom_hline(data=isotope_biofilm_C, aes(yintercept=MedianC), linetype='dashed', color='red', linewidth=1)+ #Biofilm
+  geom_hline(data=isotope_leaves_C, aes(yintercept=MedianC), linetype='dashed', color='blue', linewidth=1)+ #leaves
   ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=18, color="black"))+
-  ylim(-33, -6)
+  theme(axis.text.y = element_text(size=20, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=22, color="black"), strip.text.x = element_text(size=20, color="black"), legend.text = element_text(size=20), legend.title = element_text(size=22, color="black"))+
+  scale_color_manual(values=c( '#800000', '#e6194B', '#f58231','#ffe119', '#aaffc3', '#3cb44b', '#469990', '#42d4f4', '#4363d8', '#000075', '#dcbeff', '#f032e6', '#fabed4', '#9A6324'))+
+  scale_shape_manual(values=c(16, 17, 15, 18, 7))
+C_reliance_graph
 
 
-# Cochrane #
+#### Nitrogen ####
 
-coch_biofilm<-subset(biofilm, Site=="COCH")
-mean(coch_biofilm$d13C) #-14.57
+isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
 
-coch_shrub<-subset(shrub, Site=="Cochrane")
-mean(coch_shrub$d13C) #-29.07
+isotope_subset$Site<-factor(isotope_subset$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 
-cochrane_isotope_subset<-subset(isotope, Site=="COCH" & FFG!="Basal food source")%>%
-  dplyr::select("Taxa","d13C", "FFG")%>%
-  group_by(Taxa, FFG)%>%
-  summarise(MeanC = mean(d13C), sdC = sd(d13C))
-View(cochrane_isotope_subset) 
+isotope_biofilm<-subset(isotope_subset, Taxa=="Biofilm")
 
-Ylims<-aes(ymax=MeanC +sdC, ymin=MeanC-sdC)
+isotope_biofilm_N<-isotope_biofilm %>%
+  dplyr::select("Site", "d15N")%>%
+  group_by(Site)%>%
+  summarise(MedianN = median(d15N))
 
-coch_food_source<-ggplot(cochrane_isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
-  geom_point(size=4)+
+isotope_leaves<-subset(isotope_subset, Taxa=="Terrestrial Leaves")
+
+isotope_leaves_N<-isotope_leaves %>%
+  dplyr::select("Site", "d15N")%>%
+  group_by(Site)%>%
+  summarise(MedianN = median(d15N))
+
+
+isotope_subset_no_food_sources_N<-isotope_subset_no_food_sources%>%
+  dplyr::select("Site", "FFG","Taxa_Specific", "d15N")%>%
+  group_by(Site, FFG, Taxa_Specific)%>%
+  summarise(MeanN = mean(d15N), sdN = sd(d15N))
+
+Ylims_N<-aes(ymax=MeanN + sdN, ymin=MeanN-sdN)
+
+isotope_subset_no_food_sources_N$Taxa_Specific<-factor(isotope_subset_no_food_sources_N$Taxa_Specific, levels=c("Chironomidae Larvae", "Chloroperlidae Larvae", "Ephemerellidae Larvae", "Heptageniidae Larvae", "Perlidae Larvae", "Chironomidae Adult", "Chloroperlidae Adult", "Ephemerellidae Adult", "Hydropsychidae Adult", "Lepidoptera Adult", "Leptoceridae Adult", "Rhyacophilidae Adult", "Araneidae", "Tetragnathidae"))
+
+
+N_reliance_graph<-ggplot(isotope_subset_no_food_sources_N, aes(x=FFG, y=MeanN, shape=FFG, color=Taxa_Specific))+
+  geom_point(size=6)+
+  facet_grid(~Site)+
   theme_bw() +
   rremove("grid")+
-  geom_hline(yintercept = -14.57, linetype = 2, color = "red")+
-  geom_hline(yintercept = -29.07, linetype = 2, color = "blue")+
-  geom_errorbar(Ylims)+
-  xlab("Invertebrate Taxa")+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_text(size=16, color="black", angle=45, vjust=1, hjust=1), axis.title = element_text(size=18, color="black"))
-
-# Sunalta #
-
-sun_biofilm<-subset(biofilm, Site=="SUN")
-mean(sun_biofilm$d13C) #-13.23
-
-sun_shrub<-subset(shrub, Site=="Sunalta")
-mean(sun_shrub$d13C) #-28.4
-
-sunalta_isotope_subset<-subset(isotope, Site=="SUN" & FFG!="Basal food source")%>%
-  dplyr::select("Taxa","d13C", "FFG")%>%
-  group_by(Taxa, FFG)%>%
-  summarise(MeanC = mean(d13C), sdC = sd(d13C))
-View(sunalta_isotope_subset) 
-
-sun_food_source<-ggplot(sunalta_isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
-  geom_point(size=4)+
-  theme_bw() +
-  rremove("grid")+
-  geom_hline(yintercept = -13.23, linetype = 2, color = "red")+
-  geom_hline(yintercept = -28.4, linetype = 2, color = "blue")+
-  geom_errorbar(Ylims)+
-  xlab("Invertebrate Taxa")+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_text(size=16, color="black", angle=45, vjust=1, hjust=1), axis.title = element_text(size=18, color="black"))
+  geom_errorbar(Ylims_N)+
+   labs(shape="Functional Feeding Group", colour="Invertebrate Taxa")+
+  geom_hline(data=isotope_biofilm_N, aes(yintercept=MedianN), linetype='dashed', color='red', linewidth=1)+ #Biofilm
+  geom_hline(data=isotope_leaves_N, aes(yintercept=MedianN), linetype='dashed', color='blue', linewidth=1)+ #leaves
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.text.y = element_text(size=20, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=22, color="black"), strip.text.x = element_text(size=20, color="black"), legend.text = element_text(size=20), legend.title = element_text(size=22, color="black"))+
+  scale_color_manual(values=c( '#800000', '#e6194B', '#f58231','#ffe119', '#aaffc3', '#3cb44b', '#469990', '#42d4f4', '#4363d8', '#000075', '#dcbeff', '#f032e6', '#fabed4', '#9A6324'))+
+scale_shape_manual(values=c(16, 17, 15, 18, 7))
+ 
+N_reliance_graph
 
 
-# Cushing Bridge #
+#### Combining C and N graphs ####
 
-cush_biofilm<-subset(biofilm, Site=="CUSHBR")
-mean(cush_biofilm$d13C) #-8.47
+C_reliance<-C_reliance_graph + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + theme(legend.position="none")
+N_reliance<-N_reliance_graph + theme(axis.title.x = element_blank(), legend.position="right")
 
-cush_shrub<-subset(shrub, Site=="Cushing Bridge")
-mean(cush_shrub$d13C) #-28.67
+C_N_combined_reliance<-ggarrange(C_reliance, N_reliance, nrow=2, ncol=1, align="v", common.legend = T, legend = "right")
 
-cush_isotope_subset<-subset(isotope, Site=="CUSHBR" & FFG!="Basal food source")%>%
-  dplyr::select("Taxa","d13C", "FFG")%>%
-  group_by(Taxa, FFG)%>%
-  summarise(MeanC = mean(d13C), sdC = sd(d13C))
+C_N_combined_reliance 
 
-cush_food_source<-ggplot(cush_isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
-  geom_point(size=4)+
-  theme_bw() +
-  rremove("grid")+
-  geom_hline(yintercept = -8.47, linetype = 2, color = "red")+
-  geom_hline(yintercept = -28.67, linetype = 2, color = "blue")+
-  geom_errorbar(Ylims)+
-  xlab("Invertebrate Taxa")+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_text(size=16, color="black", angle=45, vjust=1, hjust=1), axis.title = element_text(size=18, color="black"))
-cush_food_source
-
-
-# Graves Bridge
-
-grvbr_biofilm<-subset(biofilm, Site=="GRVBR")
-mean(grvbr_biofilm$d13C) #-18.27
-
-grvbr_shrub<-subset(shrub, Site=="Graves Bridge")
-mean(grvbr_shrub$d13C) #-28.83
-
-grvbr_isotope_subset<-subset(isotope, Site=="GRVBR" & FFG!="Basal food source")%>%
-  dplyr::select("Taxa","d13C", "FFG")%>%
-  group_by(Taxa, FFG)%>%
-  summarise(MeanC = mean(d13C), sdC = sd(d13C))
-
-grvbr_food_source<-ggplot(grvbr_isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
-  geom_point(size=4)+
-  theme_bw() +
-  rremove("grid")+
-  geom_hline(yintercept = -18.27, linetype = 2, color = "red")+
-  geom_hline(yintercept = -28.83, linetype = 2, color = "blue")+
-  geom_errorbar(Ylims)+
-  xlab("Invertebrate Taxa")+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_text(size=16, color="black", angle=45, vjust=1, hjust=1), axis.title = element_text(size=18, color="black"))
-grvbr_food_source
-
-# Policeman Flats
-
-pmf_biofilm<-subset(biofilm, Site=="PMF")
-mean(pmf_biofilm$d13C) #-25.7
-
-pmf_shrub<-subset(shrub, Site=="Policeman Flats")
-mean(pmf_shrub$d13C) #-27.52
-
-pmf_isotope_subset<-subset(isotope, Site=="PMF" & FFG!="Basal food source")%>%
-  dplyr::select("Taxa","d13C", "FFG")%>%
-  group_by(Taxa, FFG)%>%
-  summarise(MeanC = mean(d13C), sdC = sd(d13C))
-
-pmf_food_source<-ggplot(pmf_isotope_subset, aes(x=Taxa, y=MeanC, color=Taxa, shape=FFG))+
-  geom_point(size=4)+
-  theme_bw() +
-  rremove("grid")+
-  geom_hline(yintercept = -25.7, linetype = 2, color = "red")+
-  geom_hline(yintercept = -27.52, linetype = 2, color = "blue")+
-  geom_errorbar(Ylims)+
-  xlab("Invertebrate Taxa")+
-  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
-  theme(axis.text.y = element_text(size=16, color="black"), axis.text.x=element_text(size=16, color="black", angle=45, vjust=1, hjust=1), axis.title = element_text(size=18, color="black"))
-pmf_food_source
-
-#ggarrange(coch_food_source, sun_food_source, cush_food_source, grvbr_food_source, pmf_food_source, nrow=1)
-
-
-#### Only primary consumers ####
-
-
-
+#ggsave(filename="stable_isotope_analysis/Figures/C and N reliance graph.png", height=12, width=20, bg="white")
 ```
 
 
