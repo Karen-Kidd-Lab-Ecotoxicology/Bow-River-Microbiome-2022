@@ -37,7 +37,7 @@ library(ggh4x)
 library(car)
 library(grid)
 
-isotope<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_1.csv")
+isotope<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022.csv")
 isotope$Site<-factor(isotope$Site, levels=c("Cochrane", "Sunalta", "Cushing Bridge", "Graves Bridge", "Policeman Flats"))
 ```
 
@@ -59,8 +59,6 @@ grvbr_ad<-subset(inverts, Site=="Graves Bridge" & Stage=="Adult") #18
 pmf_ad<-subset(inverts, Site=="Policeman Flats" & Stage=="Adult")#14
 
 #Spiders n = 3/family/site
-
-
 
 summary_taxa<-isotope %>% 
   dplyr::select("Taxa", "Stage", "d13C", "d15N", "Site")%>%
@@ -213,7 +211,7 @@ hist(all_biofilm$d13C) #not normal looking
 #Cochrane
 coch_biofilm<-subset(all_biofilm, Site=="Cochrane")
 shapiro.test(coch_biofilm$d13C) #p=0.26, normal
-t.test(d13C~Stage, data=coch_biofilm) #0.36, not sig diff
+t.test(d13C~Stage, data=coch_biofilm, paired=T) #0.199, not sig diff
 kruskal.test(d13C ~ Stage, data=coch_biofilm) #p=0.49, not sig different
 
 #Sunalta
@@ -583,6 +581,9 @@ View(summary_FFG_ad)
 
 isotope_subset<-read.csv("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\StableIsotope2022_subset.csv")
 
+#Removed 27 total: COCH_Ad_Hydro_SI_1, COCH_Ad_Hydro_SI_2, COCH_Lar_Hydro_SI_1, COCH_Lar_Hydro_SI_2, CUSHBR_Ad_Mayfly_1_SI_1, CUSHBR_Ad_Rhya_SI_1, CUSHBR_Lar_Chiro_SI_1, CUSHBR_Lar_Mayfly_1_SI_1, CUSHBR_Lar_Mayfly_1_SI_2, GRVBR_Ad_Chiro_SI_1, GRVBR_Ad_Mayfly_1_SI_1, GRVBR_Coleop_SI_1, GRVBR_Coleop_SI_2, GRVBR_Coleop_SI_3, GRVBR_Lar_Hydro_SI_1, GRVBR_Lar_Hydro_SI_2, GRVBR_Lar_Hydro_SI_3, POLFLT_Ad_Mayfly_1_SI_1, POLFLT_Ad_Rhya_SI_1, POLFLT_Biofilm_SI_1, POLFLT_Coleop_SI_1, POLFLT_Lar_Hydro_SI_1, POLFLT_Lar_Hydro_SI_2, POLFLT_Lar_Hydro_SI_3, SUNAL_Ad_Mayfly_1_SI_1, SUNAL_Lar_Hydro_SI_1, SUNAL_Lar_Hydro_SI_2, 
+
+
 isotope_subset_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves")
 
 isotope_subset_no_food_sources$Stage<-factor(isotope_subset_no_food_sources$Stage, levels=c("Aquatic larvae", "Aquatic adult","Terrestrial adult","Spider"))
@@ -595,7 +596,7 @@ isotope_subset_no_food_sources$FFG<-factor(isotope_subset_no_food_sources$FFG, l
 #All stages and FFGs together
 
 shapiro.test(isotope_subset_no_food_sources$d15N) #0.112
-leveneTest(data=isotope_subset_no_food_sources, d15N~Site*FFG*Stage) #0.082
+leveneTest(data=isotope_subset_no_food_sources, d15N~Site*FFG*Stage) #0.076
 hist(isotope_subset_no_food_sources$d15N) #looks normal
 plot(isotope_subset_no_food_sources$d15N) #looks evenly spread
 
@@ -607,10 +608,10 @@ emmeans(N_FFG_1, pairwise ~ Site | FFG | Stage)
 #### Aquatic Larvae ####
 
 isotope_aq_lar<-subset(isotope_subset_no_food_sources, Stage=="Aquatic larvae")
-shapiro.test(isotope_aq_lar$d15N) #0.165 #normal distribution
-leveneTest(data=isotope_aq_lar, d15N~Site*FFG) #0.053, homogeneity of variance
+shapiro.test(isotope_aq_lar$d15N) #0.148 #normal distribution
+leveneTest(data=isotope_aq_lar, d15N~Site*FFG) #0.039, non homogeneity of variance
 hist(isotope_aq_lar$d15N) #looks potentially bimodel
-plot(isotope_aq_lar$d15N) #data looks evenly spread
+plot(isotope_aq_lar$d15N) #data may not be evenly spread
 
 summary(N_lar_FFG_1<-lm(data=isotope_aq_lar, d15N~FFG*Site, na.action = na.exclude)) #Some interactions btw FFG and Site
 Anova(N_lar_FFG_1, type=3) #Aliased coefficients, run FFG separately
@@ -629,7 +630,7 @@ Anova(N_lar_scraper, type=3) #p<0.001
 
 emmeans(N_lar_scraper, pairwise ~ Site)
 
-plot(N_lar_scraper) #Adheres to assumptions
+plot(N_lar_scraper) #Mostly adheres to assumptions
 
 # Gatherer - Collector
 
@@ -652,13 +653,13 @@ plot(N_lar_gath) #Adheres to assumptions
 
 isotope_lar_pred<-subset(isotope_aq_lar, FFG=="Predator")
 
-shapiro.test(isotope_lar_pred$d15N) #0.72 normal distribution
-leveneTest(data=isotope_lar_pred, d15N~Site) #0.187, homogeneity of variance
+shapiro.test(isotope_lar_pred$d15N) #0.50 normal distribution
+leveneTest(data=isotope_lar_pred, d15N~Site) #0.139, homogeneity of variance
 hist(isotope_lar_pred$d15N) #uniform ish
 plot(isotope_lar_pred$d15N) #evenly spread
 
-summary(N_lar_pred<-aov(data=isotope_lar_pred, d15N~Site, na.action = na.exclude)) #p = 0.004
-Anova(N_lar_pred, type=3) #p=0.004
+summary(N_lar_pred<-aov(data=isotope_lar_pred, d15N~Site, na.action = na.exclude)) #p = 0.0031
+Anova(N_lar_pred, type=3) #p=0.0031
 
 emmeans(N_lar_pred, pairwise ~ Site) 
 
@@ -687,6 +688,8 @@ summary(N_ad_gath<-aov(data=isotope_ad_gath, d15N~Site, na.action = na.exclude))
 Anova(N_ad_gath, type=3) #p=0.207
 emmeans(N_ad_gath, pairwise ~ Site) #no differences
 
+plot(N_ad_gath) #Scale location plot not great but rest is good
+
 # Filterer - Collector
 
 isotope_ad_filt<-subset(isotope_aq_ad, FFG=="Filterer-Collector")
@@ -699,6 +702,7 @@ summary(N_ad_filt<-aov(data=isotope_ad_filt, d15N~Site, na.action = na.exclude))
 Anova(N_ad_filt, type=3) #p<0.001
 emmeans(N_ad_filt, pairwise ~ Site)
 
+plot(N_ad_filt) #Scale location plot not great but rest is good
 
 # Predator
 
@@ -712,7 +716,7 @@ summary(N_ad_pred<-aov(data=isotope_ad_pred, d15N~Site, na.action = na.exclude))
 Anova(N_ad_pred, type=3) #p = 0.004
 emmeans(N_ad_pred, pairwise ~ Site)
 
-plot(C_ad_pred)
+plot(N_ad_pred)
 
 
 #### Terrestrial adults ####
@@ -726,9 +730,9 @@ plot(isotope_terr_ad$d15N) #data looks evenly spread
 summary(N_terr_ad<-lm(data=isotope_terr_ad, d15N~Site, na.action = na.exclude))
 Anova(N_terr_ad, type=3) #p=0.011
 
-plot(N_terr_ad) #Fits assumptions of ANOVA/lm pretty well
-
 pairs(emmeans(N_terr_ad, ~Site)) 
+
+plot(N_terr_ad) #Fits assumptions of ANOVA/lm pretty well
 
 
 #### Spiders ####
@@ -741,8 +745,6 @@ plot(isotope_spiders$d15N) #data have a non-random pattern
 
 kruskal.test(data=isotope_spiders, d15N~Site) #p=0.0054
 dunnTest(data=isotope_spiders, d15N~Site)
-
-plot(C_spiders) #Fits assumptions of ANOVA/lm pretty well
 ```
 
 # Carbon isotope plots and ANOVAs across sites
@@ -792,8 +794,8 @@ str(isotope_subset_no_food_sources)
 
 #All stages and FFGs together
 
-shapiro.test(isotope_subset_no_food_sources$d13C) #0.169
-leveneTest(data=isotope_subset_no_food_sources, d13C~Site*FFG*Stage) #0.334
+shapiro.test(isotope_subset_no_food_sources$d13C) #0.230
+leveneTest(data=isotope_subset_no_food_sources, d13C~Site*FFG*Stage) #0.203
 hist(isotope_subset_no_food_sources$d13C) #looks normal
 plot(isotope_subset_no_food_sources$d13C) #looks evenly spread
 
@@ -809,8 +811,8 @@ pairs(C_FFG_1_emm, simple="each")
 #### Aquatic Larvae ####
 
 isotope_aq_lar<-subset(isotope_subset_no_food_sources, Stage=="Aquatic larvae")
-shapiro.test(isotope_aq_lar$d13C) #0.087 #normal distribution
-leveneTest(data=isotope_aq_lar, d13C~Site*FFG) #0.653, homogeneity of variance
+shapiro.test(isotope_aq_lar$d13C) #0.11 #normal distribution
+leveneTest(data=isotope_aq_lar, d13C~Site*FFG) #0.459, homogeneity of variance
 hist(isotope_aq_lar$d13C) #looks decently normal, slightly right skewed
 plot(isotope_aq_lar$d13C) #data looks evenly spread
 
@@ -854,20 +856,13 @@ plot(C_lar_gath) #Adheres to assumptions
 
 isotope_lar_pred<-subset(isotope_aq_lar, FFG=="Predator")
 
-shapiro.test(isotope_lar_pred$d13C) #0.0071 not normal distribution
-leveneTest(data=isotope_lar_pred, d13C~Site) #0.396, homogeneity of variance
+shapiro.test(isotope_lar_pred$d13C) #p<0.001 not normal distribution
+leveneTest(data=isotope_lar_pred, d13C~Site) #0.177, homogeneity of variance
 hist(isotope_lar_pred$d13C) #not very normal
 plot(isotope_lar_pred$d13C) #not evenly spread
 
-kruskal.test(data=isotope_lar_pred, d13C~Site) #p=0.068
-dunnTest(data=isotope_lar_pred, d13C~Site) #no differences
-
-summary(C_lar_pred<-aov(data=isotope_lar_pred, d13C~Site, na.action = na.exclude)) #p = 0.111
-Anova(C_lar_pred, type=3) #p=0.111
-
-emmeans(C_lar_pred, pairwise ~ Site) #no diff
-
-plot(C_lar_pred) #Adheres to assumptions
+kruskal.test(data=isotope_lar_pred, d13C~Site) #p=0.007
+dunnTest(data=isotope_lar_pred, d13C~Site) #CUSHBR - PMF
 
 #### Aquatic Adults ####
 
@@ -892,6 +887,8 @@ summary(C_ad_gath<-aov(data=isotope_ad_gath, d13C~Site, na.action = na.exclude))
 Anova(C_ad_gath, type=3) #p=0.14
 emmeans(C_ad_gath, pairwise ~ Site) #no differences
 
+plot(C_ad_gath)
+
 # Filterer - Collector
 
 isotope_ad_filt<-subset(isotope_aq_ad, FFG=="Filterer-Collector")
@@ -902,8 +899,13 @@ plot(isotope_ad_filt$d13C) #data not evenly spread
 
 summary(C_ad_filt<-aov(data=isotope_ad_filt, d13C~Site, na.action = na.exclude)) #p < 0.001
 Anova(C_ad_filt, type=3) #p<0.001
-emmeans(C_ad_filt, pairwise ~ Site) #no differences
+emmeans(C_ad_filt, pairwise ~ Site) 
 
+plot(C_ad_filt) #QQ plot and Scale-Location plot are questionable
+
+kruskal.test(data=isotope_ad_filt, d13C~Site) #p=0.015
+dunnTest(data=isotope_ad_filt, d13C~Site)
+#Sig comparisons don't match up with the plotted data
 
 # Predator
 
@@ -949,9 +951,52 @@ Anova(C_spiders, type=3)
 
 plot(C_spiders) #Fits assumptions of ANOVA/lm pretty well
 
+emmeans(C_spiders, pairwise ~ Site)
 
-emm.spiders.c<-emmeans(C_spiders, ~ Site)
-pairs(emm.spiders.c, simple="each")
+
+#### Comparing spider C values to terrestrial and aquatic adults to see what they are eating ####
+
+# Comparing spiders to terrestrial insects across sites
+
+spi_terr<- subset(isotope_subset, Stage %in% c("Spider", "Terrestrial adult"))
+
+shapiro.test(spi_terr$d13C) #0.269
+leveneTest(data=spi_terr, d13C ~ Site*Stage) #0.518
+leveneTest(data=spi_terr, d13C ~ Site*Taxa) #0.906
+hist(spi_terr$d13C)
+plot(spi_terr$d13C)
+
+summary(spi_terr_aov<-aov(data=spi_terr, d13C ~ Site*Stage))
+Anova(spi_terr_aov)
+
+emmeans(spi_terr_aov, pairwise ~ Stage | Site)
+#C values of spiders were significantly different from those of terrestrial adult insects at each site
+
+summary(spi_terr_aov_taxa<-aov(data=spi_terr, d13C ~ Site*Taxa))
+Anova(spi_terr_aov_taxa)
+
+emmeans(spi_terr_aov_taxa, pairwise ~ Taxa | Site)
+
+plot(spi_terr_aov_taxa) #looks good
+
+
+# Comparing spiders to aquatic adult insects across sites
+
+spi_aq_ad<- subset(isotope_subset, Stage %in% c("Spider", "Aquatic adult"))
+
+shapiro.test(spi_aq_ad$d13C) #0.1804
+leveneTest(data=spi_aq_ad, d13C ~ Site*FFG*Stage) #0.1554
+leveneTest(data=spi_aq_ad, d13C ~ Site*Taxa) #0.011
+hist(spi_aq_ad$d13C)
+plot(spi_aq_ad$d13C)
+
+summary(spi_aq_ad_aov<-aov(data=spi_aq_ad, d13C ~ Site*Taxa))
+Anova(spi_aq_ad_aov)
+
+emmeans(spi_aq_ad_aov, pairwise ~ Taxa | Site)
+#overlapping with all taxa
+
+plot(spi_aq_ad_aov) #not very normal but the rest are okay
 
 ```
 
@@ -1100,6 +1145,16 @@ summary_FFG<-isotope_subset_no_food_sources %>%
   dplyr::summarise(MeanC = mean(d13C), sdC = sd(d13C), MeanN = mean(d15N), sdN = sd(d15N), n = n())
 
 View(summary_FFG)
+
+food_sources<-subset(isotope_subset, Stage=="Biofilm" | Stage=="Terrestrial leaves")
+
+summary_food_sources<-food_sources%>% 
+  dplyr::select("Stage", "d13C", "d15N", "Site")%>%
+  dplyr::group_by(Stage, Site) %>%
+  dplyr::summarise(MedianC = median(d13C), sdC = sd(d13C), MedianN = median(d15N), sdN = sd(d15N), n = n())
+
+View(summary_food_sources)
+
 ```
 
 # Running MixSIAR model
