@@ -7519,10 +7519,10 @@ diff_abund_hydro_Bow_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(x=
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_hydro_Bow_plot_subset
 
@@ -8052,10 +8052,10 @@ diff_abund_trichop_Bow_plot_subset<-ggplot(sigtab_exposed_trichop_Bow_subset, ae
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_trichop_Bow_plot_subset
 
@@ -8410,10 +8410,10 @@ diff_abund_hep_Bow_plot_subset<-ggplot(sigtab_exposed_hep_Bow_subset, aes(x=log2
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_hep_Bow_plot_subset
 
@@ -8853,10 +8853,10 @@ diff_abund_ephem_Bow_plot_subset<-ggplot(sigtab_exposed_ephem_Bow_subset, aes(x=
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_ephem_Bow_plot_subset
 
@@ -9309,10 +9309,10 @@ diff_abund_chiro_Bow_plot_subset<-ggplot(sigtab_exposed_chiro_Bow_subset, aes(x=
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_chiro_Bow_plot_subset
 
@@ -9570,10 +9570,10 @@ diff_abund_dip_Bow_plot_subset<-ggplot(sigtab_exposed_dip_Bow_subset, aes(x=log2
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_dip_Bow_plot_subset
 
@@ -9815,10 +9815,10 @@ diff_abund_perl_Bow_plot_subset<-ggplot(sigtab_exposed_perl_Bow_subset, aes(x=lo
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_perl_Bow_plot_subset
 
@@ -10050,10 +10050,10 @@ diff_abund_aran_Bow_plot_subset<-ggplot(sigtab_exposed_aran_Bow_subset, aes(x=lo
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_aran_Bow_plot_subset
 
@@ -10387,10 +10387,10 @@ diff_abund_tetra_Bow_plot_subset<-ggplot(sigtab_exposed_tetra_Bow_subset, aes(x=
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 diff_abund_tetra_Bow_plot_subset
 
@@ -10692,7 +10692,7 @@ diff_abund_hydro_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(y=Genu
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
   rremove("grid")+
-   xlim(c(-30, 30))+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#D72323", "#F98B39", "#FCFF7D", "#CCA60A", "#235b54", "#3998f5", "#2f2aa0"))+
   scale_y_discrete(limits=rev)
@@ -10730,9 +10730,8 @@ diff_abund_hep_plot_subset<-ggplot(sigtab_exposed_hep_Bow_subset, aes(y=Genus, x
           theme(legend.text=element_text(size=10, color="black")) + 
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
-   xlim(c(-30, 30))+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
   rremove("grid")+
-  xlim(-30,30)+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#235b54"))+
   scale_y_discrete(limits=rev)
@@ -10772,7 +10771,7 @@ diff_abund_chiro_plot_subset<-ggplot(sigtab_exposed_chiro_Bow_subset, aes(y=Genu
           theme(legend.text=element_text(size=10, color="black")) + 
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
-   xlim(c(-30, 30))+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#991919", "#fcff5d", "#235b54"))+
@@ -10806,7 +10805,7 @@ sigtab_exposed_perl_Bow_subset$Phylum<-factor(sigtab_exposed_perl_Bow_subset$Phy
 diff_abund_perl_plot_subset<-ggplot(sigtab_exposed_perl_Bow_subset, aes(y=Genus, x=log2FoldChange, color=Phylum))+
   geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
-   xlim(c(-30, 30))+
+scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
   theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
           theme(legend.text=element_text(size=10, color="black")) + 
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
@@ -10848,7 +10847,7 @@ diff_abund_trichop_plot_subset<-ggplot(sigtab_exposed_trichop_Bow_subset, aes(y=
           theme(legend.text=element_text(size=10, color="black")) + 
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
-   xlim(c(-30, 30))+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#ff3333", "#991919", "#ff9933", "#fcff5d", "#235b54"))+
@@ -10885,7 +10884,7 @@ diff_abund_ephem_plot_subset<-ggplot(sigtab_exposed_ephem_Bow_subset, aes(y=Genu
           theme(legend.text=element_text(size=10, color="black")) + 
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
-   xlim(c(-30, 30))+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
   rremove("grid")+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#fcff5d", "#235b54"))+
@@ -10918,7 +10917,7 @@ sigtab_exposed_dip_Bow_subset$Phylum<-factor(sigtab_exposed_dip_Bow_subset$Phylu
 diff_abund_dip_plot_subset<-ggplot(sigtab_exposed_dip_Bow_subset, aes(y=Genus, x=log2FoldChange, color=Phylum))+
   geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
-   xlim(c(-30, 30))+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=40, color="black"), axis.title=element_text(size=28)) +
           theme(legend.text=element_text(size=10, color="black")) + 
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
@@ -10958,7 +10957,7 @@ diff_abund_aran_plot_subset<-ggplot(sigtab_exposed_aran_Bow_subset, aes(y=Genus,
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
   rremove("grid")+
-   xlim(c(-30, 30))+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#fcff5d", "#235b54"))+
    scale_y_discrete(limits=rev)
@@ -10994,7 +10993,7 @@ diff_abund_tetra_plot_subset<-ggplot(sigtab_exposed_tetra_Bow_subset, aes(y=Genu
           theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
   guides(nrow=8)+
   rremove("grid")+
-   xlim(c(-30, 30))+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_fill_manual(values=c("#fcff5d", "#235b54"))+
    scale_y_discrete(limits=rev)
@@ -11013,7 +11012,7 @@ diff_abund_hep_plot_1
 # Chironomidae #
 diff_abund_chiro_plot_1<- diff_abund_chiro_plot_subset + rremove("axis.title")+ rremove("legend")
 diff_abund_chiro_plot_1
-#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_chiro_exposed_cushbr.png", height=14, width=10, bg="white")
+#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_chiro_exposed_cushbr.png", height=14, width=14, bg="white")
 
 # Perlidae #
 diff_abund_perl_plot_1<- diff_abund_perl_plot_subset + rremove("axis.title")+ rremove("legend")
@@ -11023,17 +11022,17 @@ diff_abund_perl_plot_1
 # Trichoptera #
 diff_abund_trichop_plot_1<- diff_abund_trichop_plot_subset + rremove("axis.title")+ rremove("legend")
 diff_abund_trichop_plot_1
-#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_trichop_exposed_cushbr.png", height=14, width=10, bg="white")
+#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_trichop_exposed_cushbr.png", height=16, width=16, bg="white")
 
 # Ephemeroptera #
 diff_abund_ephem_plot_1<- diff_abund_ephem_plot_subset + rremove("axis.title")+ rremove("legend")
 diff_abund_ephem_plot_1
-#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_ephem_exposed_cushbr.png", height=14, width=8, bg="white")
+#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_ephem_exposed_cushbr.png", height=14, width=14, bg="white")
 
 # Diptera #
 diff_abund_dip_plot_1<- diff_abund_dip_plot_subset + rremove("axis.title")+ rremove("legend")
 diff_abund_dip_plot_1
-#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_dip_exposed_cushbr.png", height=24, width=18, bg="white")
+#ggsave("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Differential Abundance Results\\diff_abund_dip_exposed_cushbr.png", height=28, width=24, bg="white")
 
 # Araneidae #
 diff_abund_aran_plot_1<- diff_abund_aran_plot_subset + rremove("axis.title")+ rremove("legend")
@@ -12785,6 +12784,333 @@ endo_plot_ACWA
 #ggsave(endo_plot_ACWA, filename="Microbiome_ED/Final analysis/Relative abundance/Endosymbionts/Endosymbiont composition across sites and taxa ACWA.png", height=12, width=22)
 ```
 
+## Statistically testing endosymbiont bacteria relative abundance across sites
+```{r}
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+#### Hydropsychidae Bow ####
+
+hydro_Bow<-subset_samples(Bow_ps, Family=="Hydropsychidae")
+hydro_Bow<-prune_taxa(taxa_sums(hydro_Bow) > 0, hydro_Bow) 
+
+hydro_glom_Bow = tax_glom(hydro_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+hydro_Bow_df<-psmelt(hydro_glom_Bow)
+
+endo_hydro<-subset(hydro_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+endo_hydro<-prune_taxa(taxa_sums(endo_hydro) > 0, endo_hydro) 
+endo_hydro #48 taxa, 276 samples
+
+shapiro.test(endo_hydro$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_hydro %>%
+    group_by(Site) %>%
+  dplyr::select(c("Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+#Rickettsia
+
+kruskal.test(data=endo_hydro, Abundance ~ Site) #p = 0.0011 sig. diff
+dunnTest(data=endo_hydro, Abundance ~ Site)
+#GRVBR - COCH Z = 3.22, P. adj = 0.012
+#PMF - COCH Z = 3.60, P. adj = 0.0032
+
+
+#### Heptageniidae Bow ####
+
+hep_Bow<-subset_samples(Bow_ps, Family=="Heptageniidae")
+hep_Bow<-prune_taxa(taxa_sums(hep_Bow) > 0, hep_Bow) 
+
+hep_glom_Bow = tax_glom(hep_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+hep_Bow_df<-psmelt(hep_glom_Bow)
+
+endo_hep<-subset(hep_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+endo_hep<-prune_taxa(taxa_sums(endo_hep) > 0, endo_hep) 
+endo_hep 
+
+shapiro.test(endo_hep$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_hep %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#Rickettsia
+
+rick_endo_hep<-subset(endo_hep, Genus=="Rickettsia")
+shapiro.test(rick_endo_hep$Abundance) #P<0.001
+kruskal.test(data=rick_endo_hep, Abundance ~ Site) #p = 0.149 no sig. diff
+dunnTest(data=rick_endo_hep, Abundance ~ Site)
+
+#Wolbachia
+
+wol_endo_hep<-subset(endo_hep, Genus=="Wolbachia")
+shapiro.test(wol_endo_hep$Abundance) #P<0.001
+kruskal.test(data=wol_endo_hep, Abundance ~ Site) #p = 0.0023 sig. diff
+dunnTest(data=wol_endo_hep, Abundance ~ Site) #No significant comparisons
+
+
+#### Chironomidae ####
+
+chiro_Bow<-subset_samples(Bow_ps, Family=="Chironomidae")
+chiro_Bow<-prune_taxa(taxa_sums(chiro_Bow) > 0, chiro_Bow) 
+
+chiro_glom_Bow = tax_glom(chiro_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+chiro_Bow_df<-psmelt(chiro_glom_Bow)
+
+endo_chiro<-subset(chiro_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+endo_chiro<-prune_taxa(taxa_sums(endo_chiro) > 0, endo_chiro) 
+
+shapiro.test(endo_chiro$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_chiro %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#### Perlidae ####
+
+perl_Bow<-subset_samples(Bow_ps, Family=="Perlidae")
+perl_Bow<-prune_taxa(taxa_sums(perl_Bow) > 0, perl_Bow) 
+
+perl_glom_Bow = tax_glom(perl_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+perl_Bow_df<-psmelt(perl_glom_Bow)
+
+endo_perl<-subset(perl_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+endo_perl<-prune_taxa(taxa_sums(endo_perl) > 0, endo_perl) 
+
+shapiro.test(endo_perl$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_perl %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#### Trichoptera ####
+
+trichop_Bow<-subset_samples(Bow_ps, Family=="Trichoptera")
+trichop_Bow<-prune_taxa(taxa_sums(trichop_Bow) > 0, trichop_Bow) 
+
+trichop_glom_Bow = tax_glom(trichop_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+trichop_Bow_df<-psmelt(trichop_glom_Bow)
+
+endo_trichop<-subset(trichop_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+endo_trichop<-prune_taxa(taxa_sums(endo_trichop) > 0, endo_trichop) 
+
+shapiro.test(endo_trichop$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_trichop %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#Rickettsia
+
+rick_endo_trichop<-subset(endo_trichop, Genus=="Rickettsia")
+shapiro.test(rick_endo_trichop$Abundance) #P<0.001
+kruskal.test(data=rick_endo_trichop, Abundance ~ Site) #p = 0.544 no sig. diff
+dunnTest(data=rick_endo_trichop, Abundance ~ Site)
+
+
+#### Ephemeroptera ####
+
+ephem_Bow<-subset_samples(Bow_ps, Family=="Ephemeroptera")
+ephem_Bow<-prune_taxa(taxa_sums(ephem_Bow) > 0, ephem_Bow) 
+
+ephem_glom_Bow = tax_glom(ephem_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+ephem_Bow_df<-psmelt(ephem_glom_Bow)
+
+endo_ephem<-subset(ephem_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+
+shapiro.test(endo_ephem$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_ephem %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#Rickettsia
+
+rick_endo_ephem<-subset(endo_ephem, Genus=="Rickettsia")
+shapiro.test(rick_endo_ephem$Abundance) #P<0.001
+kruskal.test(data=rick_endo_ephem, Abundance ~ Site) #p = 0.865 no sig. diff
+dunnTest(data=rick_endo_ephem, Abundance ~ Site)
+
+
+#### Diptera ####
+
+dip_Bow<-subset_samples(Bow_ps, Family=="Diptera")
+dip_Bow<-prune_taxa(taxa_sums(dip_Bow) > 0, dip_Bow) 
+
+dip_glom_Bow = tax_glom(dip_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+dip_Bow_df<-psmelt(dip_glom_Bow)
+
+endo_dip<-subset(dip_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="Diplorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+
+shapiro.test(endo_dip$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_dip %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#Rickettsia
+
+rick_endo_dip<-subset(endo_dip, Genus=="Rickettsia")
+shapiro.test(rick_endo_dip$Abundance) #P<0.001
+kruskal.test(data=rick_endo_dip, Abundance ~ Site) #p = 0.053 no sig. diff
+dunnTest(data=rick_endo_dip, Abundance ~ Site) #COCH - CUSHBR
+
+#Wolbachia
+
+wol_endo_dip<-subset(endo_dip, Genus=="Wolbachia")
+shapiro.test(wol_endo_dip$Abundance) #P<0.001
+kruskal.test(data=wol_endo_dip, Abundance ~ Site) #p = 0.061 no sig. diff
+dunnTest(data=wol_endo_dip, Abundance ~ Site) 
+
+#Spiroplasma
+
+spiro_endo_dip<-subset(endo_dip, Genus=="Spiroplasma")
+shapiro.test(spiro_endo_dip$Abundance) #P<0.001
+kruskal.test(data=spiro_endo_dip, Abundance ~ Site) #p = 0.175 no sig. diff
+dunnTest(data=spiro_endo_dip, Abundance ~ Site) 
+
+
+#### Araneidae ####
+
+aran_Bow<-subset_samples(Bow_ps, Family=="Araneidae")
+aran_Bow<-prune_taxa(taxa_sums(aran_Bow) > 0, aran_Bow) 
+
+aran_glom_Bow = tax_glom(aran_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+aran_Bow_df<-psmelt(aran_glom_Bow)
+
+endo_aran<-subset(aran_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="aranlorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+
+shapiro.test(endo_aran$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_aran %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#Rickettsia
+
+rick_endo_aran<-subset(endo_aran, Genus=="Rickettsia")
+shapiro.test(rick_endo_aran$Abundance) #P<0.001
+kruskal.test(data=rick_endo_aran, Abundance ~ Site) #p = 0.043 sig. diff
+dunnTest(data=rick_endo_aran, Abundance ~ Site) #no sig comparisons
+
+#Wolbachia
+
+wol_endo_aran<-subset(endo_aran, Genus=="Wolbachia")
+shapiro.test(wol_endo_aran$Abundance) #P<0.001
+kruskal.test(data=wol_endo_aran, Abundance ~ Site) #p = 0.611
+dunnTest(data=wol_endo_aran, Abundance ~ Site) 
+
+#Spiroplasma
+
+spiro_endo_aran<-subset(endo_aran, Genus=="Spiroplasma")
+shapiro.test(spiro_endo_aran$Abundance) #P<0.001
+kruskal.test(data=spiro_endo_aran, Abundance ~ Site) #p = 0.0227
+dunnTest(data=spiro_endo_aran, Abundance ~ Site) #no sig comparisons
+
+#Candidatus Hamiltonella
+
+cand_H_endo_aran<-subset(endo_aran, Genus=="Candidatus Hamiltonella")
+shapiro.test(cand_H_endo_aran$Abundance) #P<0.001
+kruskal.test(data=cand_H_endo_aran, Abundance ~ Site) #p = 0.495
+dunnTest(data=cand_H_endo_aran, Abundance ~ Site) #no sig comparisons
+
+
+#### Tetragnathidae ####
+
+tetra_Bow<-subset_samples(Bow_ps, Family=="Tetragnathidae")
+tetra_Bow<-prune_taxa(taxa_sums(tetra_Bow) > 0, tetra_Bow) 
+
+tetra_glom_Bow = tax_glom(tetra_Bow, "Genus") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+tetra_Bow_df<-psmelt(tetra_glom_Bow)
+
+endo_tetra<-subset(tetra_Bow_df, Genus=="Buchnera" | Genus=="Candidatus Cardinium" | Genus=="Rickettsia" | Genus =="Wolbachia" | Genus=="Spiroplasma" | Genus=="tetralorickettsia" | Genus=="Candidatus Hamiltonella" | Genus=="Candidatus Megaira"| Genus=="Rickettsiella")
+
+shapiro.test(endo_tetra$Abundance) #p<0.001 not normal
+
+#Listing the top abundant phyla
+endo_tetra %>%
+    group_by(Genus, Site) %>%
+  dplyr::select(c("Genus", "Abundance", "Site")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+
+#Rickettsia
+
+rick_endo_tetra<-subset(endo_tetra, Genus=="Rickettsia")
+shapiro.test(rick_endo_tetra$Abundance) #P<0.001
+kruskal.test(data=rick_endo_tetra, Abundance ~ Site) #p = 0.081 sig. diff
+dunnTest(data=rick_endo_tetra, Abundance ~ Site) #no sig comparisons
+
+#Wolbachia
+
+wol_endo_tetra<-subset(endo_tetra, Genus=="Wolbachia")
+shapiro.test(wol_endo_tetra$Abundance) #P<0.001
+kruskal.test(data=wol_endo_tetra, Abundance ~ Site) #p = 0.061
+dunnTest(data=wol_endo_tetra, Abundance ~ Site) #COCH - SUN
+
+#Spiroplasma
+
+spiro_endo_tetra<-subset(endo_tetra, Genus=="Spiroplasma")
+shapiro.test(spiro_endo_tetra$Abundance) #P<0.001
+kruskal.test(data=spiro_endo_tetra, Abundance ~ Site) #p = 0.0029
+dunnTest(data=spiro_endo_tetra, Abundance ~ Site) #CUSHBR - PMF
+
+#Candidatus Cardinium
+
+cand_C_endo_tetra<-subset(endo_tetra, Genus=="Candidatus Cardinium")
+shapiro.test(cand_C_endo_tetra$Abundance) #P<0.001
+kruskal.test(data=cand_C_endo_tetra, Abundance ~ Site) #p = 0.048
+dunnTest(data=cand_C_endo_tetra, Abundance ~ Site) #no sig comparisons
+```
+
 ## Graphing Endosymbiont relative abundance across sites and taxa
 ```{r}
 
@@ -14173,6 +14499,77 @@ ggplot(sample.df.agg.effluent.fam.ACWA, aes(x=Site, y=Abundance, fill=Family)) +
   scale_y_continuous(label = scales::percent)
 ```
 
+## Trying to find bacteria unique to sites located downstream of outfalls
+```{r}
+#Hydro
+hydro_grvbr <- subset_samples(sample_ps, Family=="Hydropsychidae" & Site == "Graves Bridge")
+hydro_grvbr<- prune_taxa(taxa_sums(hydro_grvbr) > 0, hydro_grvbr) # prune OTUs that are not present in at least one sample
+
+hydro_pmf <- subset_samples(sample_ps, Family=="Hydropsychidae" & Site == "Policeman Flats")
+hydro_pmf<- prune_taxa(taxa_sums(hydro_pmf) > 0, hydro_pmf) # prune OTUs that are not present in at least one sample
+
+intersect_GRVBR_PMF <- intersect(taxa_names(hydro_grvbr), taxa_names(hydro_pmf))
+
+taxa_sub_grvbr_pmf <- as.data.frame(sample_ps@tax_table[rownames(sample_ps@tax_table) %in% intersect_GRVBR_PMF, ])
+
+
+#Venn diagram
+
+hydro_ps_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae", Stream_Type=="Bow River")
+hydro_ps_Bow<- prune_taxa(taxa_sums(hydro_ps_Bow) > 0, hydro_ps_Bow)
+
+hydro_ps_rel_abun_Bow<-microbiome::transform(hydro_ps_Bow, "compositional")
+
+hydro_exposed_unexposed_Bow <- unique(as.character(meta(hydro_ps_rel_abun_Bow)$Exposure))
+print(hydro_exposed_unexposed_Bow)
+
+
+list_core <- c() # an empty object to store information
+
+for (n in hydro_exposed_unexposed_Bow){ # for each variable n in DiseaseState
+    #print(paste0("Identifying Core Taxa for ", n))
+    
+    ps.sub <- subset_samples(hydro_ps_rel_abun_Bow, Exposure == n) # Choose sample from DiseaseState by n
+    
+    core_m <- core_members(ps.sub, # ps.sub is phyloseq selected with only samples from g 
+                           detection = 0.001, # 0.001 in atleast 90% samples 
+                           prevalence = 0.75)
+    print(paste0("No. of core taxa in ", n, " : ", length(core_m))) # print core taxa identified in each DiseaseState.
+    list_core[[n]] <- core_m # add to a list core taxa for each group.
+    #print(list_core)
+}
+
+print(list_core)
+
+mycols <- c(Unexposed="#cbf3f0", Exposed="#fcf5c7") 
+plot(venn(list_core), fills = mycols)
+
+taxa_names(hydro_ps_rel_abun_Bow)[1:5]
+
+# format names
+pseq.rel.f <- format_to_besthit(hydro_ps_rel_abun_Bow)
+# check names
+taxa_names(pseq.rel.f)[1:5]
+
+list_core <- c() # an empty object to store information
+
+for (n in hydro_exposed_unexposed_Bow){ # for each variable n in DiseaseState
+    #print(paste0("Identifying Core Taxa for ", n))
+    
+    ps.sub <- subset_samples(pseq.rel.f, Exposure == n) # Choose sample from DiseaseState by n
+    
+    core_m <- core_members(ps.sub, # ps.sub is phyloseq selected with only samples from g 
+                           detection = 0.001, # 0.001 in atleast 90% samples 
+                           prevalence = 0.75)
+    print(paste0("No. of core taxa in ", n, " : ", length(core_m))) # print core taxa identified in each DiseaseState.
+    list_core[[n]] <- core_m # add to a list core taxa for each group.
+    #print(list_core)
+}
+
+print(list_core)
+
+```
+
 # Picrust2
 
 ## Creating files for input to PICRUSt2
@@ -14516,10 +14913,10 @@ picrust_diff_abund_hydro_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_hydro_Bo
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 picrust_diff_abund_hydro_Bow_plot_subset
 
@@ -14818,10 +15215,10 @@ picrust_diff_abund_hep_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_hep_Bow_su
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 picrust_diff_abund_hep_Bow_plot_subset
 
@@ -15105,10 +15502,10 @@ picrust_diff_abund_chiro_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_chiro_Bo
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
-  scale_y_discrete(limits=rev)
+  scale_y_discrete(limits=rev)+
+  scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
 picrust_diff_abund_chiro_Bow_plot_subset
 
@@ -15286,7 +15683,7 @@ picrust_diff_abund_perl_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_perl_Bow_
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
+scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
   scale_y_discrete(limits=rev)
@@ -15482,7 +15879,7 @@ picrust_diff_abund_trichop_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_tricho
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
+ scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
   scale_y_discrete(limits=rev)
@@ -16125,7 +16522,7 @@ picrust_diff_abund_aran_Bow_plot_subset<-ggplot(picrust_sigtab_exposed_aran_Bow_
           theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
   guides(color=guide_legend(nrow=3, byrow=TRUE))+
   rremove("grid")+
-   xlim(c(-30, 30))+
+scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))+
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")+
   scale_y_discrete(limits=rev)
@@ -16662,19 +17059,25 @@ ggplot(picrust_sigtab_EFF5_EFF15_ephem_ACWA, aes(x=log2FoldChange, y=description
 picrust_diff_abund_hydro_Bow_plot_1<- picrust_diff_abund_hydro_Bow_plot_subset + rremove("axis.title") + rremove("legend")
 picrust_diff_abund_hydro_Bow_plot_1
 
-#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA hydro lar cushbr as reference.png", height=10, width=18, bg="white")
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA hydro lar cushbr as reference.png", height=10, width=20, bg="white")
 
 # Heptageniidae #
 picrust_diff_abund_hep_plot_1<- picrust_diff_abund_hep_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
 picrust_diff_abund_hep_plot_1
 
-#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA hep lar cushbr as reference.png", height=10, width=24, bg="white")
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA hep lar cushbr as reference.png", height=10, width=26, bg="white")
 
 # Chironomidae #
 picrust_diff_abund_chiro_plot_1<- picrust_diff_abund_chiro_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
 picrust_diff_abund_chiro_plot_1
 
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA chiro lar cushbr as reference.png", height=10, width=24, bg="white")
+
+# Perlidae #
+picrust_diff_abund_perl_plot_1<- picrust_diff_abund_perl_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
+picrust_diff_abund_perl_plot_1
+
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA perl lar cushbr as reference.png", height=16, width=34, bg="white")
 
 # Trichoptera #
 picrust_diff_abund_trichop_plot_1<- picrust_diff_abund_trichop_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
@@ -16687,7 +17090,7 @@ picrust_diff_abund_trichop_plot_1
 picrust_diff_abund_aran_Bow_plot_1<-picrust_diff_abund_aran_Bow_plot_subset + rremove("axis.title")+ rremove("legend")
 picrust_diff_abund_aran_Bow_plot_1
 
-#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA aran cushbr as reference.png", height=10, width=28, bg="white")
+#ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/picrust DA aran cushbr as reference.png", height=10, width=30, bg="white")
 
 
 #### Taxa plotted all together ACWA ####
@@ -16753,3 +17156,42 @@ ggarrange(picrust_diff_abund_ephem_plot_1, picrust_diff_abund_hydro_ACWA_REF_EFF
 ```
 
 We are getting different results when using ALDEx2 and DESeq2. It's hard to tell which one is better because DESeq2 is prone to false positives but ALDEx2 doesn't have strong statistical power (Nearing et al., 2022; Yang & Chen, 2022). Because we are using a low alpha threshold for DESeq2, I think we can be confident that these are true results and continue to use this method. 
+## Testing significant changes in top 25 MetaCyc pathways across sites and inverts
+
+```{r}
+Bow_ps_picrust<-subset_samples(picrust_ps, Stream_Type=="Bow River")
+
+#### Hydropsychidae Bow ####
+
+hydro_Bow_picrust<-subset_samples(picrust_ps, Family=="Hydropsychidae")
+hydro_Bow_picrust<-prune_taxa(taxa_sums(hydro_Bow_picrust) > 0, hydro_Bow_picrust) 
+
+hydro_glom_Bow_picrust = tax_glom(hydro_Bow_picrust, "description") %>% transform_sample_counts(function(x) {x * 100/sum(x)})
+
+hydro_Bow_df_picrust<-psmelt(hydro_glom_Bow_picrust)
+
+#Listing the top abundant phyla
+hydro_Bow_df_picrust_mean<-hydro_Bow_df_picrust %>%
+    group_by(description) %>%
+  dplyr::select(c("Abundance", "description")) %>%
+  summarize(Mean = mean(Abundance), SD = sd(Abundance)) %>%
+  arrange(desc(Mean)) %>%
+    ungroup 
+
+hydro_Bow_df_picrust_top_25<-hydro_Bow_df_picrust[1:25,]
+
+shapiro.test(hydro_Bow_df_picrust$Abundance) #p<0.001 not normal
+
+top25pathways<-list("Amino-Acid-Biosynthesis", "Energy-Metabolism", "Super-Pathways // Nucleotide-Biosynthesis", "Cofactor-Biosynthesis", "Super-Pathways // Amino-Acid-Biosynthesis", "Nucleotide-Biosynthesis", "Lipid-Biosynthesis", "Super-Pathways // Cofactor-Biosynthesis", "Carbohydrates-Biosynthesis", "Super-Pathways // Lipid-Biosynthesis", "Cell-Structure-Biosynthesis", "Energy-Metabolism // Super-Pathways", "Super-Pathways // Cell-Structure-Biosynthesis", "NUCLEO-DEG", "SECONDARY-METABOLITE-BIOSYNTHESIS", "Metabolic-Clusters // Nucleotide Biosynthesis" )
+
+
+#Amino-Acid_Biosynthesis
+
+amino_acid_syn_hydro<-subset()
+
+kruskal.test(data=endo_hydro, Abundance ~ Site) #p = 0.0011 sig. diff
+dunnTest(data=endo_hydro, Abundance ~ Site)
+#GRVBR - COCH Z = 3.22, P. adj = 0.012
+#PMF - COCH Z = 3.60, P. adj = 0.0032
+
+```
