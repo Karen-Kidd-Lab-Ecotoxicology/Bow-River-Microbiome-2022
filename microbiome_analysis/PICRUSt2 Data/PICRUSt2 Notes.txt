@@ -57,11 +57,13 @@ Requires two very pricesly formatted data files. One is a FASTA file (.fasta or 
 The other file is a .BIOM or .tsv file with the otu table. The first column in the otu table should match the ASV IDs from the FASTA file. 
 
 
-There is onyl one line of code that will run all analyses. 
+There is only one line of code that will run all analyses. 
 
 Command once your data is formatted correctly:
 
 picrust2_pipeline.py -s study_seqs.fna -i study_seqs.biom -o picrust2_out_pipeline -p 1
+
+
 
 
 

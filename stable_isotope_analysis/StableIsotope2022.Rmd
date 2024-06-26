@@ -1037,6 +1037,7 @@ isotope_leaves_C<-isotope_leaves %>%
   group_by(Site)%>%
   summarise(MedianC = median(d13C))
 
+isotope_subset_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves")
 
 isotope_subset_no_food_sources_C<-isotope_subset_no_food_sources%>%
   dplyr::select("Site", "FFG","Taxa_Specific", "d13C")%>%
@@ -1061,6 +1062,36 @@ C_reliance_graph<-ggplot(isotope_subset_no_food_sources_C, aes(x=FFG, y=MeanC, s
   scale_color_manual(values=c( '#800000', '#e6194B', '#f58231','#ffe119', '#aaffc3', '#3cb44b', '#469990', '#42d4f4', '#4363d8', '#000075', '#dcbeff', '#f032e6', '#fabed4', '#9A6324'))+
   scale_shape_manual(values=c(16, 17, 15, 18, 7))
 C_reliance_graph
+
+#L SETAC graph
+
+isotope_no_subset_no_food_sources<-subset(isotope, Stage!="Biofilm" & Stage!="Terrestrial leaves")
+
+isotope_no_food_sources_subset_taxa<-subset(isotope_no_subset_no_food_sources, Taxa %in% c("Hydropsychidae", "Chironomidae", "Araneidae", "Tetragnathidae"))
+
+isotope_no_food_sources_subset_taxa_C<-isotope_no_food_sources_subset_taxa%>%
+  dplyr::select("Site", "FFG","Taxa_Specific", "d13C")%>%
+  group_by(Site, FFG, Taxa_Specific)%>%
+  summarise(MeanC = mean(d13C), sdC = sd(d13C))
+
+Ylims_C_subset_taxa<-aes(ymax=MeanC + sdC, ymin=MeanC-sdC)
+
+isotope_no_food_sources_subset_taxa_C$Taxa_Specific<-factor(isotope_no_food_sources_subset_taxa_C$Taxa_Specific, levels=c("Chironomidae Larvae", "Hydropsychidae Larvae", "Chironomidae Adult", "Hydropsychidae Adult", "Araneidae", "Tetragnathidae"))
+
+C_reliance_graph_subset_taxa<-ggplot(isotope_no_food_sources_subset_taxa_C, aes(x=FFG, y=MeanC, shape=FFG, color=Taxa_Specific))+
+  geom_point(size=6)+
+  facet_grid(~Site)+
+  theme_bw() +
+  rremove("grid")+
+  geom_errorbar(Ylims_C_subset_taxa)+
+   labs(shape="Functional Feeding Group", colour="Invertebrate Taxa")+
+  geom_hline(data=isotope_biofilm_C, aes(yintercept=MedianC), linetype='dashed', color='red', linewidth=1)+ #Biofilm
+  geom_hline(data=isotope_leaves_C, aes(yintercept=MedianC), linetype='dashed', color='blue', linewidth=1)+ #leaves
+  ylab(expression(paste(delta^13, "C (\u2030)", sep="")))+
+  theme(axis.text.y = element_text(size=20, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=22, color="black"), strip.text.x = element_text(size=20, color="black"), legend.text = element_text(size=20), legend.title = element_text(size=22, color="black"))+
+  scale_color_manual(values=c( '#800000', '#e6194B', '#f58231','#ffe119', '#aaffc3', '#3cb44b', '#469990', '#42d4f4', '#4363d8', '#000075', '#dcbeff', '#f032e6', '#fabed4', '#9A6324'))+
+  scale_shape_manual(values=c(16, 17, 15, 18, 7))
+C_reliance_graph_subset_taxa
 
 
 #### Nitrogen ####
@@ -1109,6 +1140,93 @@ N_reliance_graph<-ggplot(isotope_subset_no_food_sources_N, aes(x=FFG, y=MeanN, s
 scale_shape_manual(values=c(16, 17, 15, 18, 7))
  
 N_reliance_graph
+
+
+#L SETAC graph
+
+isotope_no_subset_no_food_sources<-subset(isotope, Stage!="Biofilm" & Stage!="Terrestrial leaves")
+
+isotope_no_food_sources_subset_taxa<-subset(isotope_no_subset_no_food_sources, Taxa %in% c("Hydropsychidae", "Chironomidae", "Araneidae", "Tetragnathidae"))
+
+isotope_no_food_sources_subset_taxa_N<-isotope_no_food_sources_subset_taxa%>%
+  dplyr::select("Site", "FFG","Taxa_Specific", "d15N")%>%
+  group_by(Site, FFG, Taxa_Specific)%>%
+  summarise(MeanN = mean(d15N), sdN = sd(d15N))
+
+Ylims_N_subset_taxa<-aes(ymax=MeanN + sdN, ymin=MeanN-sdN)
+
+isotope_no_food_sources_subset_taxa_C$Taxa_Specific<-factor(isotope_no_food_sources_subset_taxa_C$Taxa_Specific, levels=c("Chironomidae Larvae", "Hydropsychidae Larvae", "Chironomidae Adult", "Hydropsychidae Adult", "Araneidae", "Tetragnathidae"))
+
+N_reliance_graph_subset_taxa<-ggplot(isotope_no_food_sources_subset_taxa_N, aes(x=FFG, y=MeanN, shape=FFG, color=Taxa_Specific))+
+  geom_point(size=6)+
+  facet_grid(~Site)+
+  theme_bw() +
+  rremove("grid")+
+  geom_errorbar(Ylims_N_subset_taxa)+
+   labs(shape="Functional Feeding Group", colour="Invertebrate Taxa")+
+  geom_hline(data=isotope_biofilm_N, aes(yintercept=MedianN), linetype='dashed', color='red', linewidth=1)+ #Biofilm
+  geom_hline(data=isotope_leaves_N, aes(yintercept=MedianN), linetype='dashed', color='blue', linewidth=1)+ #leaves
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.text.y = element_text(size=20, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), axis.title.y=element_text(size=22, color="black"), strip.text.x = element_text(size=20, color="black"), legend.text = element_text(size=20), legend.title = element_text(size=22, color="black"))+
+  scale_color_manual(values=c( '#800000',  '#000075',  '#f58231','#dcbeff','#42d4f4', '#3cb44b' ))+
+  scale_shape_manual(values=c(16, 17, 15, 18, 7))
+N_reliance_graph_subset_taxa
+
+
+isotope_no_food_sources<-subset(isotope_subset, Stage!="Biofilm" & Stage!="Terrestrial leaves" & Stage!="Terrestrial adult")
+
+isotope_no_food_sources_subset_taxa_N<-isotope_no_food_sources%>%
+  dplyr::select("Site", "FFG","Stage", "d15N")%>%
+  group_by(Site, FFG, Stage)%>%
+  summarise(MeanN = mean(d15N), sdN = sd(d15N))
+
+Ylims_N_subset_taxa<-aes(ymax=MeanN + sdN, ymin=MeanN-sdN)
+
+isotope_no_food_sources_subset_taxa_N$Stage<-factor(isotope_no_food_sources_subset_taxa_N$Stage, levels=c("Aquatic larvae", "Aquatic adult", "Spider"))
+
+N_reliance_graph_stage<-ggplot(isotope_no_food_sources_subset_taxa_N, aes(x=FFG, y=MeanN, shape=FFG, color=Stage))+
+  geom_point(size=6)+
+  facet_grid(~Site)+
+  theme_bw() +
+  rremove("grid")+
+  geom_errorbar(Ylims_N_subset_taxa)+
+   labs(shape="Functional Feeding Group", colour="Sample Type")+
+  geom_hline(data=isotope_biofilm_N, aes(yintercept=MedianN), linetype='dashed', color='red', linewidth=1)+ #Biofilm
+  geom_hline(data=isotope_leaves_N, aes(yintercept=MedianN), linetype='dashed', color='blue', linewidth=1)+ #leaves
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.text.y = element_text(size=20, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), axis.title.y=element_text(size=22, color="black"), strip.text.x = element_text(size=20, color="black"), legend.text = element_text(size=20), legend.title = element_text(size=22, color="black"))+
+  scale_color_manual(values=c('#000075', '#3cb44b','#f58231'))+
+  scale_shape_manual(values=c(16, 17, 15, 18, 7))
+N_reliance_graph_stage
+
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\stable_isotope_analysis\\Figures\\LSETAC_N_graph.png", width=16, height=10)
+
+
+#With basal food sources before removing data
+
+isotope_subset_taxa<-subset(isotope, Taxa %in% c("Hydropsychidae", "Chironomidae", "Araneidae", "Tetragnathidae", "Biofilm", "Terrestrial Leaves"))
+
+isotope_subset_taxa_N<-isotope_subset_taxa%>%
+  dplyr::select("Site", "FFG","Taxa_Specific", "d15N")%>%
+  group_by(Site, FFG, Taxa_Specific)%>%
+  summarise(MeanN = mean(d15N), sdN = sd(d15N))
+
+Ylims_N_subset_taxa<-aes(ymax=MeanN + sdN, ymin=MeanN-sdN)
+
+isotope_subset_taxa_N$Taxa_Specific<-factor(isotope_subset_taxa_N$Taxa_Specific, levels=c("Biofilm", "Terrestrial Leaves", "Chironomidae Larvae", "Hydropsychidae Larvae", "Chironomidae Adult", "Hydropsychidae Adult", "Araneidae", "Tetragnathidae"))
+
+N_reliance_graph_subset_taxa<-ggplot(isotope_subset_taxa_N, aes(x=FFG, y=MeanN, shape=FFG, color=Taxa_Specific))+
+  geom_point(size=6)+
+  facet_grid(~Site)+
+  theme_bw() +
+  rremove("grid")+
+  geom_errorbar(Ylims_N_subset_taxa)+
+   labs(shape="Functional Feeding Group", colour="Invertebrate Taxa")+
+  ylab(expression(paste(delta^15, "N (\u2030)", sep="")))+
+  theme(axis.text.y = element_text(size=20, color="black"), axis.text.x=element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=22, color="black"), strip.text.x = element_text(size=20, color="black"), legend.text = element_text(size=20), legend.title = element_text(size=22, color="black"))+
+  scale_color_manual(values=c( '#800000', '#e6194B', '#f58231','#ffe119', '#aaffc3', '#3cb44b', '#469990', '#42d4f4', '#4363d8', '#000075', '#dcbeff', '#f032e6', '#fabed4', '#9A6324'))+
+  scale_shape_manual(values=c(16, 17, 15, 18, 7))
+N_reliance_graph_subset_taxa
 
 
 #### Combining C and N graphs ####

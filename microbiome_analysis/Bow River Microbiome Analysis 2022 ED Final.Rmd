@@ -6,7 +6,7 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-# Introduction {.tabset}
+# Introduction
 
 This data comes from a study done in 2022 across 5 sites on ~75km of the Bow River in Calgary AB and 3 experimental streams from Advancing Canadian Wastewater Assets (ACWA) at the Pine Creek waste water treatment plant with varying municipal waste water effluent exposures (stream additions: 0, 5, or 15% effluent). The objective of this study was to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian spiders with exposure to waste water effluents as well as if there were any differences in the microbial assemblage across taxa and across metamorphosis/life stage. 
 
@@ -162,7 +162,7 @@ ps <- phyloseq(ASVtable, sample_data(metadata), taxa_table)
 ```
 
 
-# Filtering/pre-processing steps {.tabset}
+# Filtering/pre-processing steps
 
 Experimental samples:
 
@@ -5520,7 +5520,7 @@ wilcox.test(data=ephem_ACWA_rare, Shannon~Site) # W = 11, p = 0.028
 
 Beta diversity is a measure of dissimilarity between communities. It is useful to see how the bacterial community changes across sites/invertebrate families/exposures/etc. This analysis was split by invertebrate taxa to tease out some variability in the data. A PERMANOVA (function 'adonis') was used to calculate significant differences across sites and beta dispersion (measure of variance within groups) was also tested to determine if there was a location or dispersion effect. The results were ordinated with an NMDS using Bray-Curtis dissimilarity matrices. 
 
-Transforming the data to proportions (relative abundance) is the best method of normalizing the data prior to beta diversity analysis according to McCurdie & Holmes, 2014; Weiss et al., 2017; McKnight et al., 2019. 
+Transforming the data to proportions (relative abundance) is the best method of normalizing the data prior to beta diversity analysis according to Weiss et al., 2017; McKnight et al., 2019. 
 
 
 ## Blanks and experimental samples 
@@ -5679,7 +5679,6 @@ anova(bd_blanks_ACWA) #Sig. dispersion F(1,69) = 0.699, p=0.406
 
 #### Bow River 
 ```{r}
-
 #### Redundancy analysis (RDA) ####
 
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
@@ -5694,11 +5693,13 @@ rdacca.hp(t_otu_Bow_all, predictors_Bow, method="RDA", type = "adjR2") #Run the 
 #Total variation explained: 0.295%
 #Site explains 4.88% of the total variance explained whereas Family explained 5.2% of the total variation explained
 
-#### Beta Diversity Graphs + PERMANOVA ####
+#### Beta Diversity Graphs + PERMANOVA transformed to proportions ####
 
-#Normalize the filtered data by relative abundance 
+##                         Normalizing using relative abundance                           ##
+
+
 Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
-Bow_rel_abun  = transform_sample_counts(Bow_ps, function(x) x/sum(x)) 
+Bow_rel_abun = transform_sample_counts(Bow_ps, function(x) x/sum(x)) 
 #transform to relative abundance. Seems to be the best method of normalizing.
 
 Bow_bray = phyloseq::distance(Bow_rel_abun, method="bray") #Bray Curtis distance matrix
@@ -5737,6 +5738,8 @@ set.seed(1)
 ord_NMDS_Bow = ordinate(Bow_rel_abun, method="NMDS", distance=Bow_bray)
 ord_NMDS_Bow #Stress=0.192
 
+
+#Plotting all sites and taxa in one facet
 plotNMDS1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, shape="Site", color = "Family") + 
   theme_classic() +
   geom_point(size=3)+
@@ -5827,7 +5830,7 @@ levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trich
 p$data <- newtab
 print(p)
 
-#ggsave(filename="microbiome_analysis/Final Analysis/Beta Diversity Graphs/All samples combined/NMDS Bow River invertebrates.png", height=10, width=20)
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Beta Diversity Graphs\\NMDS Bow River invertebrates.png", height=10, width=20)
 
 #Faceted by site
 p1<-plot_ordination(Bow_rel_abun, ord_NMDS_Bow, color = "Family") + 
@@ -5898,7 +5901,7 @@ print(p1_no_spi)
 test.adonis.Bow.all <- adonis2(Bow_bray ~ Site*Family, data = metadata_Bow)
 test.adonis.Bow.all
 #Site: F = 4.32, R2 = 0.0382, P<0.001
-#Family: F = 16.5, R2 = 0.293, P<0.001
+#Family: F = 16.5, R2 = 0.298, P<0.001
 
 bd_all_fam_Bow<-betadisper(Bow_bray, metadata_Bow$Family) 
 anova(bd_all_fam_Bow) #yes beta disper p < 0.001
@@ -5955,7 +5958,7 @@ Bow_bray_chiro = phyloseq::distance(Bow_rel_abun_chiro, method="bray")
 metadata_Bow_chiro <- data.frame(sample_data(Bow_rel_abun_chiro))
 
 test.adonis.Bow.chiro <- adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
-test.adonis.Bow.chiro #p=0.07. 
+test.adonis.Bow.chiro #p=0.077. 
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_chiro ~ Site, data = metadata_Bow_chiro)
@@ -5991,7 +5994,7 @@ Bow_bray_trichop = phyloseq::distance(Bow_rel_abun_trichop, method="bray")
 metadata_Bow_trichop <- data.frame(sample_data(Bow_rel_abun_trichop))
 
 test.adonis.Bow.trichop <- adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
-test.adonis.Bow.trichop #p = 0.013
+test.adonis.Bow.trichop #p = 0.022
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_trichop ~ Site, data = metadata_Bow_trichop)
@@ -6034,7 +6037,7 @@ Bow_bray_dip = phyloseq::distance(Bow_rel_abun_dip, method="bray")
 metadata_Bow_dip <- data.frame(sample_data(Bow_rel_abun_dip))
 
 test.adonis.Bow.dip <- adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
-test.adonis.Bow.dip #p = 0.179
+test.adonis.Bow.dip #p = 0.167
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_dip ~ Site, data = metadata_Bow_dip)
@@ -6065,7 +6068,7 @@ pairwise.adonis2(Bow_bray_aran ~ Site, data = metadata_Bow_aran)
 #SUN - PMF
 
 bd_all_fam_Bow_aran<-betadisper(Bow_bray_aran, metadata_Bow_aran$Site) 
-anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.049
+anova(bd_all_fam_Bow_aran) #no beta dispersion p = 0.05
 
 ## Tetragnathidae ##
 
@@ -6076,7 +6079,7 @@ Bow_bray_tetra = phyloseq::distance(Bow_rel_abun_tetra, method="bray")
 metadata_Bow_tetra <- data.frame(sample_data(Bow_rel_abun_tetra))
 
 test.adonis.Bow.tetra <- adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
-test.adonis.Bow.tetra #p = 0.595
+test.adonis.Bow.tetra #p = 0.608
 
 #Pairwise comparisons
 pairwise.adonis2(Bow_bray_tetra ~ Site, data = metadata_Bow_tetra)
@@ -6094,7 +6097,7 @@ coch_bray = phyloseq::distance(coch_rel_abun, method="bray")
 metadata_coch <- data.frame(sample_data(coch_rel_abun))
 
 test.adonis.Bow.coch <- adonis2(coch_bray ~ Family, data = metadata_coch)
-test.adonis.Bow.coch #p < 0.001, F(8,56) = 5.59
+test.adonis.Bow.coch #p < 0.001, F(8,56) = 5.32
 
 #Pairwise comparisons
 pairwise.adonis2(coch_bray ~ Family, data = metadata_coch)
@@ -6134,7 +6137,7 @@ cush_bray = phyloseq::distance(cush_rel_abun, method="bray")
 metadata_cush <- data.frame(sample_data(cush_rel_abun))
 
 test.adonis.Bow.cush <- adonis2(cush_bray ~ Family, data = metadata_cush)
-test.adonis.Bow.cush #p < 0.001, F(8.52) = 5.01
+test.adonis.Bow.cush #p < 0.001, F(8,52) = 5.01
 
 #Pairwise comparisons
 pairwise.adonis2(cush_bray ~ Family, data = metadata_cush)
@@ -6172,7 +6175,7 @@ pmf_bray = phyloseq::distance(pmf_rel_abun, method="bray")
 metadata_pmf <- data.frame(sample_data(pmf_rel_abun))
 
 test.adonis.Bow.pmf <- adonis2(pmf_bray ~ Family, data = metadata_pmf)
-test.adonis.Bow.pmf #p < 0.001, F(7,50)=5.98
+test.adonis.Bow.pmf #p < 0.001, F(7,49)=5.17
 
 #Pairwise comparisons
 pairwise.adonis2(pmf_bray ~ Family, data = metadata_pmf)
@@ -6180,8 +6183,407 @@ pairwise.adonis2(pmf_bray ~ Family, data = metadata_pmf)
 #Dip - Ephem
 
 bd_all_fam_Bow_pmf<-betadisper(pmf_bray, metadata_pmf$Family) 
-anova(bd_all_fam_Bow_pmf) #no beta dispersion p = 0.00102.
+anova(bd_all_fam_Bow_pmf) #yes beta dispersion p = 0.003.
 
+
+
+#### Beta Div. Graphs + PERMANOVA not transformed to proportions (raw reads after quality filtering) ####
+
+
+Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
+
+Bow_bray_non_norm = phyloseq::distance(Bow_ps, method="bray") #Bray Curtis distance matrix
+ord_Bow_non_norm = ordinate(Bow_ps, method="PCoA", distance=Bow_bray_non_norm) #Ordinate using PCoA
+
+#Scree plot of PCoA
+scree <- plot_scree(ord_Bow_non_norm)
+scree + theme(axis.text.x=element_text(size=8, color="black"), axis.text.y=element_text(size=18, color="black"), 
+        axis.text=element_text(size=18, color="black"), axis.title=element_text(size=18)) 
+#axis 1, 2, and 3 account for most variation explained (mostly axis 1)
+
+metadata_Bow_non_norm <- data.frame(sample_data(Bow_ps))
+
+#All together
+plot_ordination(Bow_ps, ord_Bow_non_norm, shape="Site", color="Family") + #Plots the ordination
+  theme_classic() +
+  theme(strip.background = element_blank())
+
+#Axes don't explain a ton of variation so I will try ordinating with an NMDS 
+
+
+# NMDS 
+set.seed(1)
+ord_NMDS_Bow_non_norm = ordinate(Bow_ps, method="NMDS", distance=Bow_bray_non_norm)
+ord_NMDS_Bow_non_norm #Stress=0.187
+
+
+#Faceted by invertebrate taxa and life Stage
+p<-plot_ordination(Bow_ps, ord_NMDS_Bow_non_norm, color = "Site") + 
+  theme_classic() +
+  geom_point(size=2)+
+  facet_wrap(vars(Stage, Family), scales="free", nrow=1)+
+  theme_bw()+
+  rremove("grid")+
+  theme(legend.key.size = unit(0.7, 'cm'), 
+        legend.title = element_text(size=20), 
+        legend.text = element_text(size=20), 
+        legend.position = "bottom", 
+        axis.text.x=element_text(size=16, color="black", angle=90, hjust=0.5, vjust=0.5),
+        axis.text.y=element_text(size=16, color="black"),
+        axis.title = element_text(size=18),
+        strip.text.x = element_text(size=20))+
+  facet_nested_wrap(~Stage + Family, scale="free_x", nrow=1)+
+  stat_ellipse()
+
+newtab = data.table(p$data)
+newtab$Family <- ordered(newtab$Family,
+levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+p$data <- newtab
+print(p)
+
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Beta Diversity Graphs\\NMDS Bow River invertebrates non normalized.png", height=10, width=20)
+
+#Faceted by site
+p1<-plot_ordination(Bow_ps, ord_NMDS_Bow_non_norm, color = "Family") + 
+  theme_classic() +
+  geom_point(size=2)+
+  facet_grid(~Site, scales="free")+
+  theme_bw()+
+  rremove("grid")+
+  theme(legend.key.size = unit(0.7, 'cm'), 
+        legend.title = element_text(size=20), 
+        legend.text = element_text(size=20), 
+        legend.position = "bottom", 
+        axis.text=element_text(size=18, color="black", angle=90, hjust=1, vjust=1),
+        axis.title = element_text(size=18, color="black"),
+        strip.text.x = element_text(size=20))+
+  stat_ellipse(linetype=1, type="norm", linewidth=0.5)+
+  guides(color=guide_legend(nrow=3, ncol=3)) +
+  scale_color_manual(values=c("red","#E67E22","#F1C40F","green","#3498DB", "purple", "hotpink", "brown", "black"))+
+  labs(color='Invertebrate Taxa')
+ 
+
+newtab2 = data.table(p1$data)
+newtab2$Family <- ordered(newtab2$Family,
+levels = c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"), labels=c("Larval Hydropsychidae", "Larval Heptageniidae", "Larval Chironomidae", "Larval Perlidae", "Adult Trichoptera", "Adult Ephemeroptera", "Adult Diptera", "Araneidae", "Tetragnathidae"))
+p1$data <- newtab2
+print(p1)
+
+#ggsave(filename="C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\Final analysis\\Beta Diversity Graphs\\NMDS across sites Bow non normalized.png", height=10, width=20)
+
+
+                                ## PERMANOVA by Site and invertebrate taxa ##
+
+test.adonis.Bow.all.non.norm <- adonis2(Bow_bray_non_norm ~ Site*Family, data = metadata_Bow_non_norm)
+test.adonis.Bow.all.non.norm
+#Site: F = 2.79, R2 = 0.0272, P<0.001
+#Family: F = 13.6, R2 = 0.265, P<0.001
+
+bd_all_fam_Bow_non_norm<-betadisper(Bow_bray_non_norm, metadata_Bow_non_norm$Family) 
+anova(bd_all_fam_Bow_non_norm) #yes beta disper p < 0.001
+
+bd_all_site_Bow_non_norm<-betadisper(Bow_bray_non_norm, metadata_Bow_non_norm$Site) 
+anova(bd_all_site_Bow_non_norm) #no beta disper p = 0.283
+
+          
+              # Testing the difference in beta diversity across sites within each invert taxon #
+
+## Hydropsychidae ##
+
+hydro_Bow<-subset_samples(Bow_ps, Family=="Hydropsychidae")
+Bow_bray_hydro_non_norm = phyloseq::distance(hydro_Bow, method="bray") 
+
+metadata_Bow_hydro_non_norm <- data.frame(sample_data(hydro_Bow))
+
+test.adonis.Bow.hydro.non.norm <- adonis2(Bow_bray_hydro_non_norm ~ Site, data = metadata_Bow_hydro_non_norm)
+test.adonis.Bow.hydro.non.norm #p<0.001
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_hydro_non_norm ~ Site, data = metadata_Bow_hydro_non_norm)
+#All sites except CUSHBR - SUN are sig diff
+
+bd_all_fam_Bow_hydro_non_norm<-betadisper(Bow_bray_hydro_non_norm, metadata_Bow_hydro_non_norm$Site) 
+anova(bd_all_fam_Bow_hydro_non_norm) #no beta dispersion p = 0.366
+
+#Same conclusion as relative abundance normalized data but the dispersion is a bit better
+
+## Heptageniidae ##
+
+hep_Bow<-subset_samples(Bow_ps, Family=="Heptageniidae")
+Bow_bray_hep_non_norm = phyloseq::distance(hep_Bow, method="bray") 
+
+metadata_Bow_hep_non_norm <- data.frame(sample_data(hep_Bow))
+
+test.adonis.Bow.hep.non.norm <- adonis2(Bow_bray_hep_non_norm ~ Site, data = metadata_Bow_hep_non_norm)
+test.adonis.Bow.hep.non.norm #p<0.001. 
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_hep_non_norm ~ Site, data = metadata_Bow_hep_non_norm)
+#All sites except CUSH - SUN diff from each other
+
+bd_all_fam_Bow_hep_non_norm<-betadisper(Bow_bray_hep_non_norm, metadata_Bow_hep_non_norm$Site) 
+anova(bd_all_fam_Bow_hep_non_norm) #sig beta dispersion p = 0.0052
+
+#Same conclusion as relative abundance normalized data and dispersion is not any better
+
+
+## Chironomidae ##
+
+chiro_Bow<-subset_samples(Bow_ps, Family=="Chironomidae")
+Bow_bray_chiro_non_norm = phyloseq::distance(chiro_Bow, method="bray") 
+
+metadata_Bow_chiro_non_norm <- data.frame(sample_data(chiro_Bow))
+
+test.adonis.Bow.chiro.non.norm <- adonis2(Bow_bray_chiro_non_norm ~ Site, data = metadata_Bow_chiro_non_norm)
+test.adonis.Bow.chiro.non.norm #p=0.112. 
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_chiro_non_norm ~ Site, data = metadata_Bow_chiro_non_norm)
+#No diff.
+
+bd_all_fam_Bow_chiro_non_norm<-betadisper(Bow_bray_chiro_non_norm, metadata_Bow_chiro_non_norm$Site) 
+anova(bd_all_fam_Bow_chiro_non_norm) #no beta dispersion p = 0.566
+
+#Same conclusion as relative abundance normalized data and same amount of dispersion 
+
+
+## Perlidae ##
+
+perl_Bow<-subset_samples(Bow_ps, Family=="Perlidae")
+Bow_bray_perl_non_norm = phyloseq::distance(perl_Bow, method="bray") 
+
+metadata_Bow_perl_non_norm <- data.frame(sample_data(perl_Bow))
+
+test.adonis.Bow.perl.non.norm <- adonis2(Bow_bray_perl_non_norm ~ Site, data = metadata_Bow_perl_non_norm)
+test.adonis.Bow.perl.non.norm #p<0.001. 
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_perl_non_norm ~ Site, data = metadata_Bow_perl_non_norm)
+#All sites were significantly different from each other
+
+bd_all_fam_Bow_perl_non_norm<-betadisper(Bow_bray_perl_non_norm, metadata_Bow_perl_non_norm$Site) 
+anova(bd_all_fam_Bow_perl_non_norm) #yes beta dispersion p = 0.046
+
+#Same conclusion as relative abundance normalized data but more dispersion 
+
+
+## Trichoptera ##
+
+trichop_Bow<-subset_samples(Bow_ps, Family=="Trichoptera")
+Bow_bray_trichop_non_norm = phyloseq::distance(trichop_Bow, method="bray") 
+
+metadata_Bow_trichop_non_norm <- data.frame(sample_data(trichop_Bow))
+
+test.adonis.Bow.trichop.non.norm <- adonis2(Bow_bray_trichop_non_norm ~ Site, data = metadata_Bow_trichop_non_norm)
+test.adonis.Bow.trichop.non.norm #p = 0.015
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_trichop_non_norm ~ Site, data = metadata_Bow_trichop_non_norm)
+#CUSHBR - GRVBR, GRVBR - SUN, COCH - GRVBR were sig. different from each other (all upstream sites were diff from GRVBR). 
+
+bd_all_fam_Bow_trichop_non_norm<-betadisper(Bow_bray_trichop_non_norm, metadata_Bow_trichop_non_norm$Site) 
+anova(bd_all_fam_Bow_trichop_non_norm) #no beta dispersion p = 0.848
+
+#Same conclusion as relative abundance normalized data and same amount of dispersion 
+
+
+## Ephemeroptera ##
+
+ephem_Bow<-subset_samples(Bow_ps, Family=="Ephemeroptera")
+Bow_bray_ephem_non_norm = phyloseq::distance(ephem_Bow, method="bray") 
+
+metadata_Bow_ephem_non_norm <- data.frame(sample_data(ephem_Bow))
+
+test.adonis.Bow.ephem.non.norm <- adonis2(Bow_bray_ephem_non_norm ~ Site, data = metadata_Bow_ephem_non_norm)
+test.adonis.Bow.ephem.non.norm #p < 0.001 
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_ephem_non_norm ~ Site, data = metadata_Bow_ephem_non_norm)
+#Sig diff btw sites include:
+#COCH - GRVBR
+#COCH - CUSHBR
+#COCH - PMF
+#GRVBR - SUN
+#GRVBR - CUSHBR
+#SUN - CUSHBR
+#CUSHBR - PMF
+
+bd_all_fam_Bow_ephem_non_norm<-betadisper(Bow_bray_ephem_non_norm, metadata_Bow_ephem_non_norm$Site) 
+anova(bd_all_fam_Bow_ephem_non_norm) #yes beta dispersion p = 0.0042
+
+#Same conclusion as relative abundance normalized data and same amount of dispersion 
+
+
+## Diptera ##
+dip_Bow<-subset_samples(Bow_ps, Family=="Diptera")
+Bow_bray_dip_non_norm = phyloseq::distance(dip_Bow, method="bray") 
+
+metadata_Bow_dip_non_norm <- data.frame(sample_data(dip_Bow))
+
+test.adonis.Bow.dip.non.norm <- adonis2(Bow_bray_dip_non_norm ~ Site, data = metadata_Bow_dip_non_norm)
+test.adonis.Bow.dip.non.norm #p = 0.102
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_dip_non_norm ~ Site, data = metadata_Bow_dip_non_norm)
+#sig diff between COCH - CUSHBR and COCH - PMF
+
+bd_all_fam_Bow_dip_non_norm<-betadisper(Bow_bray_dip_non_norm, metadata_Bow_dip_non_norm$Site) 
+anova(bd_all_fam_Bow_dip_non_norm) #no beta dispersion p = 0.940
+
+#Same conclusion as relative abundance normalized data and same amount of dispersion 
+
+
+## Araneidae ##
+
+aran_Bow<-subset_samples(Bow_ps, Family=="Araneidae")
+Bow_bray_aran_non_norm = phyloseq::distance(aran_Bow, method="bray") 
+
+metadata_Bow_aran_non_norm <- data.frame(sample_data(aran_Bow))
+
+test.adonis.Bow.aran.non.norm <- adonis2(Bow_bray_aran_non_norm ~ Site, data = metadata_Bow_aran_non_norm)
+test.adonis.Bow.aran.non.norm #p < 0.001 
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_aran_non_norm ~ Site, data = metadata_Bow_aran_non_norm)
+#Sig diff btw sites include:
+#COCH - PMF
+#GRVBR - SUN
+#GRVBR - PMF
+#CUSH - PMF
+#SUN - PMF
+
+bd_all_fam_Bow_aran_non_norm<-betadisper(Bow_bray_aran_non_norm, metadata_Bow_aran_non_norm$Site) 
+anova(bd_all_fam_Bow_aran_non_norm) #no beta dispersion p = 0.143
+
+#Same conclusion as relative abundance normalized data with less dispersion 
+
+
+## Tetragnathidae ##
+
+tetra_Bow<-subset_samples(Bow_ps, Family=="Tetragnathidae")
+Bow_bray_tetra_non_norm = phyloseq::distance(tetra_Bow, method="bray") 
+
+metadata_Bow_tetra_non_norm <- data.frame(sample_data(tetra_Bow))
+
+test.adonis.Bow.tetra.non.norm <- adonis2(Bow_bray_tetra_non_norm ~ Site, data = metadata_Bow_tetra_non_norm)
+test.adonis.Bow.tetra.non.norm #p = 0.643
+
+#Pairwise comparisons
+pairwise.adonis2(Bow_bray_tetra_non_norm ~ Site, data = metadata_Bow_tetra_non_norm)
+#No significant differences between any of the sites
+
+bd_all_fam_Bow_tetra_non_norm<-betadisper(Bow_bray_tetra_non_norm, metadata_Bow_tetra_non_norm$Site) 
+anova(bd_all_fam_Bow_tetra_non_norm) #no beta dispersion p = 0.665
+
+#Same conclusion as relative abundance normalized data with same amount of dispersion 
+
+
+## Cochrane ##
+
+coch_Bow<-subset_samples(Bow_ps, Site=="Cochrane")
+coch_bray_non_norm = phyloseq::distance(coch_Bow, method="bray") 
+
+metadata_coch_non_norm <- data.frame(sample_data(coch_Bow))
+
+test.adonis.Bow.coch.non.norm <- adonis2(coch_bray_non_norm ~ Family, data = metadata_coch_non_norm)
+test.adonis.Bow.coch.non.norm #p < 0.001, F(8,56) = 4.94
+
+#Pairwise comparisons
+pairwise.adonis2(coch_bray_non_norm ~ Family, data = metadata_coch_non_norm)
+#All diff from each other except
+#Dip - Ephem
+#Dip - Trichop
+
+bd_all_fam_Bow_coch_non_norm<-betadisper(coch_bray_non_norm, metadata_coch_non_norm$Family) 
+anova(bd_all_fam_Bow_coch_non_norm) #yes beta dispersion p < 0.001.
+
+#Same conclusion as relative abundance normalized data with more dispersion 
+
+
+## Sunalta ##
+
+sun_Bow<-subset_samples(Bow_ps, Site=="Sunalta")
+sun_bray_non_norm = phyloseq::distance(sun_Bow, method="bray") 
+
+metadata_sun_non_norm <- data.frame(sample_data(sun_Bow))
+
+test.adonis.Bow.sun.non.norm <- adonis2(sun_bray_non_norm ~ Family, data = metadata_sun_non_norm)
+test.adonis.Bow.sun.non.norm #p < 0.001, F(5,40) = 3.90
+
+#Pairwise comparisons
+pairwise.adonis2(sun_bray_non_norm ~ Family, data = metadata_sun_non_norm)
+#All diff from each other except
+#Ephem - Trichop
+
+bd_all_fam_Bow_sun_non_norm<-betadisper(sun_bray_non_norm, metadata_sun_non_norm$Family) 
+anova(bd_all_fam_Bow_sun_non_norm) #no beta dispersion p = 0.058.
+
+#Same conclusion as relative abundance normalized data with same amount of dispersion 
+
+
+## Cushing Bridge ##
+
+cush_Bow<-subset_samples(Bow_ps, Site=="Cushing Bridge")
+cush_bray_non_norm = phyloseq::distance(cush_Bow, method="bray") 
+
+metadata_cush_non_norm <- data.frame(sample_data(cush_Bow))
+
+test.adonis.Bow.cush.non.norm <- adonis2(cush_bray_non_norm ~ Family, data = metadata_cush_non_norm)
+test.adonis.Bow.cush.non.norm #p < 0.001, F(8,52) = 4.49
+
+#Pairwise comparisons
+pairwise.adonis2(cush_bray_non_norm ~ Family, data = metadata_cush_non_norm)
+#All inverts are diff. from each other
+
+bd_all_fam_Bow_cush_non_norm<-betadisper(cush_bray_non_norm, metadata_cush_non_norm$Family) 
+anova(bd_all_fam_Bow_cush_non_norm) #yes beta dispersion p = 0.0029.
+
+#Same conclusion as relative abundance normalized data with same amount of dispersion 
+
+
+## Graves Bridge ##
+
+grv_Bow<-subset_samples(Bow_ps, Site=="Graves Bridge")
+grv_bray_non_norm = phyloseq::distance(grv_Bow, method="bray") 
+
+metadata_grv_non_norm <- data.frame(sample_data(grv_Bow))
+
+test.adonis.Bow.grv.non.norm <- adonis2(grv_bray_non_norm ~ Family, data = metadata_grv_non_norm)
+test.adonis.Bow.grv.non.norm #p < 0.001, F(5,41)=6.83
+
+#Pairwise comparisons
+pairwise.adonis2(grv_bray_non_norm ~ Family, data = metadata_grv_non_norm)
+#All inverts are diff. from each other
+
+bd_all_fam_Bow_grv_non_norm<-betadisper(grv_bray_non_norm, metadata_grv_non_norm$Family) 
+anova(bd_all_fam_Bow_grv_non_norm) #yes beta dispersion p=0.004.
+
+#Same conclusion as relative abundance normalized data with same amount of dispersion 
+
+
+## Policeman Flats ##
+
+pmf_Bow<-subset_samples(Bow_ps, Site=="Policeman Flats")
+pmf_bray_non_norm = phyloseq::distance(pmf_Bow, method="bray") 
+
+metadata_pmf_non_norm <- data.frame(sample_data(pmf_Bow))
+
+test.adonis.Bow.pmf.non.norm <- adonis2(pmf_bray_non_norm ~ Family, data = metadata_pmf_non_norm)
+test.adonis.Bow.pmf.non.norm #p < 0.001, F(7,50)=4.67
+
+#Pairwise comparisons
+pairwise.adonis2(pmf_bray_non_norm ~ Family, data = metadata_pmf_non_norm)
+#Most inverts are diff. from each other except
+#Dip - Ephem
+
+bd_all_fam_Bow_pmf_non_norm<-betadisper(pmf_bray_non_norm, metadata_pmf_non_norm$Family) 
+anova(bd_all_fam_Bow_pmf_non_norm) #yes beta dispersion p < 0.001.
+
+
+#Same conclusion as relative abundance normalized data with same amount of dispersion
+
+
+## Overall, we get the same results no matter if we transformed to relative abundance or not. There was no difference in the dispersion estimates overall either. ##
 
 #### Water quality variables Bow ####
 
@@ -14645,6 +15047,163 @@ write.table(OTUdf3, file="microbiome_analysis/PICRUSt2 Data/ASV_table.tsv", sep=
 
 'description' is a higher order classification (pathway class). Multiple individual pathways can be categorized into a pathway class.
 
+## Separating out the super pathways from the pathway type 
+```{r}
+
+picrust_out<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\picrust2_out_pipeline\\pathways_out\\path_abun_unstrat.tsv") #Loading in picrust output
+
+picrust_out<-dplyr::rename(picrust_out, "Pathways" = "pathway")
+
+picrust_metadata<-sample_data(sample_ps)
+picrust_metadata_1<-rownames(picrust_metadata)
+picrust_metadata_2<-cbind(picrust_metadata, picrust_metadata_1)
+picrust_metadata_2<-dplyr::rename(picrust_metadata_2, "study_ID" = "picrust_metadata_1")
+
+picrust_long <- picrust_out %>% 
+  pivot_longer(
+    cols = 2:332,
+    names_to = c("study_ID"),
+    values_to = "value")
+
+picrust_comb <- picrust_long %>%
+  dplyr::left_join(picrust_metadata_2, by = "study_ID")
+
+
+#Names of pathways and classification
+metacyc_ontology<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\MetaCyc_Ontology.txt", header=T)
+
+metacyc_ont_1<-as.data.frame(metacyc_ontology[,c(1,15)])
+
+metacyc_ont_2<-dplyr::rename(metacyc_ont_1, "pathway_type" = "Ontology...pathway.type")
+
+pathways_ontology <- picrust_comb %>%
+  dplyr::left_join(metacyc_ont_2, by = "Pathways")
+
+pathways_ontology$pathway_type <- as.factor(pathways_ontology$pathway_type)
+
+pathways_sep<- pathways_ontology %>% separate_rows(pathway_type, sep = " // ", convert = TRUE)
+pathways_sep<-separate(pathways_ontology, pathway_type, '//',5)
+pathways_sep<-strsplit(as.character(pathways_ontology$pathway_type),'//')
+
+fun_sep_summary <- fun_sep_summary %>%
+  filter(pathway_type != "Super-Pathways")
+
+#need to get relative abundance not raw abundance
+#need to get total number of reads per site per rep
+totalabund2 <- pathways_ontology %>%
+  group_by(Site_Code, rep, year) %>%
+  summarize(totalreads = sum(value))
+
+#join together so we can then calculate proportion
+FunAbund <- pathways_ontology %>%
+  inner_join(totalabund2, by = c("site", "year", "rep"))
+
+#add relative abundance column
+fun_reps <- FunAbund %>%
+  mutate(Relative_Abundance = value/totalreads)
+
+fun_reps$site <- fun_reps$site %>%    
+  factor(levels = c("U01","U02","U03","C04","C05", "C06","C07","L08","L09", "L10","L11","L12"))
+
+fun_reps$year <- as.factor(fun_reps$year)
+
+# split the complex guilds
+#split the rows
+fun_sep <- fun_reps %>%
+  separate_rows(pathway_type, sep = " // ", convert = TRUE)
+
+#sum the relative abundance 
+fun_sep_summary <- fun_sep %>%
+  group_by(site, rep, year, pathway_type) %>%
+  summarize(sum_types = sum(Relative_Abundance))
+
+#remove superpathways (they are now combined in with their respective groups, don't need separate category for general super pathways)
+fun_sep_summary <- fun_sep_summary %>%
+  filter(pathway_type != "Super-Pathways")
+
+#unique(fun_sep_summary$pathway_type) #35 groups
+
+#try boxplot?
+#scale everything, then restrict to top 10 pathways
+fun_sep_scale <- fun_sep_summary %>%
+  group_by(pathway_type) %>%
+  mutate(scaled.val = scale(sum_types)[,1]) %>% ## need to be scaled, since we are comparing enzymes to gene counts
+  group_by()## make so all are "moved up" into positive by same amount
+
+#all groups
+fun_sep_scale %>%
+  ggplot(aes(x = site, y = sum_types, fill = year)) +
+  facet_wrap(~pathway_type) +
+  geom_boxplot() +
+  theme_bw(base_size = 14) + theme(legend.position="bottom")
+
+#need to restrict the boxplot to only the top 10 groups or something. put the rest in other
+#2714 = greater than 2%
+#1711 = greater than 3%
+
+#arrange in decreasing abundance
+fun_sep_summary1 <- fun_sep_summary %>%
+  arrange(-sum_types)
+
+#restrict to things greater than 2%
+
+#take the top 17 
+top15 <- fun_sep_summary1$pathway_type[1:2714]
+
+fun_sep_summary1$pathway_type<- as.factor(fun_sep_summary1$pathway_type)
+
+top_fungroups <- fun_sep_summary1 %>%
+  mutate(pathway_type = fct_other(pathway_type, top15)) %>%
+  group_by(year, site, rep, pathway_type) 
+
+#restrict only degradation or biosynthesis pathways for primary metabolites
+top_fungroups1 <- top_fungroups %>%
+  filter(pathway_type != "C1-COMPOUNDS") %>%
+  filter(pathway_type != "Metabolic-Clusters") %>%
+  filter(pathway_type != "SECONDARY-METABOLITE-DEGRADATION") %>%
+  filter(pathway_type != "SECONDARY-METABOLITE-BIOSYNTHESIS") %>%
+  filter(pathway_type != "Energy-Metabolism") %>%
+  droplevels
+
+
+#unique(top_fungroups$pathway_type)
+
+top_fungroups1$pathway_type <- as.factor(top_fungroups1$pathway_type)
+levels(top_fungroups1$pathway_type) <- c("Amino Acid Biosynthesis", "Cofactor Biosynthesis", "Nucleotide Biosynthesis", "Lipid Biosynthesis", "Carbohydrate Biosynthesis", "Cell-Structure Biosynthesis", "Tetrapyrrole Biosynthesis", "Carbohydrate Degradation", "Nucleotide Degradation", "Carboxylate Degredation", "Aromatic Degradation", "Noncarbon Nutrients", "Other")
+
+equal_breaks <- function(n = 3, s = 0.05, ...){
+  function(x){
+    # rescaling
+    d <- s * diff(range(x)) / (1+2*s)
+    round(seq(min(x)+d, max(x)-d, length=n), 3)
+  }
+}
+
+library(scales)
+#boxplot top 14
+top_fungroups1 %>%
+  filter(pathway_type != "Other") %>%
+  ggplot(aes(x = site, y = sum_types, fill = year)) +
+  facet_wrap(~pathway_type, ncol =2, scales = "free") +  scale_fill_brewer(palette = "Dark2") + 
+  geom_boxplot() +
+  ylab("Relative Abundance") + xlab("Site") +
+  theme_bw(base_size = 14) + theme(legend.position="bottom") + scale_y_continuous(breaks = equal_breaks(n=3))
+
+#how many aromatic compound degredation pathtways in the dataset?
+pathways_aromdeg <- pathways_ontology %>%
+  filter(pathway_type %in% c("AROMATIC-COMPOUNDS-DEGRADATION // CHLORINATED-COMPOUNDS-DEG", "AROMATIC-COMPOUNDS-DEGRADATION // SECONDARY-METABOLITE-DEGRADATION", "AROMATIC-COMPOUNDS-DEGRADATION"))
+
+unique(pathways_aromdeg$pathway) #22 aromatic compound degradation pathways in the dataset
+#20 only do aromatic deg, while 1 does aromatic deg and chlorinated deg and one does secondary metabolite deg and aromatic deg
+
+#and what about the super pathways?
+pathways_aromdeg_super <- pathways_ontology %>%
+  filter(pathway_type %in% c("Super-Pathways // AROMATIC-COMPOUNDS-DEGRADATION // AMINE-DEG", "Super-Pathways // AROMATIC-COMPOUNDS-DEGRADATION"))
+
+unique(pathways_aromdeg_super$pathway) #20 aromatic compound degradation super pathways in the dataset (1 that is both aromatic and amine deg) 
+
+```
+
 ```{r}
 #The MetaCyc abundance data acts as the "ASV" file
 metacyc<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\picrust2_out_pipeline\\pathways_out\\path_abun_unstrat.tsv")
@@ -14655,9 +15214,9 @@ metacyc<-dplyr::rename(metacyc, "Pathways" = "pathway")
 #Names of pathways and classification
 metacyc_ont<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\MetaCyc_Ontology.txt", header=T)
 
-metacyc_ont_1<-as.data.frame(metacyc_ont[,c(1,15)])
+metacyc_ont_1<-as.data.frame(metacyc_ont[,c(1,3)])
 
-metacyc_ont_2<-dplyr::rename(metacyc_ont_1, "description" = "Ontology...pathway.type")
+metacyc_ont_2<-dplyr::rename(metacyc_ont_1, "description" = "Common.Name")
 
 #Combining metacyc abundance data with the higher order classifications
 metacyc_combined<-dplyr::inner_join(metacyc, metacyc_ont_2, by="Pathways")
@@ -14684,6 +15243,8 @@ metadata_picrust<-sample_ps@sam_data
 #Put data all together in phyloseq object
 picrust_ps<-phyloseq(metacyc_rounded_mat_1, sample_data(metadata_picrust), descriptions_mat_1)
 ```
+
+
 
 
 ## Relative abundance of top MetaCyc pathway classes across sites
@@ -14748,14 +15309,14 @@ top_pathways_bow <- sample.df.agg_bow %>%
     group_by(description, Site_code) %>%
     summarise(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top_24_pathways_bow <- top_pathways_bow$description[1:110]
+top_24_pathways_bow <- top_pathways_bow$description[1:85]
 df0_bow <- sample.df.agg_bow %>%
     mutate(description = fct_other(description, top_24_pathways_bow))
 df0_bow
 
 df0_bow<-aggregate(Abundance~description + Site_code + Family + Stage, data=df0_bow, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
 
-length(unique(df0_bow$description)) #26
+length(unique(df0_bow$description)) #36
 
 df0_bow$Site_code<-factor(df0_bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
