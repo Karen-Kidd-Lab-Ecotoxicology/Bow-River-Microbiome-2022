@@ -6680,7 +6680,7 @@ dist.TOC = dist(TOC, method = "euclidean")
 
 #Mantel test with Spearman non parametric correlations
 abund_TOC = mantel(Bow_bray_df_no_grvbr, dist.TOC, method = "spearman", permutations = 999, na.rm = TRUE)
-abund_TOC # Mantel r=0.0365, p=0.057
+abund_TOC # Mantel r=0.0365, p=0.053
 
 #pH
 pH<-env_data$pH
@@ -15047,163 +15047,6 @@ write.table(OTUdf3, file="microbiome_analysis/PICRUSt2 Data/ASV_table.tsv", sep=
 
 'description' is a higher order classification (pathway class). Multiple individual pathways can be categorized into a pathway class.
 
-## Separating out the super pathways from the pathway type 
-```{r}
-
-picrust_out<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\picrust2_out_pipeline\\pathways_out\\path_abun_unstrat.tsv") #Loading in picrust output
-
-picrust_out<-dplyr::rename(picrust_out, "Pathways" = "pathway")
-
-picrust_metadata<-sample_data(sample_ps)
-picrust_metadata_1<-rownames(picrust_metadata)
-picrust_metadata_2<-cbind(picrust_metadata, picrust_metadata_1)
-picrust_metadata_2<-dplyr::rename(picrust_metadata_2, "study_ID" = "picrust_metadata_1")
-
-picrust_long <- picrust_out %>% 
-  pivot_longer(
-    cols = 2:332,
-    names_to = c("study_ID"),
-    values_to = "value")
-
-picrust_comb <- picrust_long %>%
-  dplyr::left_join(picrust_metadata_2, by = "study_ID")
-
-
-#Names of pathways and classification
-metacyc_ontology<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\MetaCyc_Ontology.txt", header=T)
-
-metacyc_ont_1<-as.data.frame(metacyc_ontology[,c(1,15)])
-
-metacyc_ont_2<-dplyr::rename(metacyc_ont_1, "pathway_type" = "Ontology...pathway.type")
-
-pathways_ontology <- picrust_comb %>%
-  dplyr::left_join(metacyc_ont_2, by = "Pathways")
-
-pathways_ontology$pathway_type <- as.factor(pathways_ontology$pathway_type)
-
-pathways_sep<- pathways_ontology %>% separate_rows(pathway_type, sep = " // ", convert = TRUE)
-pathways_sep<-separate(pathways_ontology, pathway_type, '//',5)
-pathways_sep<-strsplit(as.character(pathways_ontology$pathway_type),'//')
-
-fun_sep_summary <- fun_sep_summary %>%
-  filter(pathway_type != "Super-Pathways")
-
-#need to get relative abundance not raw abundance
-#need to get total number of reads per site per rep
-totalabund2 <- pathways_ontology %>%
-  group_by(Site_Code, rep, year) %>%
-  summarize(totalreads = sum(value))
-
-#join together so we can then calculate proportion
-FunAbund <- pathways_ontology %>%
-  inner_join(totalabund2, by = c("site", "year", "rep"))
-
-#add relative abundance column
-fun_reps <- FunAbund %>%
-  mutate(Relative_Abundance = value/totalreads)
-
-fun_reps$site <- fun_reps$site %>%    
-  factor(levels = c("U01","U02","U03","C04","C05", "C06","C07","L08","L09", "L10","L11","L12"))
-
-fun_reps$year <- as.factor(fun_reps$year)
-
-# split the complex guilds
-#split the rows
-fun_sep <- fun_reps %>%
-  separate_rows(pathway_type, sep = " // ", convert = TRUE)
-
-#sum the relative abundance 
-fun_sep_summary <- fun_sep %>%
-  group_by(site, rep, year, pathway_type) %>%
-  summarize(sum_types = sum(Relative_Abundance))
-
-#remove superpathways (they are now combined in with their respective groups, don't need separate category for general super pathways)
-fun_sep_summary <- fun_sep_summary %>%
-  filter(pathway_type != "Super-Pathways")
-
-#unique(fun_sep_summary$pathway_type) #35 groups
-
-#try boxplot?
-#scale everything, then restrict to top 10 pathways
-fun_sep_scale <- fun_sep_summary %>%
-  group_by(pathway_type) %>%
-  mutate(scaled.val = scale(sum_types)[,1]) %>% ## need to be scaled, since we are comparing enzymes to gene counts
-  group_by()## make so all are "moved up" into positive by same amount
-
-#all groups
-fun_sep_scale %>%
-  ggplot(aes(x = site, y = sum_types, fill = year)) +
-  facet_wrap(~pathway_type) +
-  geom_boxplot() +
-  theme_bw(base_size = 14) + theme(legend.position="bottom")
-
-#need to restrict the boxplot to only the top 10 groups or something. put the rest in other
-#2714 = greater than 2%
-#1711 = greater than 3%
-
-#arrange in decreasing abundance
-fun_sep_summary1 <- fun_sep_summary %>%
-  arrange(-sum_types)
-
-#restrict to things greater than 2%
-
-#take the top 17 
-top15 <- fun_sep_summary1$pathway_type[1:2714]
-
-fun_sep_summary1$pathway_type<- as.factor(fun_sep_summary1$pathway_type)
-
-top_fungroups <- fun_sep_summary1 %>%
-  mutate(pathway_type = fct_other(pathway_type, top15)) %>%
-  group_by(year, site, rep, pathway_type) 
-
-#restrict only degradation or biosynthesis pathways for primary metabolites
-top_fungroups1 <- top_fungroups %>%
-  filter(pathway_type != "C1-COMPOUNDS") %>%
-  filter(pathway_type != "Metabolic-Clusters") %>%
-  filter(pathway_type != "SECONDARY-METABOLITE-DEGRADATION") %>%
-  filter(pathway_type != "SECONDARY-METABOLITE-BIOSYNTHESIS") %>%
-  filter(pathway_type != "Energy-Metabolism") %>%
-  droplevels
-
-
-#unique(top_fungroups$pathway_type)
-
-top_fungroups1$pathway_type <- as.factor(top_fungroups1$pathway_type)
-levels(top_fungroups1$pathway_type) <- c("Amino Acid Biosynthesis", "Cofactor Biosynthesis", "Nucleotide Biosynthesis", "Lipid Biosynthesis", "Carbohydrate Biosynthesis", "Cell-Structure Biosynthesis", "Tetrapyrrole Biosynthesis", "Carbohydrate Degradation", "Nucleotide Degradation", "Carboxylate Degredation", "Aromatic Degradation", "Noncarbon Nutrients", "Other")
-
-equal_breaks <- function(n = 3, s = 0.05, ...){
-  function(x){
-    # rescaling
-    d <- s * diff(range(x)) / (1+2*s)
-    round(seq(min(x)+d, max(x)-d, length=n), 3)
-  }
-}
-
-library(scales)
-#boxplot top 14
-top_fungroups1 %>%
-  filter(pathway_type != "Other") %>%
-  ggplot(aes(x = site, y = sum_types, fill = year)) +
-  facet_wrap(~pathway_type, ncol =2, scales = "free") +  scale_fill_brewer(palette = "Dark2") + 
-  geom_boxplot() +
-  ylab("Relative Abundance") + xlab("Site") +
-  theme_bw(base_size = 14) + theme(legend.position="bottom") + scale_y_continuous(breaks = equal_breaks(n=3))
-
-#how many aromatic compound degredation pathtways in the dataset?
-pathways_aromdeg <- pathways_ontology %>%
-  filter(pathway_type %in% c("AROMATIC-COMPOUNDS-DEGRADATION // CHLORINATED-COMPOUNDS-DEG", "AROMATIC-COMPOUNDS-DEGRADATION // SECONDARY-METABOLITE-DEGRADATION", "AROMATIC-COMPOUNDS-DEGRADATION"))
-
-unique(pathways_aromdeg$pathway) #22 aromatic compound degradation pathways in the dataset
-#20 only do aromatic deg, while 1 does aromatic deg and chlorinated deg and one does secondary metabolite deg and aromatic deg
-
-#and what about the super pathways?
-pathways_aromdeg_super <- pathways_ontology %>%
-  filter(pathway_type %in% c("Super-Pathways // AROMATIC-COMPOUNDS-DEGRADATION // AMINE-DEG", "Super-Pathways // AROMATIC-COMPOUNDS-DEGRADATION"))
-
-unique(pathways_aromdeg_super$pathway) #20 aromatic compound degradation super pathways in the dataset (1 that is both aromatic and amine deg) 
-
-```
-
 ```{r}
 #The MetaCyc abundance data acts as the "ASV" file
 metacyc<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\picrust2_out_pipeline\\pathways_out\\path_abun_unstrat.tsv")
@@ -15214,15 +15057,15 @@ metacyc<-dplyr::rename(metacyc, "Pathways" = "pathway")
 #Names of pathways and classification
 metacyc_ont<-read.delim("C:\\Users\\Emilie\\Documents\\GitHub\\Bow-River-Microbiome-2022\\microbiome_analysis\\PICRUSt2 Data\\MetaCyc_Ontology.txt", header=T)
 
-metacyc_ont_1<-as.data.frame(metacyc_ont[,c(1,3)])
+metacyc_ont_1<-as.data.frame(metacyc_ont[,c(1,16)])
 
-metacyc_ont_2<-dplyr::rename(metacyc_ont_1, "description" = "Common.Name")
+metacyc_ont_2<-dplyr::rename(metacyc_ont_1, "pathway_type" = "Final_pathway")
 
 #Combining metacyc abundance data with the higher order classifications
 metacyc_combined<-dplyr::inner_join(metacyc, metacyc_ont_2, by="Pathways")
 
 #Creating "otu" table
-metacyc_only<-metacyc[,!names(metacyc) %in% c("description")] #Remove columns with descriptions so the values can be rounded for the "ASV" table
+metacyc_only<-metacyc[,!names(metacyc) %in% c("pathway_type")] #Remove columns with descriptions so the values can be rounded for the "ASV" table
 
 metacyc_only_column_to_row<-column_to_rownames(metacyc_only, "Pathways")
 
@@ -15231,49 +15074,22 @@ metacyc_rounded_mat<-as.matrix(metacyc_rounded) #Turn into matrix
 metacyc_rounded_mat_1 = otu_table(metacyc_rounded_mat, taxa_are_rows = TRUE) #Final table we will use for otu table
 
 #Descriptions of the pathways acts as the taxonomy file
-descriptions<-metacyc_combined[,names(metacyc_combined) %in% c("Pathways", "description")]
-descriptions_1<-column_to_rownames(descriptions, "Pathways")
-descriptions_mat<-as.matrix(descriptions_1)
-descriptions_mat_1 = tax_table(descriptions_mat) #Final table to use for taxonomy table
+pathway_type<-metacyc_combined[,names(metacyc_combined) %in% c("Pathways", "pathway_type")]
+pathway_type_1<-column_to_rownames(pathway_type, "Pathways")
+pathway_type_mat<-as.matrix(pathway_type_1)
+pathway_type_mat_1 = tax_table(pathway_type_mat) #Final table to use for taxonomy table
 
 
 #Metadata is treated the same
 metadata_picrust<-sample_ps@sam_data
 
 #Put data all together in phyloseq object
-picrust_ps<-phyloseq(metacyc_rounded_mat_1, sample_data(metadata_picrust), descriptions_mat_1)
+picrust_ps<-phyloseq(metacyc_rounded_mat_1, sample_data(metadata_picrust), pathway_type_mat_1)
 ```
-
-
-
 
 ## Relative abundance of top MetaCyc pathway classes across sites
 
 ```{r}
-#### Hydropsychidae ####
-
-#How to find the top three phyla across all sites
-hydro_Bow_picrust<-subset_samples(picrust_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River") #Subset hydropsychidae
-hydro_Bow_picrust_df<-psmelt(hydro_Bow_picrust)
-
-hydro_Bow_glom_picrust = tax_glom(hydro_Bow_picrust, "description") %>% transform_sample_counts(function(x) {x * 100/sum(x)}) #Agglomerate to phylum level
-
-hydro_Bow_descrip_picrust <- psmelt(hydro_Bow_glom_picrust) %>%
-  as_tibble %>%
-  dplyr::group_by(description, Site)%>%
-  dplyr::select(c("Abundance", "description", "Site")) %>%
-  dplyr::summarise(Mean = mean(Abundance), SD = sd(Abundance)) %>%
-  arrange(desc(Mean))
-  
-View(hydro_Bow_descrip_picrust)
-
-# Cochrane #
-hydro_coch_picrust<-subset(hydro_Bow_descrip_picrust, Site=="Cochrane") 
-hydro_coch_picrust_top<-subset(hydro_coch_picrust, Mean > 0)
-View(hydro_coch_picrust_top<-hydro_coch_picrust[order(hydro_coch_picrust$Mean, decreasing = TRUE),])  
-
-#Amino acid biosynthesis, energy metabolism, super-pathways//nucleotide biosynthesis
-
 #### Bow River ####
 
 # Bolding individual axes labels #
@@ -15296,36 +15112,35 @@ colorado <- function(src, boulder) {
 
 nsamples(Bow_ps_picrust<-subset_samples(picrust_ps, Stream_Type=="Bow River")) #276
 
-rel_abun_bow <- speedyseq::tax_glom(Bow_ps_picrust, taxrank = "description")
+rel_abun_bow <- speedyseq::tax_glom(Bow_ps_picrust, taxrank = "pathway_type")
 comp_rel_abun_bow <- transform_sample_counts(rel_abun_bow, function(x) x/sum(x))
 
 rel_abun_bow_df <- psmelt(comp_rel_abun_bow)
 
-sample.df.agg_bow <- aggregate(Abundance ~ description + Site_code + Family + Stage, data = rel_abun_bow_df, FUN = mean) 
+sample.df.agg_bow <- aggregate(Abundance ~ pathway_type + Site_code + Family + Stage, data = rel_abun_bow_df, FUN = mean) 
 
 
 #Top pathways
 top_pathways_bow <- sample.df.agg_bow %>%
-    group_by(description, Site_code) %>%
+    group_by(pathway_type, Site_code) %>%
     summarise(Mean = mean(Abundance)) %>%
     arrange(-Mean)
-top_24_pathways_bow <- top_pathways_bow$description[1:85]
+top_24_pathways_bow <- top_pathways_bow$pathway_type[1:109]
 df0_bow <- sample.df.agg_bow %>%
-    mutate(description = fct_other(description, top_24_pathways_bow))
-df0_bow
+    mutate(pathway_type = fct_other(pathway_type, top_24_pathways_bow))
 
-df0_bow<-aggregate(Abundance~description + Site_code + Family + Stage, data=df0_bow, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
+df0_bow<-aggregate(Abundance~pathway_type + Site_code + Family + Stage, data=df0_bow, FUN="sum") #Aggregate again to combine all the 'Other' categories into a single bar on the graph.
 
-length(unique(df0_bow$description)) #36
+length(unique(df0_bow$pathway_type)) #25
 
 df0_bow$Site_code<-factor(df0_bow$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
 
 df0_bow$Stage<-factor(df0_bow$Stage, levels=c("Larvae", "Adults", "Spiders"))
 
 df0_bow$Family<-factor(df0_bow$Family, levels=c("Hydropsychidae", "Heptageniidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
-View(df0_bow)
+#View(df0_bow)
 
-toppathwaysplot_bow <- ggplot(df0_bow, aes(x=Site_code, y=Abundance, fill=description)) + 
+toppathwaysplot_bow <- ggplot(df0_bow, aes(x=Site_code, y=Abundance, fill=pathway_type)) + 
   geom_bar(stat="identity", color="black") + 
   facet_nested_wrap(~Stage + Family, scales="free_x", nrow=1)+
   ylab("Mean Relative Abundance") +

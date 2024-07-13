@@ -5,6 +5,11 @@ Download and install virtual box for Windows using this link:
 
 https://www.virtualbox.org/wiki/Downloads
 
+Make sure you remember and write down your sudo password! You need it to install packages to the computer.
+If you forget it you have to go into the GRUB (start up menu) by restarting the computer and holding the shift or ESC key
+
+
+
 
 2. Installing conda:
 
@@ -25,6 +30,7 @@ emilie@emilie-VirtualBox:~$ shasum -a 256 /home/emilie/Downloads/Anaconda3-2023.
 emilie@emilie-VirtualBox:~$ bash ~/Downloads/Anaconda3-2023.03-1-Linux-x86_64.sh
 
 emilie@emilie-VirtualBox:~$ ~/.bashrc
+
 
 
 
@@ -49,6 +55,14 @@ Download the tar.gz zip file into the anaconda3 directory to install picrust2 fr
 Follow this tutorial for installation instructions: https://github.com/picrust/picrust2/wiki/Installation
 
 
+To load your environment you need to call it in from Conda using this code:
+
+conda activate /path/to/environment
+
+ex. emilie@emilie-VirtualBox:~$ conda activate /home/emilie/micromamba/envs/picrust2
+
+
+
 
 4. Running PICRUSt2:
 
@@ -64,11 +78,24 @@ Command once your data is formatted correctly:
 picrust2_pipeline.py -s study_seqs.fna -i study_seqs.biom -o picrust2_out_pipeline -p 1
 
 
+You need to be in the picrust2 envioronment and locate your directory to where your files are stored. To change your working directory you can use this code:
+
+emilie@emilie-VirtualBox:~$ cd /home/emilie/Documents
 
 
+If you get an error that says "all X sequences aligned poorly to reference" then either your fasta file headers contain a special character that shouldn't be there or your 
+reads may not be all from the positive strand. Mine were on the negative strand so I had to reverse complement them before running the pipeline again. 
 
-* Notes for analysis *
+To do that, first you need to install git:
+(base) emilie@emilie-VirtualBox:-$ sudo apt install git
 
-Use a p-value of 0.01 take results with a grain of salt. Discuss that picrust2 is only based on taxonomy and not testing functional gene pathways. 
+Then install "seqtk":
+(base) emilie@emilie-VirtualBox: ~$ sudo apt install seqtk
 
-Convert to relative abundance and not raw abundances
+Clone the Git repo for seqtk
+(base) emilie@emilie-VirtualBox:~$ git clone https://github.com/lh3/seqtk.git;
+                                   cd seqtk; make
+
+Finally, this code runs the reverse complement on FASTA or Q files:
+(base) emilie@emilie-VirtualBox: seqtk seq -r ASV_sequences.fna > ASV_sequences_pos.fna
+
