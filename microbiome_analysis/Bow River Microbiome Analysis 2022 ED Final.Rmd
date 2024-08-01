@@ -8,7 +8,7 @@ editor_options:
 ---
 # Introduction
 
-This data comes from a study done in 2022 across 5 sites on ~75km of the Bow River in Calgary AB and 3 experimental streams from Advancing Canadian Wastewater Assets (ACWA) at the Pine Creek waste water treatment plant with varying municipal waste water effluent exposures (stream additions: 0, 5, or 15% effluent). The objective of this study was to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian spiders with exposure to waste water effluents as well as if there were any differences in the microbial assemblage across taxa and across metamorphosis/life stage. 
+This data comes from a study done in 2022 across 5 sites on ~75km of the Bow River in Calgary AB. The objective of this study was to determine whether there are changes to the microbiome of freshwater macroinvertebrates and riparian spiders with exposure to waste water effluents as well as if there were any differences in the microbial assemblage across taxa and across metamorphosis/life stage. 
 
 ## Setup
 ```{r setup, include=FALSE}
@@ -4889,10 +4889,11 @@ Rarefying is done to allow comparisons between samples with high versus low sequ
 
 Papers that support rarefying/repeated rarefying: 
 -Cameron et al., 2021. Scientific reports.
-
-Papers that do not support rarefaction:
--McCurdie & Holmes, 2014. PLOS Computational Biology.
 -Willis, 2019. Frontiers in Microbiology. 
+-Weiss et al., 2017. 
+
+Papers that do not support rarefying:
+-McCurdie & Holmes, 2014. PLOS Computational Biology.
 
 
 ``` {r Rarefying the data}
@@ -5324,6 +5325,36 @@ adiv_Bow_rare <- data.frame(
   "Site" = phyloseq::sample_data(Bow_ps_rare)$Site)
 head(adiv_Bow_rare)
 
+colorado <- function(src, boulder) {
+  if (!is.factor(src)) src <- factor(src)                   # make sure it's a factor
+  src_levels <- levels(src)                                 # retrieve the levels in their order
+  brave <- boulder %in% src_levels                          # make sure everything we want to make bold is actually in the factor levels
+  if (all(brave)) {                                         # if so
+    b_pos <- purrr::map_int(boulder, ~which(.==src_levels)) # then find out where they are
+    b_vec <- rep("plain", length(src_levels))               # make'm all plain first
+    b_vec[b_pos] <- "bold"                                  # make our targets bold
+    b_vec                                                   # return the new vector
+  } else {
+    stop("All elements of 'boulder' must be in src")
+  }
+}
+
+adiv_Bow_rare$Site_code<-factor(adiv_Bow_rare$Site_code, levels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF"))
+adiv_Bow_rare$Family<-factor(adiv_Bow_rare$Family, levels=c("Hydropsychidae", "Heptageniidae", "Baetidae", "Chironomidae", "Perlidae", "Trichoptera", "Ephemeroptera", "Diptera", "Araneidae", "Tetragnathidae"))
+
+#Shannon diversity across taxa
+shan.plot.taxa.rare<-ggplot(adiv_Bow_rare, aes(x=Site_code, y=Shannon, fill=Site_code))+
+  facet_nested_wrap(~ Stage + Family, scales= "free_x", nrow=1)+
+  geom_boxplot()+
+  labs(x = "Site", y = "Shannon Diversity")+
+  theme_bw()+
+  theme(legend.position="none", axis.text.x=element_text(angle=45, hjust=1, size=16, color="black", face=colorado(adiv_Bow_rare$Site_code, c("GRVBR", "PMF"))),
+        strip.text.x = element_text(size=20), 
+        axis.text.y = element_text(size=16, color="black"), axis.title.x = element_text(size=18), axis.title.y = element_text(size=18))+
+  rremove("grid")+
+  scale_fill_brewer(palette="Accent")
+
+shan.plot.taxa.rare
 
 #Shannon diversity across taxa
 shan.plot.taxa.rare<-ggplot(adiv_Bow_rare, aes(x=factor(Site, labels=c("COCH", "SUN", "CUSHBR", "GRVBR", "PMF")), y=Shannon, fill=Site))+
@@ -5361,11 +5392,12 @@ dunnTest(Shannon~Stage, data=adiv_Bow_rare) #All diff from each other
 
 #Larval Hydropsychidae 
 adiv_hydro_Bow_rare<-subset(adiv_Bow_rare, Family=="Hydropsychidae")
-shapiro.test(adiv_hydro_Bow_rare$Shannon) #Normal dist. p = 0.09
-leveneTest(Shannon~Site, data=adiv_hydro_Bow_rare) #Homogeneity. p = 0.276.
+shapiro.test(adiv_hydro_Bow_rare$Shannon) #Normal dist. p = 0.073
+leveneTest(Shannon~Site, data=adiv_hydro_Bow_rare) #Homogeneity. p = 0.239
 #Use ANOVA
 summary(hydro_aov_rare<-aov(Shannon~Site, data=adiv_hydro_Bow_rare)) #p<0.001
 TukeyHSD(hydro_aov_rare)
+#Differences between
 #GRVBR - COCH
 #PMF - COCH
 #GRVBR - SUN
@@ -5373,78 +5405,78 @@ TukeyHSD(hydro_aov_rare)
 #GRVBR - CUSH
 #PMF - CUSH
 
+plot(hydro_aov_rare) #Adheres to assumptions of ANOVA
+
 #Adult Trichoptera
 div.df.Bow.Tricho.rare<-subset(adiv_Bow_rare, Family=="Trichoptera")
-shapiro.test(div.df.Bow.Tricho.rare$Shannon) #Not normal
-leveneTest(Shannon~Site, data=div.df.Bow.Tricho.rare) #Heterogeneity
+shapiro.test(div.df.Bow.Tricho.rare$Shannon) #Not normal p < 0.001
+leveneTest(Shannon~Site, data=div.df.Bow.Tricho.rare) #Heterogeneity p = 0.095
 #Use Kruskal-Wallis
-kruskal.test(Shannon~Site, data=div.df.Bow.Tricho.rare) #p= 0.709
-dunnTest(Shannon~Site, data=div.df.Bow.Tricho.rare) #no significant diff. across sites.
+kruskal.test(Shannon~Site, data=div.df.Bow.Tricho.rare) #p= 0.551 no significant diff. across sites.
 
 #Larval Heptageniidae (order Ephemeroptera)
 div.df.Bow.Hep.rare<-subset(adiv_Bow_rare, Family=="Heptageniidae")
-shapiro.test(div.df.Bow.Hep.rare$Shannon) #Normal dist. p = 0.2118
-leveneTest(Shannon~Site, data=div.df.Bow.Hep.rare) #Homogeneity
+shapiro.test(div.df.Bow.Hep.rare$Shannon) #Normal dist. p = 0.197
+leveneTest(Shannon~Site, data=div.df.Bow.Hep.rare) #Homogeneity p = 0.621
 #Use ANOVA
-summary(hep_aov_rare<-aov(Shannon~Site, data=div.df.Bow.Hep.rare)) #p=0.129
+summary(hep_aov_rare<-aov(Shannon~Site, data=div.df.Bow.Hep.rare)) #p=0.129, no differences
+
+plot(hep_aov_rare) #Adheres to assumptions of ANOVA
 
 #Adult Ephemeroptera
 div.df.Bow.Ephem.rare<-subset(adiv_Bow_rare, Family=="Ephemeroptera")
-shapiro.test(div.df.Bow.Ephem.rare$Shannon) #p=0.012, not normal
-leveneTest(Shannon~Site, data=div.df.Bow.Ephem.rare) #Homogeneity p = 0.49
+shapiro.test(div.df.Bow.Ephem.rare$Shannon) #p=0.0026, not normal
+leveneTest(Shannon~Site, data=div.df.Bow.Ephem.rare) #Homogeneity p = 0.387
+
 #Use Kruskal-Wallis
-kruskal.test(Shannon~Site, data=div.df.Bow.Ephem.rare) #p=0.135
-dunnTest(Shannon~Site, data=div.df.Bow.Ephem.rare) #No sig diff across sites
+kruskal.test(Shannon~Site, data=div.df.Bow.Ephem.rare) #p=0.038
+dunnTest(Shannon~Site, data=div.df.Bow.Ephem.rare) #No sig pairwise comparisons
 
 #Larval Chironomidae (Order Diptera)
 div.df.Bow.chiro.rare<-subset(adiv_Bow_rare, Family=="Chironomidae")
-shapiro.test(div.df.Bow.chiro.rare$Shannon) #0.308 Normal
-leveneTest(Shannon~Site, data=div.df.Bow.chiro.rare) #Homogeneity. 
-#Use AnOVA
-summary(chiro_aov_rare<-aov(Shannon~Site, data=div.df.Bow.chiro.rare)) #p=0.257
-TukeyHSD(chiro_aov_rare)
-#No differences across sites
+shapiro.test(div.df.Bow.chiro.rare$Shannon) #0.0206 not normal
+leveneTest(Shannon~Site, data=div.df.Bow.chiro.rare) #Homogeneity. p = 0.845
+#Use KW
+kruskal.test(Shannon~Site, data=div.df.Bow.chiro.rare) #p=0.387 no differences
+
 
 #Adult Chironomidae (Order Diptera)
 div.df.Bow.dip.rare<-subset(adiv_Bow_rare, Family=="Diptera")
-shapiro.test(div.df.Bow.dip.rare$Shannon) #p=0.166 Normal
-leveneTest(Shannon~Site, data=div.df.Bow.dip.rare) #0.605. Homogeneity.
+shapiro.test(div.df.Bow.dip.rare$Shannon) #p=0.057 Normal
+leveneTest(Shannon~Site, data=div.df.Bow.dip.rare) #0.799. Homogeneity.
 #Use ANOVA
-summary(dip_aov_rare<-aov(Shannon~Site, data=div.df.Bow.dip.rare)) #p=0.652
-TukeyHSD(dip_aov_rare)
-#No differences across sites
+summary(dip_aov_rare<-aov(Shannon~Site, data=div.df.Bow.dip.rare)) #p=0.999 no diff
+
+plot(dip_aov_rare) #Adheres to assumptions of ANOVA
 
 #Larval Perlidae (Order Plecoptera)
 div.df.Bow.perl.rare<-subset(adiv_Bow_rare, Family=="Perlidae")
-shapiro.test(div.df.Bow.perl.rare$Shannon) #0.089 normal
-leveneTest(Shannon~Site, data=div.df.Bow.perl.rare) #0.04. Heterogeneity
-#Use Kruskal-Wallis
-kruskal.test(Shannon~Site, data=div.df.Bow.perl.rare) #p=0.216
-dunnTest(Shannon~Site, data=div.df.Bow.perl.rare) #No sig diff across sites
+shapiro.test(div.df.Bow.perl.rare$Shannon) #0.057 normal
+leveneTest(Shannon~Site, data=div.df.Bow.perl.rare) #0.111. Heterogeneity
 
-summary(perl_aov_rare<-aov(Shannon~Site, data=div.df.Bow.perl.rare)) #p=0.106
-TukeyHSD(perl_aov_rare) #ANOVA also indicates no differences. 
+#ANOVA
+summary(aov(Shannon~Site, data=div.df.Bow.perl.rare)) #p=0.0873 no differences
 
 #Araneidae
 div.df.Bow.aran.rare<-subset(adiv_Bow_rare, Family=="Araneidae")
-shapiro.test(div.df.Bow.aran.rare$Shannon) #0.532. Normal
-leveneTest(Shannon~Site, data=div.df.Bow.aran.rare) #0.75 homogeneity
-#Use ANOVA
-summary(aran_aov_rare<-aov(Shannon~Site, data=div.df.Bow.aran.rare)) #p=0.404
-TukeyHSD(aran_aov_rare)
-#SUN-COCH
-#PMF-COCH
-#PMF-CUSH
-#PMF-GRVBR
+shapiro.test(div.df.Bow.aran.rare$Shannon) #0.0365 not normal
+leveneTest(Shannon~Site, data=div.df.Bow.aran.rare) #0.828 homogeneity
+#Use KW
+
+kruskal.test(Shannon~Site, data=div.df.Bow.aran.rare) #p < 0.001
+dunnTest(Shannon~Site, data=div.df.Bow.aran.rare)
+#Differences between:
+#COCH - PMF
+#CUSHBR - PMF
+#COCH - SUN
 
 #Tetragnathidae
 div.df.Bow.tetra.rare<-subset(adiv_Bow_rare, Family=="Tetragnathidae")
-shapiro.test(div.df.Bow.tetra.rare$Shannon) #P<0.001 not normal
+shapiro.test(div.df.Bow.tetra.rare$Shannon) #p < 0.001 not normal
 #Use KW
-kruskal.test(Shannon~Site, data=div.df.Bow.tetra.rare) #p=0.25
-dunnTest(Shannon~Site, data=div.df.Bow.tetra.rare) #No differences across sites 
+kruskal.test(Shannon~Site, data=div.df.Bow.tetra.rare) #p=0.24 No differences across sites 
 
-#Rarefied data resulted in the same as non rarefied data.
+#Rarefied data resulted in the same interpretations and significant comparisons as non rarefied data.
 ```
 
 ### ACWA - faceted by stream and invertebrate type 
@@ -5514,6 +5546,172 @@ wilcox.test(data=ephem_ACWA_rare, Shannon~Site) # W = 11, p = 0.028
 
 
 #Mostly the same results as non rarefied data except for Ephemeroptera between 5-15% effluent stream
+```
+
+### Calculating mean +/- SD Shannon Index Bow and ACWA
+
+```{r}
+
+adiv_Bow_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(Bow_ps_rare, measures = "Shannon"),
+  "Family" = phyloseq::sample_data(Bow_ps_rare)$Family,
+  "Stage" = phyloseq::sample_data(Bow_ps_rare)$Stage,
+  "Site" = phyloseq::sample_data(Bow_ps_rare)$Site)
+head(adiv_Bow_rare)
+
+#Mean and SD by life stage
+adiv_Bow_rare %>%
+  group_by(Stage)%>%
+  dplyr::summarise(mean_shannon = mean(Shannon),
+            sd= sd(Shannon))
+
+## Larval Hydropsychidae ##
+
+hydro_lar_rare<-subset_samples(ps_rare, Family=="Hydropsychidae")
+
+adiv_hydro_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(hydro_lar_rare, measures = "Shannon"),
+  "Stream_Type" = phyloseq::sample_data(hydro_lar_rare)$Stream_Type,
+  "Site" = phyloseq::sample_data(hydro_lar_rare)$Site)
+head(adiv_hydro_rare)
+
+adiv_hydro_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+## Larval Heptageniidae ##
+
+hep_lar_rare<-subset_samples(ps_rare, Family=="Heptageniidae")
+
+adiv_hep_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(hep_lar_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(hep_lar_rare)$Site)
+
+adiv_hep_rare %>%
+  group_by(Site)%>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+
+## Larval Chironomidae ##
+
+chiro_lar_rare<-subset_samples(ps_rare, Family=="Chironomidae")
+
+adiv_chiro_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(chiro_lar_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(chiro_lar_rare)$Site)
+
+adiv_chiro_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+## Larval Perlidae ##
+
+perl_lar_rare<-subset_samples(ps_rare, Family=="Perlidae")
+
+adiv_perl_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(perl_lar_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(perl_lar_rare)$Site)
+
+adiv_perl_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+## Larval Baetidae ##
+
+baetid_lar_rare<-subset_samples(ps_rare, Family=="Baetidae")
+
+adiv_baetid_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(baetid_lar_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(baetid_lar_rare)$Site)
+
+adiv_baetid_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+
+## Adult Trichoptera ##
+
+trichop_ad_rare<-subset_samples(ps_rare, Family=="Trichoptera")
+
+adiv_trichop_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(trichop_ad_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(trichop_ad_rare)$Site)
+
+adiv_trichop_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+## Adult Ephemeroptera Bow ##
+
+ephem_ad_Bow_rare<-subset_samples(ps_rare, Family=="Ephemeroptera" & Stream_Type=="Bow River")
+
+adiv_ephem_Bow_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(ephem_ad_Bow_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(ephem_ad_Bow_rare)$Site)
+
+adiv_ephem_Bow_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+# Adult Ephemeroptera ACWA #
+
+ephem_ad_ACWA_rare<-subset_samples(ps_rare, Family=="Ephemeroptera" & Stream_Type!="Bow River")
+
+adiv_ephem_ACWA_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(ephem_ad_ACWA_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(ephem_ad_ACWA_rare)$Site)
+
+adiv_ephem_ACWA_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+
+## Adult Diptera ##
+
+dip_ad_rare<-subset_samples(ps_rare, Family=="Diptera")
+
+adiv_dip_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(dip_ad_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(dip_ad_rare)$Site)
+
+adiv_dip_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+## Araneidae ##
+
+aran_rare<-subset_samples(ps_rare, Family=="Araneidae")
+
+adiv_aran_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(aran_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(aran_rare)$Site)
+
+adiv_aran_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+            sd= sd(Shannon))
+
+## Tetragnathidae ##
+
+tetra_rare<-subset_samples(ps_rare, Family=="Tetragnathidae")
+
+adiv_tetra_rare <- data.frame(
+  "Shannon" = phyloseq::estimate_richness(tetra_rare, measures = "Shannon"),
+  "Site" = phyloseq::sample_data(tetra_rare)$Site)
+
+adiv_tetra_rare %>%
+  group_by(Site) %>%
+  dplyr::summarise(mean = mean(Shannon),
+           sd= sd(Shannon))
 ```
 
 # Beta Diversity
@@ -7813,47 +8011,49 @@ ACWA_cor_plot
 
 # Differential Abundance
 
-Done on non-rarefied data to compare the mean absolute abundance between two ecosystems/samples/sites. The DESeq2 model internally corrects for library size, so transformed or normalized values such as counts scaled by library size should not be used as input. It is absolutely critical that the columns of the count matrix and the rows of the column data (information about samples) are in the same order.
+Compares the mean absolute abundance of bacteria between two groups. The DESeq2 model internally corrects for library size, but if your library size is extremely variable ( > 10x) , normalization such as rareying should be used prior to analysis. Since this dataset's library size ranges from ~2000 reads per sample to 200,000 reads per sample (100x), I will rarefy prior to running DESeq2. It is absolutely critical that the columns of the count matrix and the rows of the column data (information about samples) are in the same order. Rarefied data should be used 
 
-Ignoring excess zeros in zero inflated data can lead to overestimation of dispersion and subsequent reduction in statistical power to detect differentially abundant features. To correct for this I used 'poscounts' which calculates a modified geometric mean by taking the nth root of the product of the non-zero counts. The prevalence threshold was increased to 3% to reduce the chance of false positives. Adjusted p-values using Benjamini-Hochberg correction were used to determine significance with an alpha of 0.001.
+Ignoring excess zeros in zero inflated data can lead to overestimation of dispersion and subsequent reduction in statistical power to detect differentially abundant features. To correct for this I used 'poscounts' which adds a constant value so that a log transformation can be applied. A modified geometric mean is also applied by taking the nth root of the product of the non-zero counts. The prevalence threshold was increased to 3% to reduce the chance of false positives. Adjusted p-values using Benjamini-Hochberg correction were used to determine significance with an alpha of 0.001.
 
 Most supported DA tests:
 ANCOM-BC (Lin & Peddada, 2020. Biofilms and Microbiomes.) (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microbiome.)
 
 ALDEX2 (Nearing et al., 2022. Nature Communications.) (Yang & Chen, 2022. Microbiome.)
 
-DAtest package can test a bunch of different DA methods and see which one is the best
+ANCOM and ALDEx2 don't work well with small sample size (< 20 samples/group) and can be too conservative. Therefore, DESeq2 is used with rarefied data (even sequencing depth of 2010).
+
+DAtest package can test a bunch of different DA methods and see which one is the best but takes a while to run
 
 
 ## DESeq2 all sites compared to reference - Cochrane/Cushing Bridge/REF - inverts separated
 ```{r}
 #### Hydropsychidae Bow ####
 
-#Exposed vs non wastewater exposed sites (all sites included)
+#Exposed (Graves Bridge + Policeman Flats) vs non wastewater exposed sites (Cochrane + Sunalta + Cushing Bridge)
 
-hydro_ps_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
+hydro_ps_Bow_rare<-subset_samples(ps_rare, Family=="Hydropsychidae" & Stream_Type=="Bow River")
 
-deseq_exposed_hydro_Bow <- phyloseq_to_deseq2(hydro_ps_Bow, ~ Exposure)
+deseq_exposed_hydro_Bow_rare <- phyloseq_to_deseq2(hydro_ps_Bow_rare, ~ Exposure)
 #Re level the reference variable so that the comparison is exposed vs unexposed
-deseq_exposed_hydro_Bow$Exposure <-relevel(deseq_exposed_hydro_Bow$Exposure, "Unexposed")
+deseq_exposed_hydro_Bow_rare$Exposure <-relevel(deseq_exposed_hydro_Bow_rare$Exposure, "Unexposed")
 
-deseq_exposed_hydro_Bow <- DESeq(deseq_exposed_hydro_Bow, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_exposed_hydro_Bow_rare <- DESeq(deseq_exposed_hydro_Bow_rare, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_exposed_hydro_Bow <- results(deseq_exposed_hydro_Bow, cooksCutoff = FALSE)
+res_deseq_exposed_hydro_Bow_rare <- results(deseq_exposed_hydro_Bow_rare, cooksCutoff = FALSE)
 alpha = 0.001
-sigtab_exposed_hydro_Bow = res_deseq_exposed_hydro_Bow[which(res_deseq_exposed_hydro_Bow$padj < alpha), ]
-sigtab_exposed_hydro_Bow = cbind(as(sigtab_exposed_hydro_Bow, "data.frame"), as(tax_table(hydro_ps_Bow)[rownames(sigtab_exposed_hydro_Bow), ], "matrix"))
+sigtab_exposed_hydro_Bow_rare = res_deseq_exposed_hydro_Bow_rare[which(res_deseq_exposed_hydro_Bow_rare$padj < alpha), ]
+sigtab_exposed_hydro_Bow_rare = cbind(as(sigtab_exposed_hydro_Bow_rare, "data.frame"), as(tax_table(hydro_ps_Bow_rare)[rownames(sigtab_exposed_hydro_Bow_rare), ], "matrix"))
 
-x_exposed_hydro_Bow = tapply(sigtab_exposed_hydro_Bow$log2FoldChange, sigtab_exposed_hydro_Bow$Phylum, function(x) max(x))
-x_exposed_hydro_Bow = sort(x_exposed_hydro_Bow, TRUE)
-sigtab_exposed_hydro_Bow$Phylum = factor(as.character(sigtab_exposed_hydro_Bow$Phylum), levels=names(x_exposed_hydro_Bow))
+x_exposed_hydro_Bow_rare = tapply(sigtab_exposed_hydro_Bow_rare$log2FoldChange, sigtab_exposed_hydro_Bow_rare$Phylum, function(x) max(x))
+x_exposed_hydro_Bow_rare = sort(x_exposed_hydro_Bow_rare, TRUE)
+sigtab_exposed_hydro_Bow_rare$Phylum = factor(as.character(sigtab_exposed_hydro_Bow_rare$Phylum), levels=names(x_exposed_hydro_Bow_rare))
 # Genus
-x_exposed_hydro_Bow = tapply(sigtab_exposed_hydro_Bow$log2FoldChange, sigtab_exposed_hydro_Bow$Genus, function(x) max(x))
-x_exposed_hydro_Bow = sort(x_exposed_hydro_Bow, TRUE)
-sigtab_exposed_hydro_Bow$Genus = factor(as.character(sigtab_exposed_hydro_Bow$Genus), levels=sort(names(x_exposed_hydro_Bow)))
-#89 differentially abundant taxa
+x_exposed_hydro_Bow_rare = tapply(sigtab_exposed_hydro_Bow_rare$log2FoldChange, sigtab_exposed_hydro_Bow_rare$Genus, function(x) max(x))
+x_exposed_hydro_Bow_rare = sort(x_exposed_hydro_Bow_rare, TRUE)
+sigtab_exposed_hydro_Bow_rare$Genus = factor(as.character(sigtab_exposed_hydro_Bow_rare$Genus), levels=sort(names(x_exposed_hydro_Bow_rare)))
+#43 differentially abundant taxa
 
-diff_abund_hydro_Bow_plot<-ggplot(sigtab_exposed_hydro_Bow, aes(x=log2FoldChange, y=Genus, color=Phylum))+
+diff_abund_hydro_Bow_plot_rare<-ggplot(sigtab_exposed_hydro_Bow_rare, aes(x=log2FoldChange, y=Genus, color=Phylum))+
   geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
@@ -7864,56 +8064,43 @@ diff_abund_hydro_Bow_plot<-ggplot(sigtab_exposed_hydro_Bow, aes(x=log2FoldChange
  labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")
 
-diff_abund_hydro_Bow_plot
+diff_abund_hydro_Bow_plot_rare
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Exposed vs Unexposed sites hydropsychidae larvae Bow.png", height=24, width=24)
-
-#No color legend
-
-ggplot(sigtab_exposed_hydro_Bow, aes(x=log2FoldChange, y=Genus))+
-  geom_point(size=8) + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
-          theme(legend.text=element_text(size=34, color="black")) + 
-          theme(legend.title = element_text(size=34, color="black"), legend.position="bottom")+
-  scale_y_discrete(limits=rev)+
-  rremove("grid")+
- labs(x = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Exposed vs Unexposed sites hydropsychidae larvae Bow no legend.png", height=24, width=24)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Exposed vs Unexposed sites hydropsychidae larvae Bow rarefied.png", height=24, width=24)
 
 
-#Exposed vs non wastewater exposed sites (Cushing Bridge compared to both downstream sites)
-hydro_ps_Bow<-subset_samples(sample_ps, Family=="Hydropsychidae" & Stream_Type=="Bow River")
+#Cushing Bridge compared to Graves Bridge and Policeman Flats
 
-hydro_ps_Bow_subset<-subset_samples(hydro_ps_Bow, Site!="Cochrane" & Site!="Sunalta")
+hydro_ps_Bow_rare<-subset_samples(ps_rare, Family=="Hydropsychidae" & Stream_Type=="Bow River")
 
-deseq_exposed_hydro_Bow_subset <- phyloseq_to_deseq2(hydro_ps_Bow_subset, ~ Exposure)
+hydro_ps_Bow_subset_rare<-subset_samples(hydro_ps_Bow_rare, Site!="Cochrane" & Site!="Sunalta")
+
+deseq_exposed_hydro_Bow_subset_rare <- phyloseq_to_deseq2(hydro_ps_Bow_subset_rare, ~ Exposure)
 #Re level the reference variable so that the comparison is exposed vs unexposed
-deseq_exposed_hydro_Bow_subset$Exposure <-relevel(deseq_exposed_hydro_Bow_subset$Exposure, "Unexposed")
+deseq_exposed_hydro_Bow_subset_rare$Exposure <-relevel(deseq_exposed_hydro_Bow_subset_rare$Exposure, "Unexposed")
 
-deseq_exposed_hydro_Bow_subset <- DESeq(deseq_exposed_hydro_Bow_subset, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_exposed_hydro_Bow_subset_rare <- DESeq(deseq_exposed_hydro_Bow_subset_rare, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_exposed_hydro_Bow_subset <- results(deseq_exposed_hydro_Bow_subset, cooksCutoff = FALSE)
+res_deseq_exposed_hydro_Bow_subset_rare <- results(deseq_exposed_hydro_Bow_subset_rare, cooksCutoff = FALSE)
 alpha = 0.001
-sigtab_exposed_hydro_Bow_subset = res_deseq_exposed_hydro_Bow_subset[which(res_deseq_exposed_hydro_Bow_subset$padj < alpha), ]
-sigtab_exposed_hydro_Bow_subset = cbind(as(sigtab_exposed_hydro_Bow_subset, "data.frame"), as(tax_table(hydro_ps_Bow_subset)[rownames(sigtab_exposed_hydro_Bow_subset), ], "matrix"))
+sigtab_exposed_hydro_Bow_subset_rare = res_deseq_exposed_hydro_Bow_subset_rare[which(res_deseq_exposed_hydro_Bow_subset_rare$padj < alpha), ]
 
-x_exposed_hydro_Bow_subset = tapply(sigtab_exposed_hydro_Bow_subset$log2FoldChange, sigtab_exposed_hydro_Bow_subset$Phylum, function(x) max(x))
-x_exposed_hydro_Bow_subset = sort(x_exposed_hydro_Bow_subset, TRUE)
-sigtab_exposed_hydro_Bow_subset$Phylum = factor(as.character(sigtab_exposed_hydro_Bow_subset$Phylum), levels=names(x_exposed_hydro_Bow_subset))
+sigtab_exposed_hydro_Bow_subset_rare = cbind(as(sigtab_exposed_hydro_Bow_subset_rare, "data.frame"), as(tax_table(hydro_ps_Bow_subset_rare)[rownames(sigtab_exposed_hydro_Bow_subset_rare), ], "matrix"))
+
+x_exposed_hydro_Bow_subset_rare = tapply(sigtab_exposed_hydro_Bow_subset_rare$log2FoldChange, sigtab_exposed_hydro_Bow_subset_rare$Phylum, function(x) max(x))
+x_exposed_hydro_Bow_subset_rare = sort(x_exposed_hydro_Bow_subset_rare, TRUE)
+sigtab_exposed_hydro_Bow_subset_rare$Phylum = factor(as.character(sigtab_exposed_hydro_Bow_subset_rare$Phylum), levels=names(x_exposed_hydro_Bow_subset_rare))
 # Genus
-x_exposed_hydro_Bow_subset = tapply(sigtab_exposed_hydro_Bow_subset$log2FoldChange, sigtab_exposed_hydro_Bow_subset$Genus, function(x) max(x))
-x_exposed_hydro_Bow_subset = sort(x_exposed_hydro_Bow_subset, TRUE)
-sigtab_exposed_hydro_Bow_subset$Genus = factor(as.character(sigtab_exposed_hydro_Bow_subset$Genus), levels=sort(names(x_exposed_hydro_Bow_subset)))
-#44 differentially abundant taxa
+x_exposed_hydro_Bow_subset_rare = tapply(sigtab_exposed_hydro_Bow_subset_rare$log2FoldChange, sigtab_exposed_hydro_Bow_subset_rare$Genus, function(x) max(x))
+x_exposed_hydro_Bow_subset_rare = sort(x_exposed_hydro_Bow_subset_rare, TRUE)
+sigtab_exposed_hydro_Bow_subset_rare$Genus = factor(as.character(sigtab_exposed_hydro_Bow_subset_rare$Genus), levels=sort(names(x_exposed_hydro_Bow_subset_rare)))
+#7 differentially abundant taxa
 
-sigtab_exposed_hydro_Bow_subset$Genus <- factor(sigtab_exposed_hydro_Bow_subset$Genus, levels=c("Anaerocella", "Clostridium sensu stricto 1", "Defluviimonas", "Ellin6067", "Hydrogenophaga", "Hypnocyclicus", "M2PB4-61 termite group", "Mucinivorans", "Pseudorhodobacter", "Rhizorhapis", "Rhodobacter", "Runella", "Sphingorhabdus", "Sulfurospirillum", "Tyzzerlla", "NA"), labels=c("Anaerocella", "Clostridium sensu stricto 1", "Defluviimonas", "Ellin6067", "Hydrogenophaga", "Hypnocyclicus", "M2PB4-61 termite group", "Mucinivorans", "Pseudorhodobacter", "Rhizorhapis", "Rhodobacter", "Runella", "Sphingorhabdus", "Sulfurospirillum", "Tyzzerlla", "Unidentified"))
+sigtab_exposed_hydro_Bow_subset_rare$Genus <- factor(sigtab_exposed_hydro_Bow_subset_rare$Genus, levels=c("Anaerocella", "Mucinivorans", "Rhodobacter", "NA"), labels=c("Anaerocella", "Mucinivorans", "Rhodobacter", "Unidentified"))
 
-sigtab_exposed_hydro_Bow_subset$Genus[is.na(sigtab_exposed_hydro_Bow_subset$Genus)] <- "Unidentified"
+sigtab_exposed_hydro_Bow_subset_rare$Genus[is.na(sigtab_exposed_hydro_Bow_subset_rare$Genus)] <- "Unidentified"
 
-diff_abund_hydro_Bow_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(x=log2FoldChange, y=Genus, color=Phylum))+
+diff_abund_hydro_Bow_plot_subset_rare<-ggplot(sigtab_exposed_hydro_Bow_subset_rare, aes(x=log2FoldChange, y=Genus, color=Phylum))+
   geom_point(aes(fill=Phylum), pch=21, size=8, color="black") + 
   theme_bw()+
   theme(axis.text.y = element_text(size=40, face="italic", color="black")) + theme(axis.text.x=element_text(size=34, color="black"), axis.title=element_text(size=36)) +
@@ -7926,187 +8113,37 @@ diff_abund_hydro_Bow_plot_subset<-ggplot(sigtab_exposed_hydro_Bow_subset, aes(x=
   scale_y_discrete(limits=rev)+
   scale_x_continuous(limits=c(-30, 30), breaks=c(-30, -20, -10, 0, 10, 20, 30))
 
-diff_abund_hydro_Bow_plot_subset
+diff_abund_hydro_Bow_plot_subset_rare
 
+## Using Cushing Bridge as a reference because it captures stormwater inputs ##
 
-#COCH - SUN
+#CUSHBR vs COCH
 
-hydro_sun_coch<-subset_samples(hydro_ps_Bow, Site=="Cochrane" | Site=="Sunalta")
+hydro_cushbr_coch_rare<-subset_samples(hydro_ps_Bow_rare, Site=="Cochrane" | Site=="Cushing Bridge")
 
-deseq_sun_coch_hydro <- phyloseq_to_deseq2(hydro_sun_coch, ~ Site)
+deseq_cushbr_coch_hydro_rare <- phyloseq_to_deseq2(hydro_cushbr_coch_rare, ~ Site)
 
-deseq_sun_coch_hydro <- DESeq(deseq_sun_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_cushbr_coch_hydro_rare <- DESeq(deseq_cushbr_coch_hydro_rare, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_sun_coch_hydro <- results(deseq_sun_coch_hydro, cooksCutoff = FALSE)
+res_deseq_cushbr_coch_hydro_rare <- results(deseq_cushbr_coch_hydro_rare, cooksCutoff = FALSE)
 alpha = 0.001
-sigtab_sun_coch_hydro = res_deseq_sun_coch_hydro[which(res_deseq_sun_coch_hydro$padj < alpha), ]
-sigtab_sun_coch_hydro = cbind(as(sigtab_sun_coch_hydro, "data.frame"), as(tax_table(hydro_sun_coch)[rownames(sigtab_sun_coch_hydro), ], "matrix"))
+sigtab_cushbr_coch_hydro_rare = res_deseq_cushbr_coch_hydro_rare[which(res_deseq_cushbr_coch_hydro_rare$padj < alpha), ]
+sigtab_cushbr_coch_hydro_rare = cbind(as(sigtab_cushbr_coch_hydro_rare, "data.frame"), as(tax_table(hydro_cushbr_coch_rare)[rownames(sigtab_cushbr_coch_hydro_rare), ], "matrix"))
 
-x_sun_coch_hydro = tapply(sigtab_sun_coch_hydro$log2FoldChange, sigtab_sun_coch_hydro$Phylum, function(x) max(x))
-x_sun_coch_hydro = sort(x_sun_coch_hydro, TRUE)
-sigtab_sun_coch_hydro$Phylum = factor(as.character(sigtab_sun_coch_hydro$Phylum), levels=names(x_sun_coch_hydro))
+x_cushbr_coch_hydro_rare = tapply(sigtab_cushbr_coch_hydro_rare$log2FoldChange, sigtab_cushbr_coch_hydro_rare$Phylum, function(x) max(x))
+x_cushbr_coch_hydro_rare = sort(x_cushbr_coch_hydro_rare, TRUE)
+sigtab_cushbr_coch_hydro_rare$Phylum = factor(as.character(sigtab_cushbr_coch_hydro_rare$Phylum), levels=names(x_cushbr_coch_hydro_rare))
 # Genus
-x_sun_coch_hydro = tapply(sigtab_sun_coch_hydro$log2FoldChange, sigtab_sun_coch_hydro$Genus, function(x) max(x))
-x_sun_coch_hydro = sort(x_sun_coch_hydro, TRUE)
-sigtab_sun_coch_hydro$Genus = factor(as.character(sigtab_sun_coch_hydro$Genus), levels=sort(names(x_sun_coch_hydro)))
-#7 observations
+x_cushbr_coch_hydro_rare = tapply(sigtab_cushbr_coch_hydro_rare$log2FoldChange, sigtab_cushbr_coch_hydro_rare$Genus, function(x) max(x))
+x_cushbr_coch_hydro_rare = sort(x_cushbr_coch_hydro_rare, TRUE)
+sigtab_cushbr_coch_hydro_rare$Genus = factor(as.character(sigtab_cushbr_coch_hydro_rare$Genus), levels=sort(names(x_cushbr_coch_hydro_rare)))
+#1 observations
 
-diff_abund_hydro_sun_coch_plot<-ggplot(sigtab_sun_coch_hydro, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
-  theme_bw()+
-  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
-          theme(legend.text=element_text(size=24, color="black")) + 
-          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
-  guides(nrow=8)+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
+sigtab_cushbr_coch_hydro_rare$Genus <- factor(sigtab_cushbr_coch_hydro_rare$Genus, levels=c("Mucinivorans", "NA"), labels=c("Mucinivorans", "Unidentified"))
 
-diff_abund_hydro_sun_coch_plot
+sigtab_cushbr_coch_hydro_rare$Genus[is.na(sigtab_cushbr_coch_hydro_rare$Genus)] <- "Unidentified"
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Sunalta vs Cochrane hydropsychidae larvae.png", height=20, width=22)
-
-
-#CUSHBR - COCH
-
-hydro_cush_coch<-subset_samples(hydro_ps_Bow, Site=="Cushing Bridge" | Site=="Cochrane")
-
-deseq_cush_coch_hydro <- phyloseq_to_deseq2(hydro_cush_coch, ~ Site)
-
-deseq_cush_coch_hydro <- DESeq(deseq_cush_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_cush_coch_hydro <- results(deseq_cush_coch_hydro, cooksCutoff = FALSE)
-alpha = 0.001
-sigtab_cush_coch_hydro = res_deseq_cush_coch_hydro[which(res_deseq_cush_coch_hydro$padj < alpha), ]
-sigtab_cush_coch_hydro = cbind(as(sigtab_cush_coch_hydro, "data.frame"), as(tax_table(hydro_cush_coch)[rownames(sigtab_cush_coch_hydro), ], "matrix"))
-
-x_cush_coch_hydro = tapply(sigtab_cush_coch_hydro$log2FoldChange, sigtab_cush_coch_hydro$Phylum, function(x) max(x))
-x_cush_coch_hydro = sort(x_cush_coch_hydro, TRUE)
-sigtab_cush_coch_hydro$Phylum = factor(as.character(sigtab_cush_coch_hydro$Phylum), levels=names(x_cush_coch_hydro))
-# Genus
-x_cush_coch_hydro = tapply(sigtab_cush_coch_hydro$log2FoldChange, sigtab_cush_coch_hydro$Genus, function(x) max(x))
-x_cush_coch_hydro = sort(x_cush_coch_hydro, TRUE)
-sigtab_cush_coch_hydro$Genus = factor(as.character(sigtab_cush_coch_hydro$Genus), levels=sort(names(x_cush_coch_hydro)))
-#12 observations
-
-diff_abund_hydro_cush_coch_plot<-ggplot(sigtab_cush_coch_hydro, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
-  theme_bw()+
-  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
-          theme(legend.text=element_text(size=24, color="black")) + 
-          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
-  guides(nrow=8)+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-diff_abund_hydro_cush_coch_plot
-
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Cochrane hydropsychidae larvae.png", height=20, width=22)
-
-#GRVBR - COCH
-
-hydro_grvbr_coch<-subset_samples(hydro_ps, Site=="Graves Bridge" | Site=="Cochrane")
-
-deseq_grvbr_coch_hydro <- phyloseq_to_deseq2(hydro_grvbr_coch, ~ Site)
-
-deseq_grvbr_coch_hydro <- DESeq(deseq_grvbr_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_grvbr_coch_hydro <- results(deseq_grvbr_coch_hydro, cooksCutoff = FALSE)
-alpha = 0.001
-sigtab_grvbr_coch_hydro = res_deseq_grvbr_coch_hydro[which(res_deseq_grvbr_coch_hydro$padj < alpha), ]
-sigtab_grvbr_coch_hydro = cbind(as(sigtab_grvbr_coch_hydro, "data.frame"), as(tax_table(hydro_grvbr_coch)[rownames(sigtab_grvbr_coch_hydro), ], "matrix"))
-
-x_grvbr_coch_hydro = tapply(sigtab_grvbr_coch_hydro$log2FoldChange, sigtab_grvbr_coch_hydro$Phylum, function(x) max(x))
-x_grvbr_coch_hydro = sort(x_grvbr_coch_hydro, TRUE)
-sigtab_grvbr_coch_hydro$Phylum = factor(as.character(sigtab_grvbr_coch_hydro$Phylum), levels=names(x_grvbr_coch_hydro))
-# Genus
-x_grvbr_coch_hydro = tapply(sigtab_grvbr_coch_hydro$log2FoldChange, sigtab_grvbr_coch_hydro$Genus, function(x) max(x))
-x_grvbr_coch_hydro = sort(x_grvbr_coch_hydro, TRUE)
-sigtab_grvbr_coch_hydro$Genus = factor(as.character(sigtab_grvbr_coch_hydro$Genus), levels=sort(names(x_grvbr_coch_hydro)))
-#12 observations
-
-diff_abund_hydro_grvbr_coch_plot<-ggplot(sigtab_grvbr_coch_hydro, aes(y=Genus, x=log2FoldChange, color=Phylum))+
- geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
-  theme_bw()+
-  theme(axis.text.y  = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
-          theme(legend.text=element_text(size=24, color="black")) + 
-          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
-  guides(nrow=8)+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-diff_abund_hydro_grvbr_coch_plot
-
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Graves Bridge vs Cochrane hydropsychidae larvae.png", height=20, width=22)
-
-
-#PMF - COCH
-
-hydro_pmf_coch<-subset_samples(hydro_ps, Site=="Policeman Flats" | Site=="Cochrane")
-
-deseq_pmf_coch_hydro <- phyloseq_to_deseq2(hydro_pmf_coch, ~ Site)
-
-deseq_pmf_coch_hydro <- DESeq(deseq_pmf_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_pmf_coch_hydro <- results(deseq_pmf_coch_hydro, cooksCutoff = FALSE)
-alpha = 0.001
-sigtab_pmf_coch_hydro = res_deseq_pmf_coch_hydro[which(res_deseq_pmf_coch_hydro$padj < alpha), ]
-sigtab_pmf_coch_hydro = cbind(as(sigtab_pmf_coch_hydro, "data.frame"), as(tax_table(hydro_pmf_coch)[rownames(sigtab_pmf_coch_hydro), ], "matrix"))
-
-x_pmf_coch_hydro = tapply(sigtab_pmf_coch_hydro$log2FoldChange, sigtab_pmf_coch_hydro$Phylum, function(x) max(x))
-x_pmf_coch_hydro = sort(x_pmf_coch_hydro, TRUE)
-sigtab_pmf_coch_hydro$Phylum = factor(as.character(sigtab_pmf_coch_hydro$Phylum), levels=names(x_pmf_coch_hydro))
-# Genus
-x_pmf_coch_hydro = tapply(sigtab_pmf_coch_hydro$log2FoldChange, sigtab_pmf_coch_hydro$Genus, function(x) max(x))
-x_pmf_coch_hydro = sort(x_pmf_coch_hydro, TRUE)
-sigtab_pmf_coch_hydro$Genus = factor(as.character(sigtab_pmf_coch_hydro$Genus), levels=sort(names(x_pmf_coch_hydro)))
-#134 observations
-
-diff_abund_hydro_pmf_coch_plot<-ggplot(sigtab_pmf_coch_hydro, aes(y=Genus, x=log2FoldChange, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
-  theme_bw()+
-  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
-          theme(legend.text=element_text(size=24, color="black")) + 
-          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
-  guides(nrow=8)+
-  rremove("grid")+
- labs(y = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-diff_abund_hydro_pmf_coch_plot
-
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/PMF vs Cochrane hydropsychidae larvae.png", height=20, width=22)
-
-
-## Using Cushing Bridge as a reference instead of Cochrane because it captures stormwater inputs ##
-
-
-#CUSHBR - COCH
-
-hydro_cushbr_coch<-subset_samples(hydro_ps_Bow, Site=="Cochrane" | Site=="Cushing Bridge")
-
-deseq_cushbr_coch_hydro <- phyloseq_to_deseq2(hydro_cushbr_coch, ~ Site)
-
-deseq_cushbr_coch_hydro <- DESeq(deseq_cushbr_coch_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
-
-res_deseq_cushbr_coch_hydro <- results(deseq_cushbr_coch_hydro, cooksCutoff = FALSE)
-res_deseq_cushbr_coch_hydro
-alpha = 0.001
-sigtab_cushbr_coch_hydro = res_deseq_cushbr_coch_hydro[which(res_deseq_cushbr_coch_hydro$padj < alpha), ]
-sigtab_cushbr_coch_hydro = cbind(as(sigtab_cushbr_coch_hydro, "data.frame"), as(tax_table(hydro_cushbr_coch)[rownames(sigtab_cushbr_coch_hydro), ], "matrix"))
-
-x_cushbr_coch_hydro = tapply(sigtab_cushbr_coch_hydro$log2FoldChange, sigtab_cushbr_coch_hydro$Phylum, function(x) max(x))
-x_cushbr_coch_hydro = sort(x_cushbr_coch_hydro, TRUE)
-sigtab_cushbr_coch_hydro$Phylum = factor(as.character(sigtab_cushbr_coch_hydro$Phylum), levels=names(x_cushbr_coch_hydro))
-# Genus
-x_cushbr_coch_hydro = tapply(sigtab_cushbr_coch_hydro$log2FoldChange, sigtab_cushbr_coch_hydro$Genus, function(x) max(x))
-x_cushbr_coch_hydro = sort(x_cushbr_coch_hydro, TRUE)
-sigtab_cushbr_coch_hydro$Genus = factor(as.character(sigtab_cushbr_coch_hydro$Genus), levels=sort(names(x_cushbr_coch_hydro)))
-#12 observations
-
-diff_abund_hydro_cushbr_coch_plot<-ggplot(sigtab_cushbr_coch_hydro, aes(x=log2FoldChange, y=Genus, color=Phylum))+
+diff_abund_hydro_cushbr_coch_plot_rare<-ggplot(sigtab_cushbr_coch_hydro_rare, aes(x=log2FoldChange, y=Genus, color=Phylum))+
   geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
   theme_bw()+
   theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -8117,117 +8154,77 @@ diff_abund_hydro_cushbr_coch_plot<-ggplot(sigtab_cushbr_coch_hydro, aes(x=log2Fo
  labs(x = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")
 
-diff_abund_hydro_cushbr_coch_plot
+diff_abund_hydro_cushbr_coch_plot_rare
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Cochrane hydropsychidae larvae.png", height=20, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Cochrane hydropsychidae larvae rarefied.png", height=20, width=22)
 
 
-#CUSHBR - SUN
+#CUSHBR vs SUN
 
-hydro_cushbr_sun<-subset_samples(hydro_ps_Bow, Site=="Sunalta" | Site=="Cushing Bridge")
+hydro_cushbr_sun_rare<-subset_samples(hydro_ps_Bow_rare, Site=="Sunalta" | Site=="Cushing Bridge")
 
-deseq_cushbr_sun_hydro <- phyloseq_to_deseq2(hydro_cushbr_sun, ~ Site)
+deseq_cushbr_sun_hydro_rare <- phyloseq_to_deseq2(hydro_cushbr_sun_rare, ~ Site)
 
-deseq_cushbr_sun_hydro <- DESeq(deseq_cushbr_sun_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_cushbr_sun_hydro_rare <- DESeq(deseq_cushbr_sun_hydro_rare, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_cushbr_sun_hydro <- results(deseq_cushbr_sun_hydro, cooksCutoff = FALSE)
-res_deseq_cushbr_sun_hydro
+res_deseq_cushbr_sun_hydro_rare <- results(deseq_cushbr_sun_hydro_rare, cooksCutoff = FALSE)
+res_deseq_cushbr_sun_hydro_rare
 alpha = 0.001
-sigtab_cushbr_sun_hydro = res_deseq_cushbr_sun_hydro[which(res_deseq_cushbr_sun_hydro$padj < alpha), ]
-sigtab_cushbr_sun_hydro = cbind(as(sigtab_cushbr_sun_hydro, "data.frame"), as(tax_table(hydro_cushbr_sun)[rownames(sigtab_cushbr_sun_hydro), ], "matrix"))
-
-x_cushbr_sun_hydro = tapply(sigtab_cushbr_sun_hydro$log2FoldChange, sigtab_cushbr_sun_hydro$Phylum, function(x) max(x))
-x_cushbr_sun_hydro = sort(x_cushbr_sun_hydro, TRUE)
-sigtab_cushbr_sun_hydro$Phylum = factor(as.character(sigtab_cushbr_sun_hydro$Phylum), levels=names(x_cushbr_sun_hydro))
-# Genus
-x_cushbr_sun_hydro = tapply(sigtab_cushbr_sun_hydro$log2FoldChange, sigtab_cushbr_sun_hydro$Genus, function(x) max(x))
-x_cushbr_sun_hydro = sort(x_cushbr_sun_hydro, TRUE)
-sigtab_cushbr_sun_hydro$Genus = factor(as.character(sigtab_cushbr_sun_hydro$Genus), levels=sort(names(x_cushbr_sun_hydro)))
-#15 observations
-
-diff_abund_hydro_cushbr_sun_plot<-ggplot(sigtab_cushbr_sun_hydro, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") + 
-  theme_bw()+
-  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
-          theme(legend.text=element_text(size=24, color="black")) + 
-          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
-  guides(nrow=8)+
-  rremove("grid")+
- labs(x = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-diff_abund_hydro_cushbr_sun_plot
-
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Sunalta hydropsychidae larvae.png", height=20, width=22)
+sigtab_cushbr_sun_hydro_rare = res_deseq_cushbr_sun_hydro_rare[which(res_deseq_cushbr_sun_hydro_rare$padj < alpha), ]
+sigtab_cushbr_sun_hydro_rare = cbind(as(sigtab_cushbr_sun_hydro_rare, "data.frame"), as(tax_table(hydro_cushbr_sun_rare)[rownames(sigtab_cushbr_sun_hydro_rare), ], "matrix"))
+#0
 
 
-#CUSHBR - GRVBR
+#CUSHBR vs GRVBR
 
-hydro_cushbr_grvbr<-subset_samples(hydro_ps_Bow, Site=="Graves Bridge" | Site=="Cushing Bridge")
+hydro_cushbr_grvbr_rare<-subset_samples(hydro_ps_Bow_rare, Site=="Graves Bridge" | Site=="Cushing Bridge")
 
-deseq_cushbr_grvbr_hydro <- phyloseq_to_deseq2(hydro_cushbr_grvbr, ~ Site)
+deseq_cushbr_grvbr_hydro_rare <- phyloseq_to_deseq2(hydro_cushbr_grvbr_rare, ~ Site)
 
-deseq_cushbr_grvbr_hydro$Site <-relevel(deseq_cushbr_grvbr_hydro$Site, "Graves Bridge") #Releveling to make Cushing Bridge be compared to Graves Bridge
+deseq_cushbr_grvbr_hydro_rare$Site <-relevel(deseq_cushbr_grvbr_hydro_rare$Site, "Graves Bridge") #Releveling to make Cushing Bridge be compared to Graves Bridge
 
-deseq_cushbr_grvbr_hydro <- DESeq(deseq_cushbr_grvbr_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_cushbr_grvbr_hydro_rare <- DESeq(deseq_cushbr_grvbr_hydro_rare, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_cushbr_grvbr_hydro <- results(deseq_cushbr_grvbr_hydro, cooksCutoff = FALSE)
-res_deseq_cushbr_grvbr_hydro
+res_deseq_cushbr_grvbr_hydro_rare <- results(deseq_cushbr_grvbr_hydro_rare, cooksCutoff = FALSE)
+
 alpha = 0.001
-sigtab_cushbr_grvbr_hydro = res_deseq_cushbr_grvbr_hydro[which(res_deseq_cushbr_grvbr_hydro$padj < alpha), ]
-sigtab_cushbr_grvbr_hydro = cbind(as(sigtab_cushbr_grvbr_hydro, "data.frame"), as(tax_table(hydro_cushbr_grvbr)[rownames(sigtab_cushbr_grvbr_hydro), ], "matrix"))
-
-x_cushbr_grvbr_hydro = tapply(sigtab_cushbr_grvbr_hydro$log2FoldChange, sigtab_cushbr_grvbr_hydro$Phylum, function(x) max(x))
-x_cushbr_grvbr_hydro = sort(x_cushbr_grvbr_hydro, TRUE)
-sigtab_cushbr_grvbr_hydro$Phylum = factor(as.character(sigtab_cushbr_grvbr_hydro$Phylum), levels=names(x_cushbr_grvbr_hydro))
-# Genus
-x_cushbr_grvbr_hydro = tapply(sigtab_cushbr_grvbr_hydro$log2FoldChange, sigtab_cushbr_grvbr_hydro$Genus, function(x) max(x))
-x_cushbr_grvbr_hydro = sort(x_cushbr_grvbr_hydro, TRUE)
-sigtab_cushbr_grvbr_hydro$Genus = factor(as.character(sigtab_cushbr_grvbr_hydro$Genus), levels=sort(names(x_cushbr_grvbr_hydro)))
-#13 observations
-
-diff_abund_hydro_cushbr_grvbr_plot<-ggplot(sigtab_cushbr_grvbr_hydro, aes(x=log2FoldChange, y=Genus, color=Phylum))+
-  geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
-  theme_bw()+
-  theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
-          theme(legend.text=element_text(size=24, color="black")) + 
-          theme(legend.title = element_text(size=24, color="black"), legend.position="bottom")+
-  guides(nrow=8)+
-  rremove("grid")+
- labs(x = expression(Log[2]~ "Ratio of Absolute Abundance"))+
-  scale_color_brewer(palette = "Set3")
-
-diff_abund_hydro_cushbr_grvbr_plot
-
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Graves Bridge hydropsychidae larvae.png", height=20, width=22)
+sigtab_cushbr_grvbr_hydro_rare = res_deseq_cushbr_grvbr_hydro_rare[which(res_deseq_cushbr_grvbr_hydro_rare$padj < alpha), ]
+sigtab_cushbr_grvbr_hydro_rare = cbind(as(sigtab_cushbr_grvbr_hydro_rare, "data.frame"), as(tax_table(hydro_cushbr_grvbr_rare)[rownames(sigtab_cushbr_grvbr_hydro_rare), ], "matrix"))
+#0
 
 
 #CUSHBR - PMF
 
-hydro_cushbr_pmf<-subset_samples(hydro_ps_Bow, Site=="Policeman Flats" | Site=="Cushing Bridge")
+hydro_cushbr_pmf_rare<-subset_samples(hydro_ps_Bow_rare, Site=="Policeman Flats" | Site=="Cushing Bridge")
 
-deseq_cushbr_pmf_hydro <- phyloseq_to_deseq2(hydro_cushbr_pmf, ~ Site)
+deseq_cushbr_pmf_hydro_rare <- phyloseq_to_deseq2(hydro_cushbr_pmf_rare, ~ Site)
 
-deseq_cushbr_pmf_hydro$Site <-relevel(deseq_cushbr_pmf_hydro$Site, "Policeman Flats") #Releveling to make Cushing Bridge be compared to Graves Bridge
+deseq_cushbr_pmf_hydro_rare$Site <-relevel(deseq_cushbr_pmf_hydro_rare$Site, "Policeman Flats") #Releveling to make Cushing Bridge be compared to Graves Bridge
 
-deseq_cushbr_pmf_hydro <- DESeq(deseq_cushbr_pmf_hydro, test = "Wald", fitType = "parametric", sfType = "poscounts")
+deseq_cushbr_pmf_hydro_rare <- DESeq(deseq_cushbr_pmf_hydro_rare, test = "Wald", fitType = "parametric", sfType = "poscounts")
 
-res_deseq_cushbr_pmf_hydro <- results(deseq_cushbr_pmf_hydro, cooksCutoff = FALSE)
-res_deseq_cushbr_pmf_hydro
+res_deseq_cushbr_pmf_hydro_rare <- results(deseq_cushbr_pmf_hydro_rare, cooksCutoff = FALSE)
+
 alpha = 0.001
-sigtab_cushbr_pmf_hydro = res_deseq_cushbr_pmf_hydro[which(res_deseq_cushbr_pmf_hydro$padj < alpha), ]
-sigtab_cushbr_pmf_hydro = cbind(as(sigtab_cushbr_pmf_hydro, "data.frame"), as(tax_table(hydro_cushbr_pmf)[rownames(sigtab_cushbr_pmf_hydro), ], "matrix"))
+sigtab_cushbr_pmf_hydro_rare = res_deseq_cushbr_pmf_hydro_rare[which(res_deseq_cushbr_pmf_hydro_rare$padj < alpha), ]
+sigtab_cushbr_pmf_hydro_rare = cbind(as(sigtab_cushbr_pmf_hydro_rare, "data.frame"), as(tax_table(hydro_cushbr_pmf_rare)[rownames(sigtab_cushbr_pmf_hydro_rare), ], "matrix"))
 
-x_cushbr_pmf_hydro = tapply(sigtab_cushbr_pmf_hydro$log2FoldChange, sigtab_cushbr_pmf_hydro$Phylum, function(x) max(x))
-x_cushbr_pmf_hydro = sort(x_cushbr_pmf_hydro, TRUE)
-sigtab_cushbr_pmf_hydro$Phylum = factor(as.character(sigtab_cushbr_pmf_hydro$Phylum), levels=names(x_cushbr_pmf_hydro))
+x_cushbr_pmf_hydro_rare = tapply(sigtab_cushbr_pmf_hydro_rare$log2FoldChange, sigtab_cushbr_pmf_hydro_rare$Phylum, function(x) max(x))
+x_cushbr_pmf_hydro_rare = sort(x_cushbr_pmf_hydro_rare, TRUE)
+sigtab_cushbr_pmf_hydro_rare$Phylum = factor(as.character(sigtab_cushbr_pmf_hydro_rare$Phylum), levels=names(x_cushbr_pmf_hydro_rare))
 # Genus
-x_cushbr_pmf_hydro = tapply(sigtab_cushbr_pmf_hydro$log2FoldChange, sigtab_cushbr_pmf_hydro$Genus, function(x) max(x))
-x_cushbr_pmf_hydro = sort(x_cushbr_pmf_hydro, TRUE)
-sigtab_cushbr_pmf_hydro$Genus = factor(as.character(sigtab_cushbr_pmf_hydro$Genus), levels=sort(names(x_cushbr_pmf_hydro)))
-#97 observations
+x_cushbr_pmf_hydro_rare = tapply(sigtab_cushbr_pmf_hydro_rare$log2FoldChange, sigtab_cushbr_pmf_hydro_rare$Genus, function(x) max(x))
+x_cushbr_pmf_hydro_rare = sort(x_cushbr_pmf_hydro_rare, TRUE)
+sigtab_cushbr_pmf_hydro_rare$Genus = factor(as.character(sigtab_cushbr_pmf_hydro_rare$Genus), levels=sort(names(x_cushbr_pmf_hydro_rare)))
+#32 observations
 
-diff_abund_hydro_cushbr_pmf_plot<-ggplot(sigtab_cushbr_pmf_hydro, aes(x=log2FoldChange, y=Genus, color=Phylum))+
+
+sigtab_cushbr_pmf_hydro_rare$Genus <- factor(sigtab_cushbr_pmf_hydro_rare$Genus, levels=c("AAP99", "Anaerocella", "Defluviimonas", "Ellin6067", "M2PB4-61 termite group", "Mucinivorans", "Mucispirillum", "Nitrosomonas", "Rhizorhapis", "Rhodobacter", "Rhodoferax", "Rickettsia", "Sphingopyxis", "Sulfurospirillum", "NA"), labels=c("AAP99", "Anaerocella", "Defluviimonas", "Ellin6067", "M2PB4-61 termite group", "Mucinivorans", "Mucispirillum", "Nitrosomonas", "Rhizorhapis", "Rhodobacter", "Rhodoferax", "Rickettsia", "Sphingopyxis", "Sulfurospirillum", "Unidentified"))
+
+sigtab_cushbr_pmf_hydro_rare$Genus[is.na(sigtab_cushbr_pmf_hydro_rare$Genus)] <- "Unidentified"
+
+
+diff_abund_hydro_cushbr_pmf_plot_rare<-ggplot(sigtab_cushbr_pmf_hydro_rare, aes(x=log2FoldChange, y=Genus, color=Phylum))+
   geom_point(aes(fill=Phylum), pch=21, size=6, color="black") +
   theme_bw()+
   theme(axis.text.y = element_text(size=24, face="italic", color="black")) + theme(axis.text.x=element_text(size=24, color="black"), axis.title=element_text(size=28)) +
@@ -8238,9 +8235,9 @@ diff_abund_hydro_cushbr_pmf_plot<-ggplot(sigtab_cushbr_pmf_hydro, aes(x=log2Fold
  labs(x = expression(Log[2]~ "Ratio of Absolute Abundance"))+
   scale_color_brewer(palette = "Set3")
 
-diff_abund_hydro_cushbr_pmf_plot
+diff_abund_hydro_cushbr_pmf_plot_rare
 
-#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Policeman Flats hydropsychidae larvae.png", height=20, width=22)
+#ggsave(filename="microbiome_analysis/Final analysis/Differential Abundance Results/Cushing Bridge vs Policeman Flats hydropsychidae larvae rarefied.png", height=20, width=22)
 
 
 #### Hydropsychidae ACWA ####
