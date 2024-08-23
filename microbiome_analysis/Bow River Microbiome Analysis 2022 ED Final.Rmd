@@ -100,6 +100,16 @@ library(GGally) #Used to plot Spearman correlations
 library(biomformat)
 #install_github("helixcn/seqRFLP")
 library(seqRFLP) #Used to save files as .fasta
+library(ggpicrust2)
+#if (!require("BiocManager", quietly = TRUE))
+    #install.packages("BiocManager")
+
+#BiocManager::install("KEGGREST")
+library(KEGGREST)
+library(patchwork)
+library(readr)
+library(tibble)
+library(ggprism)
 ```
 
 # Phyloseq object
@@ -708,6 +718,12 @@ Bow_ps<-subset_samples(sample_ps, Stream_Type=="Bow River")
 Bow_ps<-prune_taxa(taxa_sums(Bow_ps)>0, Bow_ps)
 Bow_ps #7527 taxa, 276 samples
 print(sum(taxa_sums(Bow_ps))) #8,547,820 total reads
+
+get_taxa_unique(Bow_ps, "Phylum") #33 phyla total
+get_taxa_unique(Bow_ps, "Class") #71 Classes total
+get_taxa_unique(Bow_ps, "Order") #171 orders total
+get_taxa_unique(Bow_ps, "Family") #245 families total
+get_taxa_unique(Bow_ps, "Genus") #485 genera total
 
 #Larvae
 lar_Bow<-subset_samples(Bow_ps, Stage=="Larvae")
@@ -1401,7 +1417,6 @@ Bow_phylum <- psmelt(Bow_glom) %>%
     ungroup 
 View(Bow_phylum)
 #Proteobacteria, Bacteroidota, Firmicutes, Actinobacteriota
-
 
 
 #### Sites ####
@@ -10934,7 +10949,7 @@ toppathwaysplot_bow
 ## Differential Abundance of individual MetaCyc pathways across sites 
 
 ```{r}
-#### Hydropsychidae Bow ####
+#### Hydropsychidae ####
 
 #Exposed vs non wastewater exposed sites
 
@@ -12158,7 +12173,7 @@ picrust_diff_abund_trichop_cush_grvbr_plot
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/cushbr-grvbr trichop diff abun pathways.png", height=24, width=22)
 
 
-#### Ephemeroptera Bow ####
+#### Ephemeroptera ####
 
 #Exposed vs non wastewater exposed sites
 
@@ -13107,8 +13122,7 @@ dunnTest(data=endo_hydro, Abundance ~ Site)
 ```
 
 
-## Loading and modifying KEGG data
-
+## Loading and modifying KEGG data into a phyloseq object
 ```{r}
 
 #Metadata table
@@ -13193,38 +13207,314 @@ toppathwaysplot_bow_kegg
 #ggsave(filename="microbiome_analysis/PICRUSt2 Data/Figures/Top 25 MetaCyc pathway classes across sites and taxa Bow.png", height=10, width=24)
 ```
 
-## ggpicrust2 DAA graph - KEGG
+## ggpicrust2 DAA graph - KEGG pathways
 ```{r}
-#the abundance table is better to be data.frame rather than tibble
-#you can use ko2_kegg_abundance output
+
+# Larval Hydropsychidae Cushing Bridge vs Graves Bridge and Policeman Flats
 
 hydro_kegg<-subset_samples(picrust_Bow_kegg, Family=="Hydropsychidae")
+hydro_kegg_subset<-subset_samples(hydro_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(hydro_kegg_subset))
 
-abundance_hydro <- as.data.frame(hydro_kegg@otu_table)
+abundance_hydro_subset <- as.data.frame(hydro_kegg_subset@otu_table)
 
-metadata_hydro <- as.data.frame(hydro_kegg@sam_data)
+metadata_hydro_subset <- as.data.frame(hydro_kegg_subset@sam_data)
 
 #daa_method default is "ALDex2"
-daa_results_hydro_exposed <- pathway_daa(abundance = abundance_hydro,
-           metadata = metadata_hydro,
+daa_results_hydro_exposed_subset <- pathway_daa(abundance = abundance_hydro_subset,
+           metadata = metadata_hydro_subset,
            group = "Exposure",
            daa_method = "DESeq2",
            select = NULL,
-           p.adjust = "BH",
-           reference = "Unexposed")
+           p.adjust = "BH")
+
+daa_results_hydro_exposed_subset_no_NA<-na.omit(daa_results_hydro_exposed_subset) #Getting rid of NAs
 
 
-daa_results_hydro_exposed <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_hydro_exposed, ko_to_kegg = TRUE)
+daa_results_hydro_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_hydro_exposed_subset_no_NA, ko_to_kegg = TRUE)
 
-pathway_errorbar(abundance = abundance_hydro,
-           daa_results_df = daa_results_hydro_exposed,
-           Group = metadata_hydro$Exposure,
+p<-pathway_errorbar(abundance = abundance_hydro_subset,
+           daa_results_df = daa_results_hydro_exposed_subset_annotated,
+           Group = metadata_hydro_subset$Exposure,
            ko_to_kegg = TRUE,
-           p_values_threshold = 0.05,
+           p_values_threshold = 0.001,
            order = "pathway_class",
            select = NULL,
            p_value_bar = TRUE,
            colors = NULL,
-           x_lab = NULL)
+           x_lab = "pathway_name")
+
+p$theme$legend.text.align <- NULL
+
+p
+
+#ggsave(filename="microbiome_analysis\\PICRUSt2 Data\\Figures\\KEGG pathways CUSHBR vs downstream larval Hydropsychidae.png", height=6, width=18)
+
+
+# Larval Heptageniidae Cushing Bridge vs Graves Bridge and Policeman Flats
+
+hep_kegg<-subset_samples(picrust_Bow_kegg, Family=="Heptageniidae")
+hep_kegg_subset<-subset_samples(hep_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(hep_kegg_subset))
+
+abundance_hep_subset <- as.data.frame(hep_kegg_subset@otu_table)
+
+metadata_hep_subset <- as.data.frame(hep_kegg_subset@sam_data)
+
+#daa_method default is "ALDex2"
+daa_results_hep_exposed_subset <- pathway_daa(abundance = abundance_hep_subset,
+           metadata = metadata_hep_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_hep_exposed_subset_no_NA<-na.omit(daa_results_hep_exposed_subset) #Getting rid of NAs
+
+
+daa_results_hep_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_hep_exposed_subset_no_NA, ko_to_kegg = TRUE)
+
+p<-pathway_errorbar(abundance = abundance_hep_subset,
+           daa_results_df = daa_results_hep_exposed_subset_annotated,
+           Group = metadata_hep_subset$Exposure,
+           ko_to_kegg = TRUE,
+           p_values_threshold = 0.001,
+           order = "pathway_class",
+           select = NULL,
+           p_value_bar = TRUE,
+           colors = NULL,
+           x_lab = "pathway_name")
+
+p$theme$legend.text.align <- NULL
+
+p
+
+#ggsave(filename="microbiome_analysis\\PICRUSt2 Data\\Figures\\KEGG pathways CUSHBR vs downstream larval Heptageniidae.png", height=6, width=18)
+
+
+
+# Larval Chironomidae Cushing Bridge vs Policeman Flats
+
+chiro_kegg<-subset_samples(picrust_Bow_kegg, Family=="Chironomidae")
+chiro_kegg_subset<-subset_samples(chiro_kegg, Site!="Cochrane")
+#View(sample_data(chiro_kegg_subset))
+
+abundance_chiro_subset <- as.data.frame(chiro_kegg_subset@otu_table)
+
+metadata_chiro_subset <- as.data.frame(chiro_kegg_subset@sam_data)
+
+#daa_method default is "ALDex2"
+daa_results_chiro_exposed_subset <- pathway_daa(abundance = abundance_chiro_subset,
+           metadata = metadata_chiro_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+#No significant pathways
+
+
+# Larval Perlidae Cushing Bridge vs Policeman Flats
+
+perl_kegg<-subset_samples(picrust_Bow_kegg, Family=="Perlidae")
+perl_kegg_subset<-subset_samples(perl_kegg, Site!="Cochrane")
+#View(sample_data(perl_kegg_subset))
+
+abundance_perl_subset <- as.data.frame(perl_kegg_subset@otu_table)
+
+metadata_perl_subset <- as.data.frame(perl_kegg_subset@sam_data)
+
+daa_results_perl_exposed_subset <- pathway_daa(abundance = abundance_perl_subset,
+           metadata = metadata_perl_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_perl_exposed_subset_no_NA<-na.omit(daa_results_perl_exposed_subset) #Getting rid of NAs
+
+
+daa_results_perl_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_perl_exposed_subset_no_NA, ko_to_kegg = TRUE)
+
+p<-pathway_errorbar(abundance = abundance_perl_subset,
+           daa_results_df = daa_results_perl_exposed_subset_annotated,
+           Group = metadata_perl_subset$Exposure,
+           ko_to_kegg = TRUE,
+           p_values_threshold = 0.001,
+           order = "pathway_class",
+           select = NULL,
+           p_value_bar = TRUE,
+           colors = NULL,
+           x_lab = "pathway_name")
+
+p$theme$legend.text.align <- NULL
+
+p
+
+#ggsave(filename="microbiome_analysis\\PICRUSt2 Data\\Figures\\KEGG pathways CUSHBR vs downstream larval Perlidae.png", height=6, width=18)
+
+
+# Adult Trichoptera Cushing Bridge vs Graves Bridge 
+
+trichop_kegg<-subset_samples(picrust_Bow_kegg, Family=="Trichoptera")
+trichop_kegg_subset<-subset_samples(trichop_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(trichop_kegg_subset))
+
+abundance_trichop_subset <- as.data.frame(trichop_kegg_subset@otu_table)
+
+metadata_trichop_subset <- as.data.frame(trichop_kegg_subset@sam_data)
+
+daa_results_trichop_exposed_subset <- pathway_daa(abundance = abundance_trichop_subset,
+           metadata = metadata_trichop_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_trichop_exposed_subset_no_NA<-na.omit(daa_results_trichop_exposed_subset) #Getting rid of NAs
+
+
+daa_results_trichop_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_trichop_exposed_subset_no_NA, ko_to_kegg = TRUE)
+
+p<-pathway_errorbar(abundance = abundance_trichop_subset,
+           daa_results_df = daa_results_trichop_exposed_subset_annotated,
+           Group = metadata_trichop_subset$Exposure,
+           ko_to_kegg = TRUE,
+           p_values_threshold = 0.001,
+           order = "pathway_class",
+           select = NULL,
+           p_value_bar = TRUE,
+           colors = NULL,
+           x_lab = "pathway_name")
+
+#No significant pathways 
+
+
+# Adult Ephemeroptera Cushing Bridge vs Graves Bridge and Policeman Flats
+
+ephem_kegg<-subset_samples(picrust_Bow_kegg, Family=="Ephemeroptera")
+ephem_kegg_subset<-subset_samples(ephem_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(ephem_kegg_subset))
+
+abundance_ephem_subset <- as.data.frame(ephem_kegg_subset@otu_table)
+
+metadata_ephem_subset <- as.data.frame(ephem_kegg_subset@sam_data)
+
+#daa_method default is "ALDex2"
+daa_results_ephem_exposed_subset <- pathway_daa(abundance = abundance_ephem_subset,
+           metadata = metadata_ephem_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_ephem_exposed_subset_no_NA<-na.omit(daa_results_ephem_exposed_subset) #Getting rid of NAs
+
+
+daa_results_ephem_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_ephem_exposed_subset_no_NA, ko_to_kegg = TRUE)
+
+daa_results_ephem_exposed_subset_annotated <- daa_results_ephem_exposed_subset_annotated[!is.na(daa_results_ephem_exposed_subset_annotated$pathway_name),]
+
+daa_results_ephem_exposed_subset_annotated$p_adjust <- round(daa_results_ephem_exposed_subset_annotated$p_adjust,5)
+
+low_p_feature <- daa_results_ephem_exposed_subset_annotated[order(daa_results_ephem_exposed_subset_annotated$p_adjust), ]$feature[1:20]
+
+
+p<-pathway_errorbar(abundance = abundance_ephem_subset,
+           daa_results_df = daa_results_ephem_exposed_subset_annotated,
+           Group = metadata_ephem_subset$Exposure,
+           ko_to_kegg = TRUE,
+           p_values_threshold = 0.001,
+           order = "pathway_class",
+           select = low_p_feature,
+           p_value_bar = TRUE,
+           colors = NULL,
+           x_lab = "pathway_name")
+
+p$theme$legend.text.align <- NULL
+
+p
+
+#ggsave(filename="microbiome_analysis\\PICRUSt2 Data\\Figures\\KEGG pathways CUSHBR vs downstream adult Ephemeroptera top 20 features.png", height=6, width=18)
+
+
+# Adult Diptera Cushing Bridge vs Policeman Flats
+
+dip_kegg<-subset_samples(picrust_Bow_kegg, Family=="Diptera")
+dip_kegg_subset<-subset_samples(dip_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(dip_kegg_subset))
+
+abundance_dip_subset <- as.data.frame(dip_kegg_subset@otu_table)
+
+metadata_dip_subset <- as.data.frame(dip_kegg_subset@sam_data)
+
+daa_results_dip_exposed_subset <- pathway_daa(abundance = abundance_dip_subset,
+           metadata = metadata_dip_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_dip_exposed_subset_no_NA<-na.omit(daa_results_dip_exposed_subset) #Getting rid of NAs
+
+
+daa_results_dip_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_dip_exposed_subset_no_NA, ko_to_kegg = TRUE)
+
+#No significant pathways
+
+
+# Araneidae Cushing Bridge vs Graves Bridge and Policeman Flats
+
+aran_kegg<-subset_samples(picrust_Bow_kegg, Family=="Araneidae")
+aran_kegg_subset<-subset_samples(aran_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(aran_kegg_subset))
+
+abundance_aran_subset <- as.data.frame(aran_kegg_subset@otu_table)
+
+metadata_aran_subset <- as.data.frame(aran_kegg_subset@sam_data)
+
+#daa_method default is "ALDex2"
+daa_results_aran_exposed_subset <- pathway_daa(abundance = abundance_aran_subset,
+           metadata = metadata_aran_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_aran_exposed_subset_no_NA<-na.omit(daa_results_aran_exposed_subset) #Getting rid of NAs
+
+
+daa_results_aran_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_aran_exposed_subset_no_NA, ko_to_kegg = TRUE)
+#No significant pathways
+
+
+# Tetragnathidae Cushing Bridge vs Graves Bridge and Policeman Flats
+
+tetra_kegg<-subset_samples(picrust_Bow_kegg, Family=="Tetragnathidae")
+tetra_kegg_subset<-subset_samples(tetra_kegg, Site!="Cochrane" & Site!="Sunalta")
+#View(sample_data(tetra_kegg_subset))
+
+abundance_tetra_subset <- as.data.frame(tetra_kegg_subset@otu_table)
+
+metadata_tetra_subset <- as.data.frame(tetra_kegg_subset@sam_data)
+
+#daa_method default is "ALDex2"
+daa_results_tetra_exposed_subset <- pathway_daa(abundance = abundance_tetra_subset,
+           metadata = metadata_tetra_subset,
+           group = "Exposure",
+           daa_method = "DESeq2",
+           select = NULL,
+           p.adjust = "BH")
+
+daa_results_tetra_exposed_subset_no_NA<-na.omit(daa_results_tetra_exposed_subset) #Getting rid of NAs
+
+
+daa_results_tetra_exposed_subset_annotated <- pathway_annotation(pathway = "KO", daa_results_df = daa_results_tetra_exposed_subset_no_NA, ko_to_kegg = TRUE)
+#No significant pathways
+
+```
+## ggpicrust2 DAA graph - MetaCyc pathways
+```{r}
+
 
 ```
